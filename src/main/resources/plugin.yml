@@ -1,0 +1,10 @@
+name: Inferris
+main: com.inferris.Inferris
+version: 1.0
+author: [Refrizor]
+
+commands:
+  config:
+    description: Reload
+  bungeetest:
+    description: Test

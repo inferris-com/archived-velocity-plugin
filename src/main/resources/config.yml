@@ -1,0 +1,6 @@
+database:
+  address: localhost
+  port: 3306
+  database: inferris
+  user: mcmaster
+  password: 123

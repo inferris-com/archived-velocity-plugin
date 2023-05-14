@@ -1,0 +1,72 @@
+#file: noinspection SpellCheckingInspection
+ranks:
+  admin:
+    - litebans.admin
+    - litebans.broadcast
+    - litebans.allow
+    - litebans.unlink
+    - litebans.prunehistory
+    - litebans.iphistory
+    - litebans.staffrollback
+    - litebans.ipban
+    - litebans.ipban.wildcard
+    - litebans.ipmute
+    - litebans.ipmute.wildcard
+    - litebans.staffhistory
+    - litebans.lockdown
+    - litebans.clearchat
+    - litebans.mutechat
+    - litebans.unban.queue
+    - litebans.public
+    - litebans.override
+    - litebans.unban.own
+    - litebans.cooldown.bypass
+    - litebans.clearchat.bypass
+    - litebans.togglechat.bypass
+    - litebans.unlimited.mute
+    - litebans.unlimited.ban
+    - litebans.group.unlimited
+    - litebans.lockdown.bypass
+    - bungeecord.command.alert
+    - bungeecord.command.end
+    - bungeecord.command.find
+    - bungeecord.command.list
+    - bungeecord.command.reload
+    - bungeecord.command.ip
+    - bungeecord.command.send
+    - bungeecord.command.kick
+#    - litebans.exempt
+
+  mod:
+    - litebans.ban
+    - litebans.tempban
+    - litebans.mute
+    - litebans.tempmute
+    - litebans.warn
+    - litebans.unban
+    - litebans.unmute
+    - litebans.unmute.own
+    - litebans.unwarn
+    - litebans.unwarn.own
+    - litebans.kick
+    - litebans.kick.global
+    - litebans.checkban
+    - litebans.checkmute
+    - litebans.banlist
+    - litebans.warnings
+    - litebans.warnings.self
+    - litebans.history
+    - litebans.lastuuid
+    - litebans.dupeip
+    - litebans.ipreport
+    - litebans.geoip
+    - litebans.extrasilent
+    - litebans.dupeip.viewip
+  helper:
+    - litebans.tabcomplete
+  donor:
+    - inf.test
+
+  none:
+    - bungeecord.command.server
+    - bungeecord.command.list
