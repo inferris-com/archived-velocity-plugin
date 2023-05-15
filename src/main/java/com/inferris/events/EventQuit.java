@@ -1,5 +1,6 @@
 package com.inferris.events;
 
+import com.inferris.Inferris;
 import com.inferris.channel.Tags;
 import com.inferris.channel.ChannelManager;
 import com.inferris.player.PlayerDataManager;
