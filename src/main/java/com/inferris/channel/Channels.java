@@ -1,6 +1,5 @@
 package com.inferris.channel;
 
-import com.inferris.Tags;
 import net.md_5.bungee.api.ChatColor;
 
 public enum Channels {

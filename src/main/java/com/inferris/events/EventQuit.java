@@ -1,6 +1,6 @@
 package com.inferris.events;
 
-import com.inferris.Tags;
+import com.inferris.channel.Tags;
 import com.inferris.channel.ChannelManager;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.Branch;
@@ -9,7 +9,6 @@ import com.inferris.rank.RankRegistry;
 import com.inferris.rank.RanksManager;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;

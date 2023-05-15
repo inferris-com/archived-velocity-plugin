@@ -10,6 +10,7 @@ import com.inferris.events.EventQuit;
 import com.inferris.events.OnReceive;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.commands.CommandTest;
+import com.inferris.util.ConfigUtils;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.plugin.PluginManager;
 import net.md_5.bungee.config.Configuration;
@@ -31,9 +32,12 @@ public class Inferris extends Plugin {
     private Path dataDirectory;
     private static Properties properties;
     private static File configFile;
-    private static Configuration configuration;
     private static File permissionsFile;
+    private static File playersFile;
+
+    private static Configuration configuration;
     private static Configuration permissionsConfiguration;
+    private static Configuration playersConfiguration;
 
     @Override
     public void onEnable() {
@@ -65,6 +69,12 @@ public class Inferris extends Plugin {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        playersFile = new File(getDataFolder(), "players.yml");
+        playersConfiguration = ConfigUtils.createConfigFile(playersFile, playersConfiguration, "players");
+
+        Initializer initializer = new Initializer();
+        Initializer.loadPlayerRegistry();
     }
 
     @Override
@@ -110,6 +120,24 @@ public class Inferris extends Plugin {
         }
     }
 
+    public void createPlayersConfig() {
+        try {
+            if (!getDataFolder().exists()) {
+                getDataFolder().mkdirs(); // create the Inferris folder if it does not exist
+            }
+
+            permissionsFile = new File(getDataFolder(), "players.yml");
+
+            if (!permissionsFile.exists()) {
+                InputStream defaultConfig = Inferris.class.getResourceAsStream("/players.yml");
+                Files.copy(defaultConfig, permissionsFile.toPath());
+            }
+            permissionsConfiguration = ConfigurationProvider.getProvider(YamlConfiguration.class).load(permissionsFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private static void getConfig() {
         File pluginFolder = new File("plugins/Inferris");
         if (!pluginFolder.exists()) {
@@ -143,11 +171,27 @@ public class Inferris extends Plugin {
         return permissionsFile;
     }
 
+    public static File getPlayersFile() {
+        return playersFile;
+    }
+
     public static Configuration getConfiguration() {
         return configuration;
     }
 
+    public static Configuration getPlayersConfiguration() {
+        return playersConfiguration;
+    }
+
     public static Inferris getInstance() {
         return instance;
+    }
+
+    public static void setPermissionsConfiguration(Configuration permissionsConfiguration) {
+        Inferris.permissionsConfiguration = permissionsConfiguration;
+    }
+
+    public static void setPlayersConfiguration(Configuration playersConfiguration) {
+        Inferris.playersConfiguration = playersConfiguration;
     }
 }
