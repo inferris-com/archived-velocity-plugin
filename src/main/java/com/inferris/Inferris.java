@@ -74,7 +74,7 @@ public class Inferris extends Plugin {
         playersConfiguration = ConfigUtils.createConfigFile(playersFile, playersConfiguration, "players");
 
         Initializer initializer = new Initializer();
-        Initializer.loadPlayerRegistry();
+        initializer.loadPlayerRegistry();
     }
 
     @Override

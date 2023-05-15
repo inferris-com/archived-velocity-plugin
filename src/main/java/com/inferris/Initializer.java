@@ -20,7 +20,7 @@ public class Initializer {
         playerRegistryCache = CacheBuilder.newBuilder().build();
     }
 
-    public static void loadPlayerRegistry() {
+    public void loadPlayerRegistry() {
         try (Connection connection = DatabasePool.getConnection();
              PreparedStatement query = connection.prepareStatement("SELECT * FROM players")) {
 
