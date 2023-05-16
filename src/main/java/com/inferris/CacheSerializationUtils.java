@@ -28,7 +28,6 @@ public class CacheSerializationUtils {
         if (message.equalsIgnoreCase("request")) {
             Cache<UUID, String> cache = Initializer.getPlayerRegistryCache();
 
-
             ObjectMapper objectMapper = createObjectMapper();
 
             String cacheJson = objectMapper.writeValueAsString(cache);

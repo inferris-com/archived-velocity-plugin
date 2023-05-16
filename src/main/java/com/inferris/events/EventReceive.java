@@ -43,6 +43,7 @@ public class EventReceive implements Listener {
             case "inferris:player_registry" -> {
                 DataInputStream in = new DataInputStream((new ByteArrayInputStream(event.getData())));
                 String message = in.readUTF();
+
                 CacheSerializationUtils cacheSerializationUtils = new CacheSerializationUtils();
                 cacheSerializationUtils.handlePlayerRegistryRequest(event);
             }

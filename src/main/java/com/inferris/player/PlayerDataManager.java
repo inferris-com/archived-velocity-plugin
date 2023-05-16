@@ -17,7 +17,7 @@ public class PlayerDataManager {
     private static PlayerDataManager instance;
     private final Cache<UUID,PlayerData> playerDataCache;
 
-    public PlayerDataManager(){
+    private PlayerDataManager(){
         playerDataCache = Caffeine.newBuilder().build();
     }
 

@@ -44,7 +44,7 @@ public class Inferris extends Plugin {
         createConfig();
         createPermissionsConfig();
 
-        PlayerDataManager playerDataManager = new PlayerDataManager();
+        PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
 
         PluginManager pluginManager = getProxy().getPluginManager();
         pluginManager.registerListener(this, new EventJoin());
