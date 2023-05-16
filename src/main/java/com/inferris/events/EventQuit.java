@@ -1,8 +1,6 @@
 package com.inferris.events;
 
-import com.inferris.Inferris;
-import com.inferris.channel.Tags;
-import com.inferris.channel.ChannelManager;
+import com.inferris.Tags;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
@@ -23,19 +21,17 @@ public class EventQuit implements Listener {
         ProxiedPlayer player = event.getPlayer();
         Rank rank = RanksManager.getInstance().getRank(player);
         RanksManager ranksManager = RanksManager.getInstance();
-        ChannelManager channelManager = ChannelManager.getInstance();
         RankRegistry rankRegistry = PlayerDataManager.getInstance().getPlayerData(player).getByBranch();
 
         if(rank.getBranchID(Branch.STAFF) >=1){
             for(ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()){
                 if(ranksManager.getRank(proxiedPlayers).getBranchID(Branch.STAFF) >= 1){
-                    proxiedPlayers.sendMessage(new TextComponent(Tags.STAFF.getText(true) + rankRegistry.getPrefix(true) + player.getName() + ChatColor.YELLOW + " disconnected"));
+                    proxiedPlayers.sendMessage(new TextComponent(Tags.STAFF.getName(true) + rankRegistry.getPrefix(true) + player.getName() + ChatColor.YELLOW + " disconnected"));
                 }
             }
         }
 
         RanksManager.getInstance().invalidate(player);
         PlayerDataManager.getInstance().invalidatePlayerData(player);
-        channelManager.invalidate(player);
     }
 }

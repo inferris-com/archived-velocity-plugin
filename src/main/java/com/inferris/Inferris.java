@@ -2,7 +2,6 @@ package com.inferris;
 
 import com.inferris.commands.CommandConfig;
 import com.inferris.database.DatabasePool;
-import com.inferris.events.EventChat;
 import com.inferris.events.EventJoin;
 import com.inferris.events.EventQuit;
 import com.inferris.events.EventReceive;
@@ -48,7 +47,6 @@ public class Inferris extends Plugin {
         PluginManager pluginManager = getProxy().getPluginManager();
         pluginManager.registerListener(this, new EventJoin());
         pluginManager.registerListener(this, new EventQuit());
-        pluginManager.registerListener(this, new EventChat());
         pluginManager.registerListener(this, new EventReceive());
         pluginManager.registerCommand(this, new CommandTest("bungeetest"));
         pluginManager.registerCommand(this, new CommandConfig("config"));
