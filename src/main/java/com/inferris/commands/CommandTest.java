@@ -34,15 +34,25 @@ public class CommandTest extends Command {
             if (length == 2) {
                 if (args[0].equalsIgnoreCase("perms")) {
                     List<String> adminPermissions = Inferris.getPermissionsConfiguration().getStringList("ranks." + args[1]);
-
                     player.sendMessage(new TextComponent(adminPermissions.toString()));
+
+                }else if(args[0].equalsIgnoreCase("registry")){
+                    if(args[1].equalsIgnoreCase("invalidate")){
+                        Initializer.getPlayerRegistryCache().asMap().clear();
+                        player.sendMessage(new TextComponent(ChatColor.GREEN + "Invalidated registry"));
+
+                    }else if(args[1].equalsIgnoreCase("reload")){
+                        Initializer.getPlayerRegistryCache().asMap().clear();
+                        new Initializer().loadPlayerRegistry();
+                        player.sendMessage(new TextComponent(ChatColor.GREEN + "Reloaded registry"));
+                    }
                 }
             }
 
             if (length == 3) {
                 if (args[0].equalsIgnoreCase("registry") && args[1].equalsIgnoreCase("remove")) {
                     UUID uuid = UUID.fromString(args[2]);
-                    Initializer.getPlayerRegistryCache().invalidate(player.getUniqueId());
+                    Initializer.getPlayerRegistryCache().invalidate(UUID.fromString(args[2]));
                     player.sendMessage(new TextComponent(ChatColor.GREEN + "Removed " + uuid + " from registry"));
                 }
             }

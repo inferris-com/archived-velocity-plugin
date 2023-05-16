@@ -38,6 +38,13 @@ public class PlayerDataManager {
     }
 
     public void checkJoinedBefore(ProxiedPlayer player) {
+
+        Cache<UUID, String> registryCache = Initializer.getPlayerRegistryCache();
+        String username = registryCache.asMap().get(player.getUniqueId());
+        if(registryCache.getIfPresent(player.getUniqueId()) != null && player.getName().equalsIgnoreCase(username)){
+            return;
+        }
+
         try (Connection connection = DatabasePool.getConnection();
              PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM players WHERE uuid = ?");
              PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO players (uuid, username, is_vanished) VALUES (?, ?, ?)");
@@ -51,12 +58,13 @@ public class PlayerDataManager {
 
                 Inferris.getInstance().getLogger().info("Properly in table");
 
-
                 if(!player.getName().equalsIgnoreCase(storedUsername)){
                     updateStatement.setString(1, player.getName());
                     updateStatement.setString(2, player.getUniqueId().toString());
                     updateStatement.executeUpdate();
-                    Inferris.getInstance().getLogger().info("Updated username");
+                    Inferris.getInstance().getLogger().warning("Updated username");
+                    registryCache.invalidate(player.getUniqueId());
+                    registryCache.put(player.getUniqueId(), player.getName());
                 }
             }else{
                 insertStatement.setString(1, player.getUniqueId().toString());
@@ -64,24 +72,9 @@ public class PlayerDataManager {
                 insertStatement.setInt(3, 0);
                 insertStatement.execute();
                 Inferris.getInstance().getLogger().info("Added player to table");
+                registryCache.invalidate(player.getUniqueId());
+                registryCache.put(player.getUniqueId(), player.getName());
 
-            }
-
-            com.github.benmanes.caffeine.cache.Cache<UUID, String> playerRegistryCache = Initializer.getPlayerRegistryCache();
-
-            if(playerRegistryCache.asMap().containsKey(player.getUniqueId())){
-                Inferris.getInstance().getLogger().info("Registry contains uuid");
-                String cachedUsername = playerRegistryCache.getIfPresent(player.getUniqueId());
-                if(!player.getName().equals(cachedUsername)){
-                    Inferris.getInstance().getLogger().warning("Registry contains uuid but username changed, invalidating and caching");
-
-                    playerRegistryCache.invalidate(player.getUniqueId());
-                    playerRegistryCache.put(player.getUniqueId(), player.getName());
-                }
-            }else{
-                Inferris.getInstance().getLogger().info("Registry record not found, so I'm adding to registry");
-
-                playerRegistryCache.put(player.getUniqueId(), player.getName());
             }
         }catch(SQLException e){
             e.printStackTrace();

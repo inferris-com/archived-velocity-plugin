@@ -47,27 +47,6 @@ public class EventJoin implements Listener {
         }
 
         playerDataManager.checkJoinedBefore(player);
-
-        Configuration configuration = Inferris.getPlayersConfiguration();
-        if (PlayerUtils.isPlayerInConfig(player)) {
-            Inferris.getInstance().getLogger().warning("Debug zone 1: They are in the config");
-            if (!PlayerUtils.isPlayerMatchedToConfig(player)) {
-                configuration.set("players." + player.getUniqueId().toString() + "username", player.getName());
-                configUtils.saveConfiguration(Inferris.getPlayersFile(), Inferris.getPlayersConfiguration());
-                configUtils.reloadConfiguration(ConfigUtils.Types.PLAYERS);
-                Inferris.getInstance().getLogger().warning("Debug NOT matched to config");
-            }
-        } else {
-
-            configuration.set("players." + player.getUniqueId().toString() + ".username", player.getName());
-            configUtils.saveConfiguration(Inferris.getPlayersFile(), Inferris.getPlayersConfiguration());
-            configUtils.reloadConfiguration(ConfigUtils.Types.PLAYERS);
-
-            //Inferris.getInstance().createPlayersConfig(); // Reloads the config
-
-            Inferris.getInstance().getLogger().warning("Debug, added to config!");
-
-        }
     }
 
     private void sendHeader(ProxiedPlayer player) {
