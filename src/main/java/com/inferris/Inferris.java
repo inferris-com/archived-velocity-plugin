@@ -1,6 +1,5 @@
 package com.inferris;
 
-import com.inferris.commands.CommandChannel;
 import com.inferris.commands.CommandConfig;
 import com.inferris.database.DatabasePool;
 import com.inferris.events.EventChat;
@@ -52,7 +51,6 @@ public class Inferris extends Plugin {
         pluginManager.registerListener(this, new EventChat());
         pluginManager.registerListener(this, new EventReceive());
         pluginManager.registerCommand(this, new CommandTest("bungeetest"));
-        pluginManager.registerCommand(this, new CommandChannel("channel"));
         pluginManager.registerCommand(this, new CommandConfig("config"));
 
         getProxy().registerChannel(BungeeChannels.STAFFCHAT.getName());

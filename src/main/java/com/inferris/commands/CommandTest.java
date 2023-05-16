@@ -57,6 +57,7 @@ public class CommandTest extends Command {
                 }
             }
 
+
             if(length == 4){
                 if(args[0].equalsIgnoreCase("registry")) {
                     //debug 1.registry 2.add 3.uuid 4.username
