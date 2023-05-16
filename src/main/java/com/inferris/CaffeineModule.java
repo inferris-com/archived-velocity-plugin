@@ -26,10 +26,11 @@ public class CaffeineModule extends SimpleModule {
         @Override
         public void serialize(Cache cache, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
             // Serialize the cache contents or any other relevant information
-            jsonGenerator.disable(JsonGenerator.Feature.ESCAPE_NON_ASCII);
+            objectMapper.configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, false);
 
             String serializedCache = objectMapper.writeValueAsString(cache.asMap());
-            jsonGenerator.writeString(serializedCache);
+            //jsonGenerator.writeString(serializedCache);
+            jsonGenerator.writeRawValue(serializedCache);
         }
 
         private static class CaffeineCacheDeserializer extends JsonDeserializer<Cache<?, ?>> {
