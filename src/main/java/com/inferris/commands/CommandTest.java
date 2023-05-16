@@ -30,8 +30,7 @@ public class CommandTest extends Command {
                     }
                 }
             }
-
-
+            
             if (length == 2) {
                 if (args[0].equalsIgnoreCase("perms")) {
                     List<String> adminPermissions = Inferris.getPermissionsConfiguration().getStringList("ranks." + args[1]);

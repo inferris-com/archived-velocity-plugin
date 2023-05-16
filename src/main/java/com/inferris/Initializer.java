@@ -1,9 +1,8 @@
 package com.inferris;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.inferris.database.DatabasePool;
-import net.md_5.bungee.api.plugin.Plugin;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -17,7 +16,7 @@ public class Initializer {
 
     public Initializer(){
 
-        playerRegistryCache = CacheBuilder.newBuilder().build();
+        playerRegistryCache = Caffeine.newBuilder().build();
     }
 
     public void loadPlayerRegistry() {

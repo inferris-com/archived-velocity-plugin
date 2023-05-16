@@ -1,29 +1,27 @@
 package com.inferris;
 
-import com.inferris.channel.ChannelManager;
 import com.inferris.commands.CommandChannel;
 import com.inferris.commands.CommandConfig;
 import com.inferris.database.DatabasePool;
 import com.inferris.events.EventChat;
 import com.inferris.events.EventJoin;
 import com.inferris.events.EventQuit;
-import com.inferris.events.OnReceive;
+import com.inferris.events.EventReceive;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.commands.CommandTest;
+import com.inferris.util.BungeeChannels;
 import com.inferris.util.ConfigUtils;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.plugin.PluginManager;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 
@@ -52,12 +50,13 @@ public class Inferris extends Plugin {
         pluginManager.registerListener(this, new EventJoin());
         pluginManager.registerListener(this, new EventQuit());
         pluginManager.registerListener(this, new EventChat());
-        pluginManager.registerListener(this, new OnReceive());
+        pluginManager.registerListener(this, new EventReceive());
         pluginManager.registerCommand(this, new CommandTest("bungeetest"));
         pluginManager.registerCommand(this, new CommandChannel("channel"));
         pluginManager.registerCommand(this, new CommandConfig("config"));
 
-        getProxy().registerChannel("inferris:staffchat");
+        getProxy().registerChannel(BungeeChannels.STAFFCHAT.getName());
+        getProxy().registerChannel(BungeeChannels.PLAYER_REGISTRY.getName());
 
         try {
             Connection connection = DatabasePool.getConnection();

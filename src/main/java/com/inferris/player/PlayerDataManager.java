@@ -67,7 +67,7 @@ public class PlayerDataManager {
 
             }
 
-            Cache<UUID, String> playerRegistryCache = Initializer.getPlayerRegistryCache();
+            com.github.benmanes.caffeine.cache.Cache<UUID, String> playerRegistryCache = Initializer.getPlayerRegistryCache();
 
             if(playerRegistryCache.asMap().containsKey(player.getUniqueId())){
                 Inferris.getInstance().getLogger().info("Registry contains uuid");
