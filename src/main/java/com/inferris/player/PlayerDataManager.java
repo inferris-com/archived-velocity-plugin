@@ -1,7 +1,7 @@
 package com.inferris.player;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.inferris.Inferris;
 import com.inferris.Initializer;
 import com.inferris.database.DatabasePool;
@@ -18,7 +18,7 @@ public class PlayerDataManager {
     private final Cache<UUID,PlayerData> playerDataCache;
 
     public PlayerDataManager(){
-        playerDataCache = CacheBuilder.newBuilder().build();
+        playerDataCache = Caffeine.newBuilder().build();
     }
 
     public static synchronized PlayerDataManager getInstance(){

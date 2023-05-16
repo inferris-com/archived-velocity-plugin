@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import com.inferris.CacheSerializationUtils;
 import com.inferris.CaffeineModule;
 import com.inferris.Inferris;
 import com.inferris.Initializer;
@@ -42,37 +43,8 @@ public class EventReceive implements Listener {
             case "inferris:player_registry" -> {
                 DataInputStream in = new DataInputStream((new ByteArrayInputStream(event.getData())));
                 String message = in.readUTF();
-                if (message.equalsIgnoreCase("request")) {
-
-                    ObjectMapper mapper = new ObjectMapper();
-                    CaffeineModule caffeineModule = new CaffeineModule();
-                    mapper.registerModule(caffeineModule);
-                    mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-
-                    Cache<UUID, String> cache = Initializer.getPlayerRegistryCache(); // Your Caffeine cache
-                    String cacheJson;
-                    try{
-                        cacheJson = mapper.writeValueAsString(cache);
-                    }catch(JsonProcessingException e){
-                        e.printStackTrace();
-                        return;
-                    }
-
-
-                    ByteArrayDataOutput out = ByteStreams.newDataOutput();
-
-                    ProxyServer.getInstance().getLogger().warning("Received " + message);
-
-                    out.writeUTF(BungeeChannels.PLAYER_REGISTRY.getName());
-                    out.writeUTF("response");
-                    out.writeUTF(cacheJson);
-
-                    if(event.getReceiver() instanceof ProxiedPlayer player) {
-                        Inferris.getInstance().getLogger().warning(cache.getIfPresent(player.getUniqueId()));
-
-                        player.getServer().sendData(BungeeChannels.PLAYER_REGISTRY.getName(), out.toByteArray());
-                    }
-                }
+                CacheSerializationUtils cacheSerializationUtils = new CacheSerializationUtils();
+                cacheSerializationUtils.handlePlayerRegistryRequest(event);
             }
         }
     }
