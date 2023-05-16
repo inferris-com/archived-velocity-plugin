@@ -41,6 +41,7 @@ public class EventReceive implements Listener {
 
                     out.writeUTF(BungeeChannels.PLAYER_REGISTRY.getName());
                     out.writeUTF("response");
+                    out.writeInt(36);
 
                     if(event.getReceiver() instanceof ProxiedPlayer player) {
                         player.getServer().sendData(BungeeChannels.PLAYER_REGISTRY.getName(), out.toByteArray());
