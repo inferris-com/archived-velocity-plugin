@@ -1,7 +1,9 @@
 package com.inferris.commands;
 
 import com.inferris.*;
-import com.inferris.Channels;
+import com.inferris.player.Channels;
+import com.inferris.player.registry.Registry;
+import com.inferris.player.registry.RegistryManager;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;

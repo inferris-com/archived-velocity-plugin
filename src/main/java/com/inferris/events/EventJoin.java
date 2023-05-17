@@ -1,6 +1,6 @@
 package com.inferris.events;
 
-import com.inferris.Tags;
+import com.inferris.util.Tags;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.*;
 import com.inferris.util.ConfigUtils;

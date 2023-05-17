@@ -2,10 +2,9 @@ package com.inferris.player;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.inferris.Channels;
 import com.inferris.Inferris;
-import com.inferris.Registry;
-import com.inferris.RegistryManager;
+import com.inferris.player.registry.Registry;
+import com.inferris.player.registry.RegistryManager;
 import com.inferris.database.DatabasePool;
 import com.inferris.util.ConfigUtils;
 import net.md_5.bungee.api.connection.ProxiedPlayer;

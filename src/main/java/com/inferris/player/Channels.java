@@ -1,4 +1,4 @@
-package com.inferris;
+package com.inferris.player;
 
 public enum Channels {
     STAFF("STAFF"),

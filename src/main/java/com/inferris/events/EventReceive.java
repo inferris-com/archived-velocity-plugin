@@ -1,20 +1,14 @@
 package com.inferris.events;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.benmanes.caffeine.cache.Cache;
-import com.google.common.io.ByteArrayDataOutput;
-import com.google.common.io.ByteStreams;
 import com.inferris.*;
+import com.inferris.player.Channels;
 import com.inferris.player.PlayerDataManager;
+import com.inferris.player.registry.RegistryManager;
 import com.inferris.rank.Branch;
-import com.inferris.rank.Rank;
 import com.inferris.rank.RankRegistry;
 import com.inferris.rank.RanksManager;
-import com.inferris.util.BungeeChannels;
-import com.inferris.util.ConfigUtils;
+import com.inferris.util.*;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -24,9 +18,7 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.event.EventHandler;
 
-import java.awt.*;
 import java.io.*;
-import java.util.UUID;
 
 public class EventReceive implements Listener {
     private final ObjectMapper objectMapper = new ObjectMapper();

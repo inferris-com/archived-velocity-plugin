@@ -1,4 +1,6 @@
-package com.inferris;
+package com.inferris.player.registry;
+
+import com.inferris.player.Channels;
 
 import java.io.Serializable;
 import java.util.UUID;

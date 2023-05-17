@@ -1,4 +1,4 @@
-package com.inferris;
+package com.inferris.util;
 
 public enum Subchannel {
     REQUEST,

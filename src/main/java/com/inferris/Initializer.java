@@ -1,6 +1,9 @@
 package com.inferris;
 
 import com.inferris.database.DatabasePool;
+import com.inferris.player.Channels;
+import com.inferris.player.registry.Registry;
+import com.inferris.player.registry.RegistryManager;
 import com.inferris.util.ConfigUtils;
 import net.md_5.bungee.config.Configuration;
 

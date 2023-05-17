@@ -1,7 +1,8 @@
-package com.inferris;
+package com.inferris.player.registry;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.inferris.player.Channels;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.util.UUID;
