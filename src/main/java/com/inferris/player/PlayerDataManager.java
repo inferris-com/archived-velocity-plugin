@@ -69,6 +69,14 @@ public class PlayerDataManager {
 
                 Inferris.getInstance().getLogger().info("Properly in table");
 
+                if(!Inferris.getPlayersConfiguration().getSection("players").contains(String.valueOf(player.getUniqueId()))){
+                    Inferris.getPlayersConfiguration().getSection("players").set(player.getUniqueId() + "." + "channel", Channels.valueOf(Channels.NONE.getMessage()));
+
+                    ConfigUtils configUtils = new ConfigUtils();
+                    configUtils.saveConfiguration(Inferris.getPlayersFile(), Inferris.getPlayersConfiguration());
+                    configUtils.reloadConfiguration(ConfigUtils.Types.PLAYERS);
+                }
+
 
                 if(!player.getName().equalsIgnoreCase(storedUsername)){
                     updateStatement.setString(1, player.getName());
@@ -92,7 +100,7 @@ public class PlayerDataManager {
                 registryCache.invalidate(player.getUniqueId());
                 registryCache.put(player.getUniqueId(), new Registry(player.getUniqueId(), player.getName(), Channels.valueOf(Channels.NONE.getMessage())));
 
-                Inferris.getPlayersConfiguration().set("players." + player.getUniqueId() + "." + "channel", Channels.valueOf(Channels.NONE.getMessage()));
+                Inferris.getPlayersConfiguration().getSection("players").set(player.getUniqueId() + "." + "channel", Channels.valueOf(Channels.NONE.getMessage()));
 
                 ConfigUtils configUtils = new ConfigUtils();
                 configUtils.saveConfiguration(Inferris.getPlayersFile(), Inferris.getPlayersConfiguration());

@@ -20,7 +20,7 @@ public class CommandConfig extends Command {
 
         if(length == 1){
             if(args[0].equalsIgnoreCase("reload")){
-                Inferris.getInstance().createPermissionsConfig();
+                Inferris.getInstance().createPlayersConfig();
                 player.sendMessage(ChatColor.GREEN + "Config reloaded! " + Inferris.getInstance());
 
                 configUtils.reloadConfiguration(ConfigUtils.Types.PLAYERS);
