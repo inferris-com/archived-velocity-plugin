@@ -1,8 +1,7 @@
 package com.inferris;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import com.inferris.database.DatabasePool;
+import com.inferris.util.ConfigUtils;
 import net.md_5.bungee.config.Configuration;
 
 import java.sql.Connection;
@@ -14,7 +13,7 @@ import java.util.UUID;
 public class Initializer {
     RegistryManager registryManager;
 
-    public Initializer(){
+    public Initializer() {
         registryManager = RegistryManager.getInstance();
     }
 
@@ -24,16 +23,27 @@ public class Initializer {
 
             ResultSet resultSet = query.executeQuery();
 
-            while (resultSet.next()){
+            while (resultSet.next()) {
                 String uuid = resultSet.getString("uuid");
                 String username = resultSet.getString("username");
                 Configuration playersConfiguration = Inferris.getPlayersConfiguration();
-                Channels channel = Channels.valueOf(playersConfiguration.getString("players." + uuid + ".channel"));
-                RegistryManager.getPlayerRegistryCache().put(UUID.fromString(uuid), new Registry(UUID.fromString(uuid), username, channel));
+                Channels channel;
+
+                if (playersConfiguration.get("players." + uuid + ".channel") == null) {
+                    playersConfiguration.set("players." + uuid + ".channel", "NONE");
+                    RegistryManager.getPlayerRegistryCache().put(UUID.fromString(uuid), new Registry(UUID.fromString(uuid), username, Channels.NONE));
+                }else {
+
+                    channel = Channels.valueOf(playersConfiguration.getString("players." + uuid + ".channel"));
+                    RegistryManager.getPlayerRegistryCache().put(UUID.fromString(uuid), new Registry(UUID.fromString(uuid), username, channel));
+                }
+                ConfigUtils configUtils = new ConfigUtils();
+                configUtils.saveConfiguration(Inferris.getPlayersFile(), playersConfiguration);
+                configUtils.reloadConfiguration(ConfigUtils.Types.PLAYERS);
             }
 
             Inferris.getInstance().getLogger().warning("Player registry loaded successfully");
-        }catch(SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }

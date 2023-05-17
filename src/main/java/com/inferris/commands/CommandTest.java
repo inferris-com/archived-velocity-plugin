@@ -1,7 +1,7 @@
 package com.inferris.commands;
 
 import com.inferris.*;
-import com.inferris.rank.RanksManager;
+import com.inferris.Channels;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;

@@ -2,10 +2,9 @@ package com.inferris;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.inferris.rank.Rank;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 
 public class RegistryManager {
     private static RegistryManager instance;
@@ -23,11 +22,18 @@ public class RegistryManager {
         return instance;
     }
 
-    public Registry getRegistry(UUID uuid) {
-        if (playerRegistryCache.getIfPresent(uuid) != null) {
-            return playerRegistryCache.getIfPresent(uuid);
+    public Registry getRegistry(ProxiedPlayer player) {
+        if(playerRegistryCache.getIfPresent(player.getUniqueId()) != null){
+            return playerRegistryCache.getIfPresent(player.getUniqueId());
+        }else{
+            return addToRegistry(player);
         }
-        return null;
+    }
+
+    public Registry addToRegistry(ProxiedPlayer player){
+        Registry registry = new Registry(player.getUniqueId(), player.getName(), Channels.NONE);
+        playerRegistryCache.put(player.getUniqueId(), registry);
+        return registry;
     }
 
     public static Cache<UUID, Registry> getPlayerRegistryCache() {

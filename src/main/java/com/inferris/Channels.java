@@ -4,4 +4,8 @@ public enum Channels {
     STAFF,
     SPECIAL,
     NONE;
+
+    Channels(){
+
+    }
 }

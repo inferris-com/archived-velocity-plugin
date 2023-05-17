@@ -2,8 +2,12 @@ package com.inferris.player;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.inferris.*;
+import com.inferris.Channels;
+import com.inferris.Inferris;
+import com.inferris.Registry;
+import com.inferris.RegistryManager;
 import com.inferris.database.DatabasePool;
+import com.inferris.util.ConfigUtils;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.sql.Connection;
@@ -37,13 +41,19 @@ public class PlayerDataManager {
     }
 
     public void checkJoinedBefore(ProxiedPlayer player) {
+        Inferris.getInstance().getLogger().warning("Checking join");
 
         Cache<UUID, Registry> registryCache = RegistryManager.getPlayerRegistryCache();
-        Registry registry = RegistryManager.getInstance().getRegistry(player.getUniqueId());
+        Registry registry = RegistryManager.getInstance().getRegistry(player);
 
         String username = registry.getUsername();
+
         if(registryCache.getIfPresent(player.getUniqueId()) != null && player.getName().equalsIgnoreCase(username)){
-            return;
+            Inferris.getInstance().getLogger().warning("In registr");
+        }else{
+            registryCache.put(player.getUniqueId(), new Registry(player.getUniqueId(), player.getName(), Channels.NONE));
+            Inferris.getInstance().getLogger().warning("Not in registry, caching");
+
         }
 
         try (Connection connection = DatabasePool.getConnection();
@@ -59,6 +69,7 @@ public class PlayerDataManager {
 
                 Inferris.getInstance().getLogger().info("Properly in table");
 
+
                 if(!player.getName().equalsIgnoreCase(storedUsername)){
                     updateStatement.setString(1, player.getName());
                     updateStatement.setString(2, player.getUniqueId().toString());
@@ -70,14 +81,22 @@ public class PlayerDataManager {
                     registryCache.put(player.getUniqueId(), new Registry(player.getUniqueId(), player.getName(), channel));
                 }
             }else{
+                Inferris.getInstance().getLogger().warning("Inserting into table.");
+
                 insertStatement.setString(1, player.getUniqueId().toString());
                 insertStatement.setString(2, player.getName());
                 insertStatement.setInt(3, 0);
                 insertStatement.execute();
-                Inferris.getInstance().getLogger().info("Added player to table");
+
+                Inferris.getInstance().getLogger().severe("Added player to table");
                 registryCache.invalidate(player.getUniqueId());
-                registryCache.put(player.getUniqueId(), new Registry(player.getUniqueId(), player.getName(), Channels.NONE));
-                Inferris.getPlayersConfiguration().set("players." + player.getUniqueId() + "." + "channel", Channels.NONE);
+                registryCache.put(player.getUniqueId(), new Registry(player.getUniqueId(), player.getName(), Channels.valueOf(Channels.NONE.name())));
+
+                Inferris.getPlayersConfiguration().set("players." + player.getUniqueId() + "." + "channel", Channels.valueOf(Channels.NONE.name()));
+
+                ConfigUtils configUtils = new ConfigUtils();
+                configUtils.saveConfiguration(Inferris.getPlayersFile(), Inferris.getPlayersConfiguration());
+                configUtils.reloadConfiguration(ConfigUtils.Types.PLAYERS);
             }
         }catch(SQLException e){
             e.printStackTrace();
