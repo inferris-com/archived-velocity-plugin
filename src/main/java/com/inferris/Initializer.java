@@ -3,6 +3,7 @@ package com.inferris;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.inferris.database.DatabasePool;
+import net.md_5.bungee.config.Configuration;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,12 +12,10 @@ import java.sql.SQLException;
 import java.util.UUID;
 
 public class Initializer {
-
-    private static Cache<UUID,String> playerRegistryCache;
+    RegistryManager registryManager;
 
     public Initializer(){
-
-        playerRegistryCache = Caffeine.newBuilder().build();
+        registryManager = RegistryManager.getInstance();
     }
 
     public void loadPlayerRegistry() {
@@ -28,16 +27,14 @@ public class Initializer {
             while (resultSet.next()){
                 String uuid = resultSet.getString("uuid");
                 String username = resultSet.getString("username");
-                playerRegistryCache.put(UUID.fromString(uuid), username);
+                Configuration playersConfiguration = Inferris.getPlayersConfiguration();
+                Channels channel = Channels.valueOf(playersConfiguration.getString("players." + uuid + ".channel"));
+                RegistryManager.getPlayerRegistryCache().put(UUID.fromString(uuid), new Registry(UUID.fromString(uuid), username, channel));
             }
 
             Inferris.getInstance().getLogger().warning("Player registry loaded successfully");
         }catch(SQLException e){
             e.printStackTrace();
         }
-    }
-
-    public static Cache<UUID, String> getPlayerRegistryCache() {
-        return playerRegistryCache;
     }
 }

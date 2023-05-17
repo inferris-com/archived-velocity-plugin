@@ -26,7 +26,7 @@ public class CacheSerializationUtils {
         String message = in.readUTF();
 
         if (message.equalsIgnoreCase("request")) {
-            Cache<UUID, String> cache = Initializer.getPlayerRegistryCache();
+            Cache<UUID, Registry> cache = RegistryManager.getPlayerRegistryCache();
 
             ObjectMapper objectMapper = createObjectMapper();
 

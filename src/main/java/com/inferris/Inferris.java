@@ -41,6 +41,7 @@ public class Inferris extends Plugin {
         getLogger().info("Inferris module is enabled!");
         createConfig();
         createPermissionsConfig();
+        createPlayersConfig();
 
         PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
 

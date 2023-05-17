@@ -1,7 +1,6 @@
 package com.inferris.commands;
 
-import com.inferris.Inferris;
-import com.inferris.Initializer;
+import com.inferris.*;
 import com.inferris.rank.RanksManager;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -25,7 +24,7 @@ public class CommandTest extends Command {
 
             if(length == 1){
                 if(args[0].equalsIgnoreCase("registry")) {
-                    for (UUID uuid : Initializer.getPlayerRegistryCache().asMap().keySet()) {
+                    for (UUID uuid : RegistryManager.getPlayerRegistryCache().asMap().keySet()) {
                         player.sendMessage(new TextComponent(uuid.toString()));
                     }
                 }
@@ -38,11 +37,11 @@ public class CommandTest extends Command {
 
                 }else if(args[0].equalsIgnoreCase("registry")){
                     if(args[1].equalsIgnoreCase("invalidate")){
-                        Initializer.getPlayerRegistryCache().asMap().clear();
+                        RegistryManager.getPlayerRegistryCache().asMap().clear();
                         player.sendMessage(new TextComponent(ChatColor.GREEN + "Invalidated registry"));
 
                     }else if(args[1].equalsIgnoreCase("reload")){
-                        Initializer.getPlayerRegistryCache().asMap().clear();
+                        RegistryManager.getPlayerRegistryCache().asMap().clear();
                         new Initializer().loadPlayerRegistry();
                         player.sendMessage(new TextComponent(ChatColor.GREEN + "Reloaded registry"));
                     }
@@ -52,7 +51,7 @@ public class CommandTest extends Command {
             if (length == 3) {
                 if (args[0].equalsIgnoreCase("registry") && args[1].equalsIgnoreCase("remove")) {
                     UUID uuid = UUID.fromString(args[2]);
-                    Initializer.getPlayerRegistryCache().invalidate(UUID.fromString(args[2]));
+                    RegistryManager.getPlayerRegistryCache().invalidate(UUID.fromString(args[2]));
                     player.sendMessage(new TextComponent(ChatColor.GREEN + "Removed " + uuid + " from registry"));
                 }
             }
@@ -65,9 +64,9 @@ public class CommandTest extends Command {
                         UUID uuid = UUID.fromString(args[2]);
                         String username = args[3];
                         if(player.getUniqueId().equals(uuid)){
-                            Initializer.getPlayerRegistryCache().invalidate(player.getUniqueId());
+                            RegistryManager.getPlayerRegistryCache().invalidate(player.getUniqueId());
                         }
-                        Initializer.getPlayerRegistryCache().put(uuid, username);
+                        RegistryManager.getPlayerRegistryCache().put(uuid, new Registry(uuid, username, Channels.NONE));
                         player.sendMessage(new TextComponent(ChatColor.GREEN + "Added " + username + " to registry"));
                     }
                 }
