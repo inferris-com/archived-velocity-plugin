@@ -7,6 +7,7 @@ import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
+import net.md_5.bungee.config.Configuration;
 
 import java.util.List;
 import java.util.UUID;
@@ -27,6 +28,11 @@ public class CommandTest extends Command {
                     for (UUID uuid : RegistryManager.getPlayerRegistryCache().asMap().keySet()) {
                         player.sendMessage(new TextComponent(uuid.toString()));
                     }
+                }
+                if(args[0].equalsIgnoreCase("players")){
+                    Configuration configuration = Inferris.getPlayersConfiguration().getSection("players");
+                    player.sendMessage(new TextComponent(configuration.get(player.getUniqueId() + ".channel").toString()));
+
                 }
             }
             

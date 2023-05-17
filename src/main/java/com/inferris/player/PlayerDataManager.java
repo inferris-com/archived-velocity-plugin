@@ -75,6 +75,9 @@ public class PlayerDataManager {
                     ConfigUtils configUtils = new ConfigUtils();
                     configUtils.saveConfiguration(Inferris.getPlayersFile(), Inferris.getPlayersConfiguration());
                     configUtils.reloadConfiguration(ConfigUtils.Types.PLAYERS);
+                    player.sendMessage("Oops!");
+                }else {
+                    player.sendMessage("Fine");
                 }
 
 

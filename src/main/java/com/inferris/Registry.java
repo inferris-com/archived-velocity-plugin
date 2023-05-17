@@ -6,7 +6,7 @@ import java.util.UUID;
 public class Registry implements Serializable {
     private final UUID uuid;
     private final String username;
-    private final Channels channel;
+    private Channels channel;
     public Registry(UUID uuid, String username, Channels channel){
         this.uuid = uuid;
         this.username = username;
@@ -23,5 +23,9 @@ public class Registry implements Serializable {
 
     public Channels getChannel() {
         return channel;
+    }
+
+    public Channels setChannel(Channels channels){
+        return this.channel = channels;
     }
 }

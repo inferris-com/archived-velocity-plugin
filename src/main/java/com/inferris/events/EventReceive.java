@@ -7,17 +7,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
-import com.inferris.CacheSerializationUtils;
-import com.inferris.CaffeineModule;
-import com.inferris.Inferris;
-import com.inferris.Initializer;
+import com.inferris.*;
+import com.inferris.player.PlayerDataManager;
+import com.inferris.rank.Branch;
+import com.inferris.rank.Rank;
+import com.inferris.rank.RankRegistry;
+import com.inferris.rank.RanksManager;
 import com.inferris.util.BungeeChannels;
+import com.inferris.util.ConfigUtils;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.plugin.Listener;
+import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.event.EventHandler;
 
+import java.awt.*;
 import java.io.*;
 import java.util.UUID;
 
@@ -28,24 +35,51 @@ public class EventReceive implements Listener {
     public void onPluginMessage(PluginMessageEvent event) throws IOException {
         String tag = event.getTag();
         String bungeeChannels = BungeeChannels.BUNGEECORD.getName();
+        if (event.getReceiver() instanceof ProxiedPlayer player) {
 
-        switch (tag) {
+            switch (tag) {
+                case "inferris:staffchat" -> {
+                    DataInputStream in = new DataInputStream((new ByteArrayInputStream(event.getData())));
+                    try {
+                        String subchannel = in.readUTF();
+                        String message = in.readUTF();
 
-            case "inferris:staffchat" -> {
-                DataInputStream in = new DataInputStream((new ByteArrayInputStream(event.getData())));
-                try {
-                    String message = in.readUTF();
-                    ProxyServer.getInstance().getLogger().warning("WOOOOOOOOOOO!");
-                } catch (IOException e) {
-                    e.printStackTrace();
+                        if (subchannel.equalsIgnoreCase(Subchannel.FORWARD.toLowerCase())) {
+
+                            ProxyServer proxyServer = ProxyServer.getInstance();
+                            RankRegistry rank = PlayerDataManager.getInstance().getPlayerData(player).getByBranch();
+                            TextComponent textComponent = new TextComponent(Tags.STAFF.getName(true)
+                                    + rank.getPrefix(true) + player.getName() + ChatColor.RESET + ": " + message);
+
+                            for (ProxiedPlayer proxiedPlayers : proxyServer.getPlayers()) {
+                                if (RanksManager.getInstance().getRank(proxiedPlayers).getBranchID(Branch.STAFF) >= 1) {
+                                    proxiedPlayers.sendMessage(textComponent);
+                                }
+                            }
+                        }
+
+                        if (subchannel.equalsIgnoreCase(Subchannel.REQUEST.toLowerCase())) {
+                            Channels channel = Channels.valueOf(message.toUpperCase());
+                            Configuration configuration = Inferris.getPlayersConfiguration();
+                            configuration.getSection("players").set(player.getUniqueId() + ".channel", channel.toString());
+                            new ConfigUtils().saveConfiguration(Inferris.getPlayersFile(), configuration);
+                            new ConfigUtils().reloadConfiguration(ConfigUtils.Types.PLAYERS);
+
+                            Inferris.getInstance().getLogger().severe("Channel set to " + channel);
+
+                            RegistryManager.getInstance().getRegistry(player).setChannel(channel);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-            }
-            case "inferris:player_registry" -> {
-                DataInputStream in = new DataInputStream((new ByteArrayInputStream(event.getData())));
-                String message = in.readUTF();
+                case "inferris:player_registry" -> {
+                    DataInputStream in = new DataInputStream((new ByteArrayInputStream(event.getData())));
+                    String message = in.readUTF();
 
-                CacheSerializationUtils cacheSerializationUtils = new CacheSerializationUtils();
-                cacheSerializationUtils.handlePlayerRegistryRequest(event);
+                    CacheSerializationUtils cacheSerializationUtils = new CacheSerializationUtils();
+                    cacheSerializationUtils.handlePlayerRegistryRequest(event);
+                }
             }
         }
     }
