@@ -51,7 +51,7 @@ public class PlayerDataManager {
         if(registryCache.getIfPresent(player.getUniqueId()) != null && player.getName().equalsIgnoreCase(username)){
             Inferris.getInstance().getLogger().warning("In registr");
         }else{
-            registryCache.put(player.getUniqueId(), new Registry(player.getUniqueId(), player.getName(), Channels.NONE));
+            registryCache.put(player.getUniqueId(), new Registry(player.getUniqueId(), player.getName(), Channels.valueOf(Channels.NONE.getMessage())));
             Inferris.getInstance().getLogger().warning("Not in registry, caching");
 
         }
@@ -90,9 +90,9 @@ public class PlayerDataManager {
 
                 Inferris.getInstance().getLogger().severe("Added player to table");
                 registryCache.invalidate(player.getUniqueId());
-                registryCache.put(player.getUniqueId(), new Registry(player.getUniqueId(), player.getName(), Channels.valueOf(Channels.NONE.name())));
+                registryCache.put(player.getUniqueId(), new Registry(player.getUniqueId(), player.getName(), Channels.valueOf(Channels.NONE.getMessage())));
 
-                Inferris.getPlayersConfiguration().set("players." + player.getUniqueId() + "." + "channel", Channels.valueOf(Channels.NONE.name()));
+                Inferris.getPlayersConfiguration().set("players." + player.getUniqueId() + "." + "channel", Channels.valueOf(Channels.NONE.getMessage()));
 
                 ConfigUtils configUtils = new ConfigUtils();
                 configUtils.saveConfiguration(Inferris.getPlayersFile(), Inferris.getPlayersConfiguration());

@@ -1,11 +1,16 @@
 package com.inferris;
 
 public enum Channels {
-    STAFF,
-    SPECIAL,
-    NONE;
+    STAFF("STAFF"),
+    SPECIAL("SPECIAL"),
+    NONE("NONE");
 
-    Channels(){
+    private final String message;
+    Channels(String message){
+        this.message = message;
+    }
 
+    public String getMessage() {
+        return message;
     }
 }

@@ -31,7 +31,7 @@ public class Initializer {
 
                 if (playersConfiguration.get("players." + uuid + ".channel") == null) {
                     playersConfiguration.set("players." + uuid + ".channel", "NONE");
-                    RegistryManager.getPlayerRegistryCache().put(UUID.fromString(uuid), new Registry(UUID.fromString(uuid), username, Channels.NONE));
+                    RegistryManager.getPlayerRegistryCache().put(UUID.fromString(uuid), new Registry(UUID.fromString(uuid), username, Channels.valueOf(Channels.NONE.getMessage())));
                 }else {
 
                     channel = Channels.valueOf(playersConfiguration.getString("players." + uuid + ".channel"));

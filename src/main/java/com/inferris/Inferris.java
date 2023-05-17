@@ -122,13 +122,13 @@ public class Inferris extends Plugin {
                 getDataFolder().mkdirs(); // create the Inferris folder if it does not exist
             }
 
-            permissionsFile = new File(getDataFolder(), "players.yml");
+            playersFile = new File(getDataFolder(), "players.yml");
 
             if (!permissionsFile.exists()) {
                 InputStream defaultConfig = Inferris.class.getResourceAsStream("/players.yml");
-                Files.copy(defaultConfig, permissionsFile.toPath());
+                Files.copy(defaultConfig, playersFile.toPath());
             }
-            permissionsConfiguration = ConfigurationProvider.getProvider(YamlConfiguration.class).load(permissionsFile);
+            playersConfiguration = ConfigurationProvider.getProvider(YamlConfiguration.class).load(playersFile);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
