@@ -10,7 +10,3 @@ commands:
     description: Test
   message:
     description: Message a player
-    aliases:
-      - msg
-      - dm
-      - pm
