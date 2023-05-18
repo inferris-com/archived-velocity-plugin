@@ -1,6 +1,7 @@
 package com.inferris;
 
 import com.inferris.commands.CommandConfig;
+import com.inferris.commands.CommandMessage;
 import com.inferris.database.DatabasePool;
 import com.inferris.events.EventJoin;
 import com.inferris.events.EventQuit;
@@ -51,6 +52,7 @@ public class Inferris extends Plugin {
         pluginManager.registerListener(this, new EventReceive());
         pluginManager.registerCommand(this, new CommandTest("bungeetest"));
         pluginManager.registerCommand(this, new CommandConfig("config"));
+        pluginManager.registerCommand(this, new CommandMessage("message"));
 
         getProxy().registerChannel(BungeeChannels.STAFFCHAT.getName());
         getProxy().registerChannel(BungeeChannels.PLAYER_REGISTRY.getName());

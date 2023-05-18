@@ -11,7 +11,6 @@ import com.google.common.io.ByteStreams;
 import com.inferris.CaffeineModule;
 import com.inferris.player.registry.Registry;
 import com.inferris.player.registry.RegistryManager;
-import com.inferris.util.BungeeChannels;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 
