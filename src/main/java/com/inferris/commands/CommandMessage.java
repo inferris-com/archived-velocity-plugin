@@ -130,7 +130,28 @@ public class CommandMessage extends Command implements TabExecutor {
                         "Are you trying to confuse your future self with past messages?",
                         "If no one messages you, at least you can count on yourself.",
                         "You're one step closer to having an imaginary friend.",
-                        "Some people talk to their plants, but you talk to yourself."
+                        "Some people talk to their plants, but you talk to yourself.",
+
+                        "Congratulations, you just won the 'Messaging Yourself' award!",
+                        "Hey there, future self! Did you forget to set your clock again?",
+                        "Note to self: Avoid having deep conversations with... yourself.",
+                        "Wow, talking to yourself has never been this entertaining!",
+                        "I heard talking to yourself is the first sign of genius... or madness.",
+                        "Breaking news: You've just discovered a new form of self-entertainment!",
+                        "Messaging yourself is like being in a one-person comedy show.",
+                        "Remember, the key to a healthy social life is messaging other people... just saying.",
+                        "Talking to yourself is a sign that you're exceptionally captivating.",
+                        "Roses are red, violets are blue, I'm messaging myself, and it's funnier than you.",
+                        "If only you could give yourself a high-five for messaging yourself!",
+                        "I bet your notifications are jealous of all the attention you're giving yourself.",
+                        "Next time you're feeling lonely, try messaging an actual human being. It works wonders!",
+                        "Talking to yourself is okay, as long as you don't start answering back... or do you?",
+                        "You're like a chatbot, but with a lot more personality... and no one else to talk to.",
+                        "Warning: Prolonged self-messaging may lead to uncontrollable laughter.",
+                        "Just a heads up, you might be the funniest person you know. Emphasis on 'might'.",
+                        "If only talking to yourself burned calories, you'd be the fittest person alive!",
+                        "Sending messages to yourself is a skill, and you, my friend, are a master.",
+                        "Don't worry, we won't judge. Well, maybe just a little... but with lots of love."
                 );
 
                 String randomMessage = generateRandomMessage(messages);
