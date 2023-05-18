@@ -143,11 +143,10 @@ public class CommandMessage extends Command implements TabExecutor {
 
                     Runnable task5 = () -> {
                         receiver.sendMessage(new ComponentBuilder()
-                                .color(ChatColor.DARK_GRAY)
-                                .append("[").color(ChatColor.DARK_RED).append("Alert").color(ChatColor.DARK_GRAY).append("] ")
-                                .color(ChatColor.RESET).append("Attention, attention, chatizens! Hold onto your funny bones, because we have a hilarious update for you! ")
-                                .color(ChatColor.YELLOW).append(receiver.getName()).color(ChatColor.RESET).append(" has been caught red-handed engaging in some serious self-talk!")
-                                .color(ChatColor.RESET).append(" Yes, you heard it right, folks. They've been having lively conversations with their mirror, captivating audiences of one!")
+                                .append("[").color(ChatColor.DARK_GRAY).append("Alert").color(ChatColor.DARK_RED).append("] ").color(ChatColor.DARK_GRAY)
+                                .append("Attention, attention, chatizens! Hold onto your funny bones, because we have a hilarious update for you! ").color(ChatColor.RESET)
+                                .append(receiver.getName()).color(ChatColor.YELLOW).append(" has been caught red-handed engaging in some serious self-talk!" ).color(ChatColor.RESET)
+                                        .append("Yes, you heard it right, folks. They've been having lively conversations with their mirror, captivating audiences of one!")
                                 .append(" We kindly suggest sending them a referral to the illustrious Jokes Anonymous... because their self-comedy game needs a little help, to say the least. *wink*").color(ChatColor.RESET)
                                 .create());
                     };
@@ -157,9 +156,9 @@ public class CommandMessage extends Command implements TabExecutor {
                     };
 
                     taskManager.addTaskForPlayer(task1, 2, TimeUnit.SECONDS);
-                    taskManager.addTaskForPlayer(task2, 1, TimeUnit.SECONDS);
+                    taskManager.addTaskForPlayer(task2, 3, TimeUnit.SECONDS);
                     taskManager.addTaskForPlayer(task3, 4, TimeUnit.SECONDS);
-                    taskManager.addTaskForPlayer(task4, 2, TimeUnit.SECONDS);
+                    taskManager.addTaskForPlayer(task4, 4, TimeUnit.SECONDS);
                     taskManager.addTaskForPlayer(task5, 4, TimeUnit.SECONDS);
                     taskManager.addTaskForPlayer(task6, 5, TimeUnit.SECONDS);
                 }
