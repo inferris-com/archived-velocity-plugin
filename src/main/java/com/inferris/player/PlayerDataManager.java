@@ -64,10 +64,16 @@ public class PlayerDataManager {
             queryStatement.setString(1, player.getUniqueId().toString());
             ResultSet resultSet = queryStatement.executeQuery();
 
+            /* If they are in the database */
+
             if(resultSet.next()){
                 String storedUsername = resultSet.getString("username");
+                VanishState vanishState = VanishState.valueOf(resultSet.getString("is_vanished"));
 
                 Inferris.getInstance().getLogger().info("Properly in table");
+
+                /* Checks if the player is in the configuration
+                * If not, set key and value  */
 
                 if(!Inferris.getPlayersConfiguration().getSection("players").contains(String.valueOf(player.getUniqueId()))){
                     Inferris.getPlayersConfiguration().getSection("players").set(player.getUniqueId() + "." + "channel", Channels.valueOf(Channels.NONE.getMessage()));
@@ -80,6 +86,7 @@ public class PlayerDataManager {
                     player.sendMessage("Fine");
                 }
 
+                /* Checks if the player's username has changed */
 
                 if(!player.getName().equalsIgnoreCase(storedUsername)){
                     updateStatement.setString(1, player.getName());
@@ -87,12 +94,12 @@ public class PlayerDataManager {
                     updateStatement.executeUpdate();
                     Inferris.getInstance().getLogger().warning("Updated username");
                     Channels channel = registry.getChannel();
-                    VanishState vanishState = registry.getVanishState();
 
                     registryCache.invalidate(player.getUniqueId());
                     registryCache.put(player.getUniqueId(), new Registry(player.getUniqueId(), player.getName(), channel, vanishState));
                 }
             }else{
+                /* If they are not in the database */
                 Inferris.getInstance().getLogger().warning("Inserting into table.");
 
                 insertStatement.setString(1, player.getUniqueId().toString());

@@ -9,6 +9,7 @@ import com.inferris.events.EventReceive;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.commands.CommandTest;
 import com.inferris.server.BungeeChannel;
+import com.inferris.server.Initializer;
 import com.inferris.util.ConfigUtils;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.plugin.PluginManager;

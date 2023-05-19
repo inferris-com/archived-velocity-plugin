@@ -1,6 +1,9 @@
 package com.inferris.commands;
 
-import com.inferris.Messages;
+import com.inferris.player.vanish.VanishState;
+import com.inferris.server.BungeeChannel;
+import com.inferris.server.Subchannel;
+import com.inferris.util.BungeeUtils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -21,7 +24,10 @@ public class CommandVanish extends Command {
             }
             if(length == 1){
                 if(args[0].equalsIgnoreCase("on")){
-
+                    BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_REGISTRY, Subchannel.VANISH, Subchannel.FORWARD, VanishState.ENABLED.name());
+                }
+                if(args[0].equalsIgnoreCase("off")){
+                    BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_REGISTRY, Subchannel.VANISH, Subchannel.FORWARD, VanishState.DISABLED.name());
                 }
             }
         }

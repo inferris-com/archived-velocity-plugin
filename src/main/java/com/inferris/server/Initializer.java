@@ -1,5 +1,6 @@
-package com.inferris;
+package com.inferris.server;
 
+import com.inferris.Inferris;
 import com.inferris.database.DatabasePool;
 import com.inferris.player.Channels;
 import com.inferris.player.registry.Registry;
@@ -30,13 +31,15 @@ public class Initializer {
             while (resultSet.next()) {
                 String uuid = resultSet.getString("uuid");
                 String username = resultSet.getString("username");
+                VanishState vanished = VanishState.valueOf(resultSet.getString("vanished"));
                 Configuration playersConfiguration = Inferris.getPlayersConfiguration();
                 Channels channel;
                 VanishState vanishState;
 
+                // For broken configuration, it will fix itself
                 if (playersConfiguration.get("players." + uuid + ".channel") == null) {
                     playersConfiguration.set("players." + uuid + ".channel", "NONE");
-                    playersConfiguration.set("players." + uuid + ".vanish", "DISABLED");
+                    //playersConfiguration.set("players." + uuid + ".vanish", "DISABLED");
                     RegistryManager.getPlayerRegistryCache().put(UUID.fromString(uuid), new Registry(
                             UUID.fromString(uuid),
                             username,
@@ -46,7 +49,7 @@ public class Initializer {
 
                     channel = Channels.valueOf(playersConfiguration.getString("players." + uuid + ".channel"));
                     vanishState = VanishState.valueOf(playersConfiguration.getString("players." + uuid + ".vanish"));
-                    RegistryManager.getPlayerRegistryCache().put(UUID.fromString(uuid), new Registry(UUID.fromString(uuid), username, channel, vanishState));
+                    RegistryManager.getPlayerRegistryCache().put(UUID.fromString(uuid), new Registry(UUID.fromString(uuid), username, channel, vanished));
                 }
                 ConfigUtils configUtils = new ConfigUtils();
                 configUtils.saveConfiguration(Inferris.getPlayersFile(), playersConfiguration);
