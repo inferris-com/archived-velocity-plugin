@@ -4,9 +4,9 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
-import com.inferris.Inferris;
+import com.inferris.commands.cache.CommandMessageCache;
 import com.inferris.player.PlayerTaskManager;
-import com.inferris.commands.cache.PlayerCommandCache;
+import com.inferris.commands.cache.CommandJokeCache;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.registry.RegistryManager;
 import com.inferris.player.vanish.VanishState;
@@ -22,16 +22,20 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
-import net.md_5.bungee.api.scheduler.TaskScheduler;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class CommandMessage extends Command implements TabExecutor {
-    private static Cache<UUID, PlayerCommandCache> cacheHandler;
+    private static Cache<UUID, CommandJokeCache> cacheJokeHandler;
+    private static Cache<UUID, CommandMessageCache> cacheReplyHandler;
 
     public CommandMessage(String name) {
         super(name);
+
+        if(cacheReplyHandler == null){
+            cacheReplyHandler = Caffeine.newBuilder().build();
+        }
     }
 
     @Override
@@ -43,6 +47,7 @@ public class CommandMessage extends Command implements TabExecutor {
             }
             if (length >= 2) {
                 if (ProxyServer.getInstance().getPlayer(args[0]) != null) {
+
                     ProxiedPlayer receiver = ProxyServer.getInstance().getPlayer(args[0]);
                     ByteArrayDataOutput out = ByteStreams.newDataOutput();
 
@@ -63,20 +68,36 @@ public class CommandMessage extends Command implements TabExecutor {
                     out.writeUTF(message);
 
                     receiver.getServer().sendData(BungeeChannel.DIRECT_MESSAGE.getName(), out.toByteArray());
-                    RankRegistry playerRank = PlayerDataManager.getInstance().getPlayerData(player).getByBranch();
-                    RankRegistry receiverRank = PlayerDataManager.getInstance().getPlayerData(receiver).getByBranch();
                     message = message + ChatColor.RESET;
 
                     if (receiver.getUniqueId() == player.getUniqueId()) {
                         sendJoke(receiver, message);
                         return;
                     }
-                    player.sendMessage(new TextComponent(ChatColor.GREEN + "Message sent!"));
-                    player.sendMessage(new TextComponent(ChatColor.GRAY + "To " + receiverRank.getPrefix(true) + receiver.getName() + ChatColor.RESET + ": " + message));
-                    receiver.sendMessage(new TextComponent(ChatColor.GRAY + "From " + playerRank.getPrefix(true) + player.getName() + ChatColor.RESET + ": " + message));
+
+                    cacheReplyHandler.invalidate(receiver.getUniqueId());
+                    CommandMessageCache cache = cacheReplyHandler.asMap().computeIfAbsent(receiver.getUniqueId(), uuid -> new CommandMessageCache(receiver, player, 5L, TimeUnit.SECONDS));
+                    cache.add();
+
+
+                    if (!(RegistryManager.getInstance().getRegistry(receiver).getVanishState() == VanishState.ENABLED)) {
+                        sendMessage(player, receiver, message);
+                    }else{
+                        player.sendMessage(new TextComponent(ChatColor.RED + "Error: couldn't find that player!"));
+                    }
+                }else{
+                    player.sendMessage(new TextComponent(ChatColor.RED + "Error: couldn't find that player!"));
                 }
             }
         }
+    }
+
+    protected static void sendMessage(ProxiedPlayer sender, ProxiedPlayer receiver, String message){
+        RankRegistry playerRank = PlayerDataManager.getInstance().getPlayerData(sender).getByBranch();
+        RankRegistry receiverRank = PlayerDataManager.getInstance().getPlayerData(receiver).getByBranch();
+        sender.sendMessage(new TextComponent(ChatColor.GREEN + "Message sent!"));
+        sender.sendMessage(new TextComponent(ChatColor.GRAY + "To " + receiverRank.getPrefix(true) + receiver.getName() + ChatColor.RESET + ": " + message));
+        receiver.sendMessage(new TextComponent(ChatColor.GRAY + "From " + playerRank.getPrefix(true) + sender.getName() + ChatColor.RESET + ": " + message));
     }
 
     @Override
@@ -99,10 +120,10 @@ public class CommandMessage extends Command implements TabExecutor {
     }
 
     private void sendJoke(ProxiedPlayer receiver, String message) {
-        if (cacheHandler == null) {
-            cacheHandler = Caffeine.newBuilder().build();
+        if (cacheJokeHandler == null) {
+            cacheJokeHandler = Caffeine.newBuilder().build();
         }
-        PlayerCommandCache cache = cacheHandler.asMap().computeIfAbsent(receiver.getUniqueId(), uuid -> new PlayerCommandCache());
+        CommandJokeCache cache = cacheJokeHandler.asMap().computeIfAbsent(receiver.getUniqueId(), uuid -> new CommandJokeCache(3L, TimeUnit.MINUTES));
         cache.incrementCommandCount(receiver.getUniqueId());
         int commandCount = cache.getCommandCount(receiver.getUniqueId());
 
@@ -158,7 +179,7 @@ public class CommandMessage extends Command implements TabExecutor {
                     Runnable task6 = () -> {
                         receiver.sendMessage(new TextComponent(ChatColor.YELLOW + "This is the end of the joke. Seriously. There's nothing else here. Now go home."));
                         cache.getCache().invalidate(receiver.getUniqueId());
-                        cacheHandler.invalidate(receiver.getUniqueId());
+                        cacheJokeHandler.invalidate(receiver.getUniqueId());
                     };
 
                     taskManager.addTaskForPlayer(task1, 2, TimeUnit.SECONDS);
@@ -228,14 +249,7 @@ public class CommandMessage extends Command implements TabExecutor {
                         " It seems your self-jokes are getting a little too cozy with just you. Let's find you an audience that can enjoy your comedic genius too!");
     }
 
-    private TaskScheduler taskScheduler(ProxiedPlayer player, String message, long delay, TimeUnit timeUnit) {
-        TaskScheduler taskScheduler = ProxyServer.getInstance().getScheduler();
-        taskScheduler.schedule(Inferris.getInstance(), new Runnable() {
-            @Override
-            public void run() {
-                player.sendMessage(new TextComponent(message));
-            }
-        }, delay, timeUnit);
-        return taskScheduler;
+    public static Cache<UUID, CommandMessageCache> getCacheReplyHandler() {
+        return cacheReplyHandler;
     }
 }

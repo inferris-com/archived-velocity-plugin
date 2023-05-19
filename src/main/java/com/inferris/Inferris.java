@@ -1,14 +1,11 @@
 package com.inferris;
 
-import com.inferris.commands.CommandConfig;
-import com.inferris.commands.CommandMessage;
-import com.inferris.commands.CommandVanish;
+import com.inferris.commands.*;
 import com.inferris.database.DatabasePool;
 import com.inferris.events.EventJoin;
 import com.inferris.events.EventQuit;
 import com.inferris.events.EventReceive;
 import com.inferris.player.PlayerDataManager;
-import com.inferris.commands.CommandTest;
 import com.inferris.server.BungeeChannel;
 import com.inferris.server.Initializer;
 import com.inferris.util.ConfigUtils;
@@ -58,6 +55,8 @@ public class Inferris extends Plugin {
         pluginManager.registerCommand(this, new CommandMessage("msg"));
         pluginManager.registerCommand(this, new CommandMessage("dm"));
         pluginManager.registerCommand(this, new CommandMessage("pm"));
+        pluginManager.registerCommand(this, new CommandReply("reply"));
+        pluginManager.registerCommand(this, new CommandReply("r"));
         pluginManager.registerCommand(this, new CommandVanish("vanish"));
 
         getProxy().registerChannel(BungeeChannel.STAFFCHAT.getName());

@@ -6,13 +6,13 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-public class PlayerCommandCache {
+public class CommandJokeCache {
     private final Cache<UUID, Integer> cache;
 
-    public PlayerCommandCache() {
+    public CommandJokeCache(Long time, TimeUnit timeUnit) {
         // Configure the cache
         cache = Caffeine.newBuilder()
-                .expireAfterAccess(10, TimeUnit.SECONDS)
+                .expireAfterAccess(time, timeUnit)
                 .build();
     }
 
