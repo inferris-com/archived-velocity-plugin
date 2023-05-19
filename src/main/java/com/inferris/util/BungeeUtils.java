@@ -18,7 +18,7 @@ public class BungeeUtils {
 
     public static void sendBungeeMessage(ProxiedPlayer player, BungeeChannel channel, String subchannel, String message) {
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
-        out.writeUTF(subchannel);
+        out.writeUTF(subchannel.toLowerCase());
         out.writeUTF(message);
         player.getServer().sendData(channel.getName(), out.toByteArray());
     }
@@ -29,9 +29,20 @@ public class BungeeUtils {
         player.getServer().sendData(channel.getName(), out.toByteArray());
     }
 
-    public static void sendBungeeMessage(ProxiedPlayer player, BungeeChannel channel, String subchannel) {
+    public static void sendBungeeMessage(ProxiedPlayer player, BungeeChannel channel, Subchannel subchannel, Subchannel subchannel2, String message) {
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
-        out.writeUTF(subchannel);
+        out.writeUTF(subchannel.toLowerCase());
+        out.writeUTF(subchannel2.toLowerCase());
+        out.writeUTF(message);
+        player.getServer().sendData(channel.getName(), out.toByteArray());
+    }
+
+
+    public static void sendBungeeMessage(ProxiedPlayer player, BungeeChannel channel, String subchannel, String subchannel2, String message) {
+        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+        out.writeUTF(subchannel.toLowerCase());
+        out.writeUTF(subchannel2.toLowerCase());
+        out.writeUTF(message);
         player.getServer().sendData(channel.getName(), out.toByteArray());
     }
 }

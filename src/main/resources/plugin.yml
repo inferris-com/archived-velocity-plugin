@@ -10,3 +10,7 @@ commands:
     description: Test
   message:
     description: Message a player
+  reply:
+    description: Reply to a player
+  vanish:
+    description: Vanish

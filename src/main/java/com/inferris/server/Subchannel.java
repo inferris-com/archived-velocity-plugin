@@ -3,7 +3,9 @@ package com.inferris.server;
 public enum Subchannel {
     REQUEST,
     RESPONSE,
-    FORWARD;
+    FORWARD,
+
+    VANISH;
 
     private final String lowercaseName;
 

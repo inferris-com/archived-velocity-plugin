@@ -1,11 +1,14 @@
-package com.inferris;
+package com.inferris.server;
 
+import com.inferris.Inferris;
 import com.inferris.database.DatabasePool;
 import com.inferris.player.Channels;
 import com.inferris.player.registry.Registry;
 import com.inferris.player.registry.RegistryManager;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.util.ConfigUtils;
+import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.config.Configuration;
 
 import java.sql.Connection;
@@ -30,13 +33,20 @@ public class Initializer {
             while (resultSet.next()) {
                 String uuid = resultSet.getString("uuid");
                 String username = resultSet.getString("username");
+                int vanished = resultSet.getInt("vanished");
+                VanishState vanishState = VanishState.DISABLED;
+
+                if(vanished == 1){
+                    vanishState = VanishState.ENABLED;
+                }
+
                 Configuration playersConfiguration = Inferris.getPlayersConfiguration();
                 Channels channel;
-                VanishState vanishState;
 
+                // For broken configuration, it will fix itself
                 if (playersConfiguration.get("players." + uuid + ".channel") == null) {
                     playersConfiguration.set("players." + uuid + ".channel", "NONE");
-                    playersConfiguration.set("players." + uuid + ".vanish", "DISABLED");
+                    //playersConfiguration.set("players." + uuid + ".vanish", "DISABLED");
                     RegistryManager.getPlayerRegistryCache().put(UUID.fromString(uuid), new Registry(
                             UUID.fromString(uuid),
                             username,
@@ -44,8 +54,10 @@ public class Initializer {
                             VanishState.valueOf(VanishState.DISABLED.name())));
                 }else {
 
+                    /* Load channel from config */
+
                     channel = Channels.valueOf(playersConfiguration.getString("players." + uuid + ".channel"));
-                    vanishState = VanishState.valueOf(playersConfiguration.getString("players." + uuid + ".vanish"));
+                    //vanishState = VanishState.valueOf(playersConfiguration.getString("players." + uuid + ".vanish"));
                     RegistryManager.getPlayerRegistryCache().put(UUID.fromString(uuid), new Registry(UUID.fromString(uuid), username, channel, vanishState));
                 }
                 ConfigUtils configUtils = new ConfigUtils();

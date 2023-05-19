@@ -7,6 +7,7 @@ import com.inferris.player.registry.Registry;
 import com.inferris.player.registry.RegistryManager;
 import com.inferris.database.DatabasePool;
 import com.inferris.player.vanish.VanishState;
+import com.inferris.rank.Branch;
 import com.inferris.util.ConfigUtils;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
@@ -58,16 +59,28 @@ public class PlayerDataManager {
 
         try (Connection connection = DatabasePool.getConnection();
              PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM players WHERE uuid = ?");
-             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO players (uuid, username, is_vanished) VALUES (?, ?, ?)");
+             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO players (uuid, username, vanished) VALUES (?, ?, ?)");
              PreparedStatement updateStatement = connection.prepareStatement("UPDATE players SET username = ? WHERE uuid =?")) {
 
             queryStatement.setString(1, player.getUniqueId().toString());
             ResultSet resultSet = queryStatement.executeQuery();
 
+            /* If they are in the database */
+
             if(resultSet.next()){
                 String storedUsername = resultSet.getString("username");
+                int vanished = resultSet.getInt("vanished");
+                VanishState vanishState = VanishState.DISABLED;
+                RegistryManager.getInstance().getRegistry(player).setVanishState(VanishState.DISABLED);
+                if (vanished == 1 || PlayerDataManager.getInstance().getPlayerData(player).getBranchValue(Branch.STAFF) >=3) {
+                    vanishState = VanishState.ENABLED;
+                    RegistryManager.getInstance().getRegistry(player).setVanishState(VanishState.ENABLED);
+                }
 
                 Inferris.getInstance().getLogger().info("Properly in table");
+
+                /* Checks if the player is in the configuration
+                * If not, set key and value  */
 
                 if(!Inferris.getPlayersConfiguration().getSection("players").contains(String.valueOf(player.getUniqueId()))){
                     Inferris.getPlayersConfiguration().getSection("players").set(player.getUniqueId() + "." + "channel", Channels.valueOf(Channels.NONE.getMessage()));
@@ -80,6 +93,7 @@ public class PlayerDataManager {
                     player.sendMessage("Fine");
                 }
 
+                /* Checks if the player's username has changed */
 
                 if(!player.getName().equalsIgnoreCase(storedUsername)){
                     updateStatement.setString(1, player.getName());
@@ -87,12 +101,12 @@ public class PlayerDataManager {
                     updateStatement.executeUpdate();
                     Inferris.getInstance().getLogger().warning("Updated username");
                     Channels channel = registry.getChannel();
-                    VanishState vanishState = registry.getVanishState();
 
                     registryCache.invalidate(player.getUniqueId());
                     registryCache.put(player.getUniqueId(), new Registry(player.getUniqueId(), player.getName(), channel, vanishState));
                 }
             }else{
+                /* If they are not in the database */
                 Inferris.getInstance().getLogger().warning("Inserting into table.");
 
                 insertStatement.setString(1, player.getUniqueId().toString());

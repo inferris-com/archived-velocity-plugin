@@ -5,6 +5,7 @@ import com.inferris.player.Channels;
 import com.inferris.player.registry.Registry;
 import com.inferris.player.registry.RegistryManager;
 import com.inferris.player.vanish.VanishState;
+import com.inferris.server.Initializer;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;
