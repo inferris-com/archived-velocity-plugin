@@ -58,7 +58,7 @@ public class PlayerDataManager {
 
         try (Connection connection = DatabasePool.getConnection();
              PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM players WHERE uuid = ?");
-             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO players (uuid, username, is_vanished) VALUES (?, ?, ?)");
+             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO players (uuid, username, vanished) VALUES (?, ?, ?)");
              PreparedStatement updateStatement = connection.prepareStatement("UPDATE players SET username = ? WHERE uuid =?")) {
 
             queryStatement.setString(1, player.getUniqueId().toString());
@@ -68,7 +68,11 @@ public class PlayerDataManager {
 
             if(resultSet.next()){
                 String storedUsername = resultSet.getString("username");
-                VanishState vanishState = VanishState.valueOf(resultSet.getString("is_vanished"));
+                int vanished = resultSet.getInt("vanished");
+                VanishState vanishState = VanishState.DISABLED;
+                if (vanished == 1) {
+                    vanishState = VanishState.ENABLED;
+                }
 
                 Inferris.getInstance().getLogger().info("Properly in table");
 

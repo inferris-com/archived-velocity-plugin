@@ -1,5 +1,6 @@
-package com.inferris;
+package com.inferris.player;
 
+import com.inferris.Inferris;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.scheduler.TaskScheduler;
 

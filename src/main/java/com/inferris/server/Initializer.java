@@ -31,10 +31,15 @@ public class Initializer {
             while (resultSet.next()) {
                 String uuid = resultSet.getString("uuid");
                 String username = resultSet.getString("username");
-                VanishState vanished = VanishState.valueOf(resultSet.getString("vanished"));
+                int vanished = resultSet.getInt("vanished");
+                VanishState vanishState = VanishState.DISABLED;
+
+                if(vanished == 1){
+                    vanishState = VanishState.ENABLED;
+                }
+
                 Configuration playersConfiguration = Inferris.getPlayersConfiguration();
                 Channels channel;
-                VanishState vanishState;
 
                 // For broken configuration, it will fix itself
                 if (playersConfiguration.get("players." + uuid + ".channel") == null) {
@@ -47,9 +52,11 @@ public class Initializer {
                             VanishState.valueOf(VanishState.DISABLED.name())));
                 }else {
 
+                    /* Load channel from config */
+
                     channel = Channels.valueOf(playersConfiguration.getString("players." + uuid + ".channel"));
-                    vanishState = VanishState.valueOf(playersConfiguration.getString("players." + uuid + ".vanish"));
-                    RegistryManager.getPlayerRegistryCache().put(UUID.fromString(uuid), new Registry(UUID.fromString(uuid), username, channel, vanished));
+                    //vanishState = VanishState.valueOf(playersConfiguration.getString("players." + uuid + ".vanish"));
+                    RegistryManager.getPlayerRegistryCache().put(UUID.fromString(uuid), new Registry(UUID.fromString(uuid), username, channel, vanishState));
                 }
                 ConfigUtils configUtils = new ConfigUtils();
                 configUtils.saveConfiguration(Inferris.getPlayersFile(), playersConfiguration);

@@ -10,3 +10,5 @@ commands:
     description: Test
   message:
     description: Message a player
+  vanish:
+    description: Vanish

@@ -5,7 +5,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.inferris.Inferris;
-import com.inferris.PlayerTaskManager;
+import com.inferris.player.PlayerTaskManager;
 import com.inferris.commands.cache.PlayerCommandCache;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.RankRegistry;
