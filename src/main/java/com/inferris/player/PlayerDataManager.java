@@ -7,6 +7,7 @@ import com.inferris.player.registry.Registry;
 import com.inferris.player.registry.RegistryManager;
 import com.inferris.database.DatabasePool;
 import com.inferris.player.vanish.VanishState;
+import com.inferris.rank.Branch;
 import com.inferris.util.ConfigUtils;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
@@ -70,8 +71,10 @@ public class PlayerDataManager {
                 String storedUsername = resultSet.getString("username");
                 int vanished = resultSet.getInt("vanished");
                 VanishState vanishState = VanishState.DISABLED;
-                if (vanished == 1) {
+                RegistryManager.getInstance().getRegistry(player).setVanishState(VanishState.DISABLED);
+                if (vanished == 1 || PlayerDataManager.getInstance().getPlayerData(player).getBranchValue(Branch.STAFF) >=3) {
                     vanishState = VanishState.ENABLED;
+                    RegistryManager.getInstance().getRegistry(player).setVanishState(VanishState.ENABLED);
                 }
 
                 Inferris.getInstance().getLogger().info("Properly in table");

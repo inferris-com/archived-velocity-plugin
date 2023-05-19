@@ -8,6 +8,8 @@ import com.inferris.Inferris;
 import com.inferris.player.PlayerTaskManager;
 import com.inferris.commands.cache.PlayerCommandCache;
 import com.inferris.player.PlayerDataManager;
+import com.inferris.player.registry.RegistryManager;
+import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.RankRegistry;
 import com.inferris.server.BungeeChannel;
 import com.inferris.server.Subchannel;
@@ -84,9 +86,11 @@ public class CommandMessage extends Command implements TabExecutor {
             String partialPlayerName = args[0];
             List<String> playerNames = new ArrayList<>();
             for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                String playerName = proxiedPlayers.getName();
-                if (playerName.toLowerCase().startsWith(partialPlayerName.toLowerCase())) {
-                    playerNames.add(playerName);
+                if(!(RegistryManager.getInstance().getRegistry(proxiedPlayers).getVanishState() == VanishState.ENABLED)) {
+                    String playerName = proxiedPlayers.getName();
+                    if (playerName.toLowerCase().startsWith(partialPlayerName.toLowerCase())) {
+                        playerNames.add(playerName);
+                    }
                 }
             }
             return playerNames;
