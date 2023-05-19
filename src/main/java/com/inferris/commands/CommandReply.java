@@ -26,37 +26,41 @@ public class CommandReply extends Command implements TabExecutor {
     public void execute(CommandSender sender, String[] args) {
         int length = args.length;
 
-        if(sender instanceof ProxiedPlayer player){
-            if(length == 0){
+        if (sender instanceof ProxiedPlayer player) {
+            if (length == 0) {
                 player.sendMessage(new TextComponent(ChatColor.RED + "Usage: /reply <message>"));
                 return;
             }
-            if(length >=1){
+            /* If the receiver from main sender, you, is in the cache
+             * As a reminder, you are KEY, receiver (original sender) is VALUE
+             * The replier, you, gets the reply attachment */
 
-                /* If the receiver from main sender, you, is in the cache
-                * As a reminder, you are KEY, receiver (original sender) is VALUE
-                * The replier, you, gets the reply attachment */
+            UUID senderUUID = player.getUniqueId();
+            CommandMessageCache cache = CommandMessage.getCacheReplyHandler().getIfPresent(senderUUID);
 
-                CommandMessageCache cache = CommandMessage.getCacheReplyHandler().getIfPresent(player.getUniqueId());
-                if(cache != null) {
+            if (cache == null) {
+                player.sendMessage(new TextComponent(ChatColor.RED + "Your reply cache has expired. Use /message instead."));
+                return;
+            }
 
-                    /* Gets the UUID of the original sender
-                    * who put you in the cache */
+            UUID targetUUID = cache.getCache().asMap().get(senderUUID);
+            ProxiedPlayer target = ProxyServer.getInstance().getPlayer(targetUUID);
 
-                    UUID uuid = cache.getCache().asMap().get(player.getUniqueId());
-                    ProxiedPlayer target = ProxyServer.getInstance().getPlayer(uuid);
-                    String message = String.join(" ", Arrays.copyOfRange(args, 0, length));
-                    if (!(RegistryManager.getInstance().getRegistry(target).getVanishState() == VanishState.ENABLED)) {
+            if (target == null || !(RegistryManager.getInstance().getRegistry(target).getVanishState() == VanishState.ENABLED)) {
+                String message = String.join(" ", Arrays.copyOfRange(args, 0, length));
 
-                        CommandMessage.sendMessage(player, target, message);
-                        CommandMessage.getCacheReplyHandler().invalidate(target.getUniqueId());
-                        CommandMessageCache targetCache = CommandMessage.getCacheReplyHandler().asMap().computeIfAbsent(target.getUniqueId(), targetUUID -> new CommandMessageCache(target, player, 5L, TimeUnit.SECONDS));
-                        targetCache.add();
-
-                    } else {
-                        player.sendMessage(new TextComponent(ChatColor.RED + "Error: couldn't find that player!"));
-                    }
+                if (target != null) {
+                    CommandMessage.sendMessage(player, target, message);
+                    CommandMessage.getCacheReplyHandler().invalidate(targetUUID);
+                    CommandMessageCache targetCache = CommandMessage.getCacheReplyHandler().asMap().computeIfAbsent(targetUUID,
+                            uuid -> new CommandMessageCache(target, player, 5L, TimeUnit.SECONDS));
+                    targetCache.add();
+                } else {
+                    player.sendMessage(new TextComponent(ChatColor.RED + "Error: Couldn't find the original sender!"));
                 }
+            } else {
+                /* Vanished message */
+                player.sendMessage(new TextComponent(ChatColor.RED + "Error: Couldn't find the original sender!"));
             }
         }
     }
@@ -68,7 +72,7 @@ public class CommandReply extends Command implements TabExecutor {
             String partialPlayerName = args[0];
             List<String> playerNames = new ArrayList<>();
             for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                if(!(RegistryManager.getInstance().getRegistry(proxiedPlayers).getVanishState() == VanishState.ENABLED)) {
+                if (!(RegistryManager.getInstance().getRegistry(proxiedPlayers).getVanishState() == VanishState.ENABLED)) {
                     String playerName = proxiedPlayers.getName();
                     if (playerName.toLowerCase().startsWith(partialPlayerName.toLowerCase())) {
                         playerNames.add(playerName);
