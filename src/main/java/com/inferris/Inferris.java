@@ -8,7 +8,7 @@ import com.inferris.events.EventQuit;
 import com.inferris.events.EventReceive;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.commands.CommandTest;
-import com.inferris.util.BungeeChannels;
+import com.inferris.server.BungeeChannel;
 import com.inferris.util.ConfigUtils;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.plugin.PluginManager;
@@ -57,8 +57,8 @@ public class Inferris extends Plugin {
         pluginManager.registerCommand(this, new CommandMessage("dm"));
         pluginManager.registerCommand(this, new CommandMessage("pm"));
 
-        getProxy().registerChannel(BungeeChannels.STAFFCHAT.getName());
-        getProxy().registerChannel(BungeeChannels.PLAYER_REGISTRY.getName());
+        getProxy().registerChannel(BungeeChannel.STAFFCHAT.getName());
+        getProxy().registerChannel(BungeeChannel.PLAYER_REGISTRY.getName());
 
         try {
             Connection connection = DatabasePool.getConnection();

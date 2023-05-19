@@ -4,6 +4,7 @@ import com.inferris.*;
 import com.inferris.player.Channels;
 import com.inferris.player.registry.Registry;
 import com.inferris.player.registry.RegistryManager;
+import com.inferris.player.vanish.VanishState;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -74,7 +75,7 @@ public class CommandTest extends Command {
                         if(player.getUniqueId().equals(uuid)){
                             RegistryManager.getPlayerRegistryCache().invalidate(player.getUniqueId());
                         }
-                        RegistryManager.getPlayerRegistryCache().put(uuid, new Registry(uuid, username, Channels.NONE));
+                        RegistryManager.getPlayerRegistryCache().put(uuid, new Registry(uuid, username, Channels.NONE, VanishState.DISABLED));
                         player.sendMessage(new TextComponent(ChatColor.GREEN + "Added " + username + " to registry"));
                     }
                 }

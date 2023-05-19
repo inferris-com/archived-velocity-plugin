@@ -4,6 +4,7 @@ import com.inferris.database.DatabasePool;
 import com.inferris.player.Channels;
 import com.inferris.player.registry.Registry;
 import com.inferris.player.registry.RegistryManager;
+import com.inferris.player.vanish.VanishState;
 import com.inferris.util.ConfigUtils;
 import net.md_5.bungee.config.Configuration;
 
@@ -31,14 +32,21 @@ public class Initializer {
                 String username = resultSet.getString("username");
                 Configuration playersConfiguration = Inferris.getPlayersConfiguration();
                 Channels channel;
+                VanishState vanishState;
 
                 if (playersConfiguration.get("players." + uuid + ".channel") == null) {
                     playersConfiguration.set("players." + uuid + ".channel", "NONE");
-                    RegistryManager.getPlayerRegistryCache().put(UUID.fromString(uuid), new Registry(UUID.fromString(uuid), username, Channels.valueOf(Channels.NONE.getMessage())));
+                    playersConfiguration.set("players." + uuid + ".vanish", "DISABLED");
+                    RegistryManager.getPlayerRegistryCache().put(UUID.fromString(uuid), new Registry(
+                            UUID.fromString(uuid),
+                            username,
+                            Channels.valueOf(Channels.NONE.getMessage()),
+                            VanishState.valueOf(VanishState.DISABLED.name())));
                 }else {
 
                     channel = Channels.valueOf(playersConfiguration.getString("players." + uuid + ".channel"));
-                    RegistryManager.getPlayerRegistryCache().put(UUID.fromString(uuid), new Registry(UUID.fromString(uuid), username, channel));
+                    vanishState = VanishState.valueOf(playersConfiguration.getString("players." + uuid + ".vanish"));
+                    RegistryManager.getPlayerRegistryCache().put(UUID.fromString(uuid), new Registry(UUID.fromString(uuid), username, channel, vanishState));
                 }
                 ConfigUtils configUtils = new ConfigUtils();
                 configUtils.saveConfiguration(Inferris.getPlayersFile(), playersConfiguration);

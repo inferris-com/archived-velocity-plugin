@@ -3,6 +3,7 @@ package com.inferris.player.registry;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.inferris.player.Channels;
+import com.inferris.player.vanish.VanishState;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.util.UUID;
@@ -32,7 +33,7 @@ public class RegistryManager {
     }
 
     public Registry addToRegistry(ProxiedPlayer player){
-        Registry registry = new Registry(player.getUniqueId(), player.getName(), Channels.NONE);
+        Registry registry = new Registry(player.getUniqueId(), player.getName(), Channels.NONE, VanishState.DISABLED);
         playerRegistryCache.put(player.getUniqueId(), registry);
         return registry;
     }

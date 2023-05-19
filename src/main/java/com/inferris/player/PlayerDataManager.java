@@ -6,6 +6,7 @@ import com.inferris.Inferris;
 import com.inferris.player.registry.Registry;
 import com.inferris.player.registry.RegistryManager;
 import com.inferris.database.DatabasePool;
+import com.inferris.player.vanish.VanishState;
 import com.inferris.util.ConfigUtils;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
@@ -50,7 +51,7 @@ public class PlayerDataManager {
         if(registryCache.getIfPresent(player.getUniqueId()) != null && player.getName().equalsIgnoreCase(username)){
             Inferris.getInstance().getLogger().warning("In registr");
         }else{
-            registryCache.put(player.getUniqueId(), new Registry(player.getUniqueId(), player.getName(), Channels.valueOf(Channels.NONE.getMessage())));
+            registryCache.put(player.getUniqueId(), new Registry(player.getUniqueId(), player.getName(), Channels.valueOf(Channels.NONE.getMessage()), VanishState.DISABLED));
             Inferris.getInstance().getLogger().warning("Not in registry, caching");
 
         }
@@ -86,9 +87,10 @@ public class PlayerDataManager {
                     updateStatement.executeUpdate();
                     Inferris.getInstance().getLogger().warning("Updated username");
                     Channels channel = registry.getChannel();
+                    VanishState vanishState = registry.getVanishState();
 
                     registryCache.invalidate(player.getUniqueId());
-                    registryCache.put(player.getUniqueId(), new Registry(player.getUniqueId(), player.getName(), channel));
+                    registryCache.put(player.getUniqueId(), new Registry(player.getUniqueId(), player.getName(), channel, vanishState));
                 }
             }else{
                 Inferris.getInstance().getLogger().warning("Inserting into table.");
@@ -100,7 +102,7 @@ public class PlayerDataManager {
 
                 Inferris.getInstance().getLogger().severe("Added player to table");
                 registryCache.invalidate(player.getUniqueId());
-                registryCache.put(player.getUniqueId(), new Registry(player.getUniqueId(), player.getName(), Channels.valueOf(Channels.NONE.getMessage())));
+                registryCache.put(player.getUniqueId(), new Registry(player.getUniqueId(), player.getName(), Channels.valueOf(Channels.NONE.getMessage()), VanishState.DISABLED));
 
                 Inferris.getPlayersConfiguration().getSection("players").set(player.getUniqueId() + "." + "channel", Channels.valueOf(Channels.NONE.getMessage()));
 

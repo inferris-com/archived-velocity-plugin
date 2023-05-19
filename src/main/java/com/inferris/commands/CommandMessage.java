@@ -6,10 +6,11 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.inferris.Inferris;
 import com.inferris.PlayerTaskManager;
+import com.inferris.commands.cache.PlayerCommandCache;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.RankRegistry;
-import com.inferris.util.BungeeChannels;
-import com.inferris.util.Subchannel;
+import com.inferris.server.BungeeChannel;
+import com.inferris.server.Subchannel;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -20,7 +21,6 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
 import net.md_5.bungee.api.scheduler.TaskScheduler;
-import org.w3c.dom.Text;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -55,12 +55,12 @@ public class CommandMessage extends Command implements TabExecutor {
                     out.writeUTF("rankdata");
 */
 
-                    out.writeUTF(BungeeChannels.DIRECT_MESSAGE.getName());
+                    out.writeUTF(BungeeChannel.DIRECT_MESSAGE.getName());
                     out.writeUTF(Subchannel.FORWARD.toLowerCase());
                     String message = String.join(" ", Arrays.copyOfRange(args, 1, length));
                     out.writeUTF(message);
 
-                    receiver.getServer().sendData(BungeeChannels.DIRECT_MESSAGE.getName(), out.toByteArray());
+                    receiver.getServer().sendData(BungeeChannel.DIRECT_MESSAGE.getName(), out.toByteArray());
                     RankRegistry playerRank = PlayerDataManager.getInstance().getPlayerData(player).getByBranch();
                     RankRegistry receiverRank = PlayerDataManager.getInstance().getPlayerData(receiver).getByBranch();
                     message = message + ChatColor.RESET;
@@ -153,10 +153,12 @@ public class CommandMessage extends Command implements TabExecutor {
 
                     Runnable task6 = () -> {
                         receiver.sendMessage(new TextComponent(ChatColor.YELLOW + "This is the end of the joke. Seriously. There's nothing else here. Now go home."));
+                        cache.getCache().invalidate(receiver.getUniqueId());
+                        cacheHandler.invalidate(receiver.getUniqueId());
                     };
 
                     taskManager.addTaskForPlayer(task1, 2, TimeUnit.SECONDS);
-                    taskManager.addTaskForPlayer(task2, 3, TimeUnit.SECONDS);
+                    taskManager.addTaskForPlayer(task2, 2, TimeUnit.SECONDS);
                     taskManager.addTaskForPlayer(task3, 4, TimeUnit.SECONDS);
                     taskManager.addTaskForPlayer(task4, 4, TimeUnit.SECONDS);
                     taskManager.addTaskForPlayer(task5, 4, TimeUnit.SECONDS);

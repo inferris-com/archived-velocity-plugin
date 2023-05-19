@@ -1,4 +1,4 @@
-package com.inferris.commands;
+package com.inferris.commands.cache;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;

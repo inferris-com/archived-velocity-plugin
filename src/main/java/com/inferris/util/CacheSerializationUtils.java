@@ -11,6 +11,7 @@ import com.google.common.io.ByteStreams;
 import com.inferris.CaffeineModule;
 import com.inferris.player.registry.Registry;
 import com.inferris.player.registry.RegistryManager;
+import com.inferris.server.BungeeChannel;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 
@@ -33,12 +34,12 @@ public class CacheSerializationUtils {
             String cacheJson = objectMapper.writeValueAsString(cache);
 
             ByteArrayDataOutput out = ByteStreams.newDataOutput();
-            out.writeUTF(BungeeChannels.PLAYER_REGISTRY.getName());
+            out.writeUTF(BungeeChannel.PLAYER_REGISTRY.getName());
             out.writeUTF("response");
             out.writeUTF(cacheJson);
 
             if(event.getReceiver() instanceof ProxiedPlayer player) {
-                player.getServer().sendData(BungeeChannels.PLAYER_REGISTRY.getName(), out.toByteArray());
+                player.getServer().sendData(BungeeChannel.PLAYER_REGISTRY.getName(), out.toByteArray());
 
             }
         }

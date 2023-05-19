@@ -8,6 +8,8 @@ import com.inferris.player.registry.RegistryManager;
 import com.inferris.rank.Branch;
 import com.inferris.rank.RankRegistry;
 import com.inferris.rank.RanksManager;
+import com.inferris.server.BungeeChannel;
+import com.inferris.server.Subchannel;
 import com.inferris.util.*;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
@@ -26,7 +28,7 @@ public class EventReceive implements Listener {
     @EventHandler
     public void onPluginMessage(PluginMessageEvent event) throws IOException {
         String tag = event.getTag();
-        String bungeeChannels = BungeeChannels.BUNGEECORD.getName();
+        String bungeeChannels = BungeeChannel.BUNGEECORD.getName();
         if (event.getReceiver() instanceof ProxiedPlayer player) {
 
             switch (tag) {
