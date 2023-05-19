@@ -14,3 +14,9 @@ commands:
     description: Reply to a player
   vanish:
     description: Vanish
+  alerte:
+    description: Alerte
+  alright:
+    description: Alright
+  alright2:
+    description: Alright2

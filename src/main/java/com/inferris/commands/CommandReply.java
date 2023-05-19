@@ -1,8 +1,5 @@
 package com.inferris.commands;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.inferris.commands.cache.CommandJokeCache;
 import com.inferris.commands.cache.CommandMessageCache;
 import com.inferris.player.registry.RegistryManager;
 import com.inferris.player.vanish.VanishState;
@@ -19,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 public class CommandReply extends Command implements TabExecutor {
     public CommandReply(String name) {
-        super(name);
+        super(name, null, "r");
     }
 
     @Override
@@ -46,22 +43,23 @@ public class CommandReply extends Command implements TabExecutor {
             UUID targetUUID = cache.getCache().asMap().get(senderUUID);
             ProxiedPlayer target = ProxyServer.getInstance().getPlayer(targetUUID);
 
-            if (target == null || !(RegistryManager.getInstance().getRegistry(target).getVanishState() == VanishState.ENABLED)) {
-                String message = String.join(" ", Arrays.copyOfRange(args, 0, length));
-
-                if (target != null) {
-                    CommandMessage.sendMessage(player, target, message);
-                    CommandMessage.getCacheReplyHandler().invalidate(targetUUID);
-                    CommandMessageCache targetCache = CommandMessage.getCacheReplyHandler().asMap().computeIfAbsent(targetUUID,
-                            uuid -> new CommandMessageCache(target, player, 5L, TimeUnit.SECONDS));
-                    targetCache.add();
-                } else {
-                    player.sendMessage(new TextComponent(ChatColor.RED + "Error: Couldn't find the original sender!"));
-                }
-            } else {
-                /* Vanished message */
+            if (target == null) {
                 player.sendMessage(new TextComponent(ChatColor.RED + "Error: Couldn't find the original sender!"));
+                return;
             }
+
+            // Check if the target player is vanished
+            if (RegistryManager.getInstance().getRegistry(target).getVanishState() == VanishState.ENABLED) {
+                player.sendMessage(new TextComponent(ChatColor.RED + "Error: The original sender is currently vanished!"));
+                return;
+            }
+
+            String message = String.join(" ", Arrays.copyOfRange(args, 0, length));
+            CommandMessage.sendMessage(player, target, message);
+            CommandMessage.getCacheReplyHandler().invalidate(targetUUID);
+            CommandMessageCache targetCache = CommandMessage.getCacheReplyHandler().asMap().computeIfAbsent(targetUUID,
+                    uuid -> new CommandMessageCache(target, player, 5L, TimeUnit.SECONDS));
+            targetCache.add();
         }
     }
 
