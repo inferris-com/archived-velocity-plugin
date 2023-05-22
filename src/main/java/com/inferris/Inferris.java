@@ -3,6 +3,7 @@ package com.inferris;
 import com.inferris.commands.*;
 import com.inferris.database.DatabasePool;
 import com.inferris.events.EventJoin;
+import com.inferris.events.EventPing;
 import com.inferris.events.EventQuit;
 import com.inferris.events.EventReceive;
 import com.inferris.player.PlayerDataManager;
@@ -49,6 +50,7 @@ public class Inferris extends Plugin {
         pluginManager.registerListener(this, new EventJoin());
         pluginManager.registerListener(this, new EventQuit());
         pluginManager.registerListener(this, new EventReceive());
+        pluginManager.registerListener(this, new EventPing());
         pluginManager.registerCommand(this, new CommandTest("bungeetest"));
         pluginManager.registerCommand(this, new CommandConfig("config"));
         pluginManager.registerCommand(this, new CommandMessage("message"));

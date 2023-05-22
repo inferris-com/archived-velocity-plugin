@@ -62,7 +62,7 @@ public class CommandVanish extends Command implements TabExecutor {
 
     @Override
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
-        if(sender instanceof ProxiedPlayer player){
+        if(sender instanceof ProxiedPlayer player && args.length == 1){
             List<String> list = new ArrayList<>();
             list.add("on");
             list.add("off");
