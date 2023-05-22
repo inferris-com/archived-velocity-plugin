@@ -2,6 +2,7 @@ package com.inferris;
 
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.w3c.dom.Text;
 
 public enum Messages {
     COMMAND_VANISH_ENABLED(new TextComponent(ChatColor.GREEN + "Vanish has been enabled")),

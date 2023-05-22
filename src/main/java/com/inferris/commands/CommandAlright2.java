@@ -2,6 +2,8 @@ package com.inferris.commands;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
 import com.inferris.commands.cache.CommandMessageCache;
 import com.inferris.player.PlayerTaskManager;
 import com.inferris.commands.cache.CommandJokeCache;
@@ -9,6 +11,8 @@ import com.inferris.player.PlayerDataManager;
 import com.inferris.player.registry.RegistryManager;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.RankRegistry;
+import com.inferris.server.BungeeChannel;
+import com.inferris.server.Subchannel;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -22,12 +26,12 @@ import net.md_5.bungee.api.plugin.TabExecutor;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-public class CommandMessage extends Command implements TabExecutor {
+public class CommandAlright2 extends Command implements TabExecutor {
     private static Cache<UUID, CommandJokeCache> cacheJokeHandler;
     private static Cache<UUID, CommandMessageCache> cacheReplyHandler;
 
-    public CommandMessage(String name) {
-        super(name, null, "msg", "dm", "pm");
+    public CommandAlright2(String name) {
+        super(name);
 
         if (cacheReplyHandler == null) {
             cacheReplyHandler = Caffeine.newBuilder().build();

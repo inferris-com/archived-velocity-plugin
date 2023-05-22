@@ -12,14 +12,10 @@ import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
-import net.md_5.bungee.api.plugin.TabExecutor;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
-public class CommandVanish extends Command implements TabExecutor {
+public class CommandVanish extends Command {
     public CommandVanish(String name) {
         super(name);
     }
@@ -57,17 +53,5 @@ public class CommandVanish extends Command implements TabExecutor {
         }catch(SQLException e){
             e.printStackTrace();
         }
-    }
-
-
-    @Override
-    public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
-        if(sender instanceof ProxiedPlayer player){
-            List<String> list = new ArrayList<>();
-            list.add("on");
-            list.add("off");
-            return list;
-        }
-        return Collections.emptyList();
     }
 }
