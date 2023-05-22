@@ -8,7 +8,9 @@ import com.inferris.commands.cache.CommandJokeCache;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.registry.RegistryManager;
 import com.inferris.player.vanish.VanishState;
+import com.inferris.rank.Branch;
 import com.inferris.rank.RankRegistry;
+import com.inferris.rank.RanksManager;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -58,8 +60,12 @@ public class CommandMessage extends Command implements TabExecutor {
 
             // Check if the receiver is in a vanished state
             if (RegistryManager.getInstance().getRegistry(receiver).getVanishState() == VanishState.ENABLED) {
-                player.sendMessage(new TextComponent(ChatColor.RED + "Error: The player is currently vanished!"));
-                return;
+                if(RanksManager.getInstance().getRank(player).getBranchID(Branch.STAFF) >=3) {
+                    return;
+                }else{
+                    // Vanished message
+                    player.sendMessage(new TextComponent(ChatColor.RED + "Error: Couldn't find that player!"));
+                }
             }
 
             String message = String.join(" ", Arrays.copyOfRange(args, 1, length));
