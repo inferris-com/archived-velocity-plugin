@@ -34,6 +34,7 @@ ranks:
     - bungeecord.command.ip
     - bungeecord.command.send
     - bungeecord.command.kick
+    - spark
 #    - litebans.exempt
 
   mod:
