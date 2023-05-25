@@ -72,7 +72,7 @@ public class EventReceive implements Listener {
                     String message = in.readUTF();
 
                     CacheSerializationUtils cacheSerializationUtils = new CacheSerializationUtils();
-                    cacheSerializationUtils.handlePlayerRegistryRequest(event);
+                    cacheSerializationUtils.handlePlayerRegistryRequest(event, player);
                 }
             }
         }

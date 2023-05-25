@@ -1,5 +1,6 @@
 package com.inferris.player;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.inferris.Inferris;
@@ -8,8 +9,10 @@ import com.inferris.player.registry.RegistryManager;
 import com.inferris.database.DatabasePool;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
+import com.inferris.util.CacheSerializationUtils;
 import com.inferris.util.ConfigUtils;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
+import redis.clients.jedis.Jedis;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -44,17 +47,14 @@ public class PlayerDataManager {
     public void checkJoinedBefore(ProxiedPlayer player) {
         Inferris.getInstance().getLogger().warning("Checking join");
 
-        Cache<UUID, Registry> registryCache = RegistryManager.getPlayerRegistryCache();
-        Registry registry = RegistryManager.getInstance().getRegistry(player);
+        RegistryManager registryManager = RegistryManager.getInstance();
+        Registry redisRegistry = RegistryManager.getInstance().getRegistry(player);
+        Channels channel = redisRegistry.getChannel();
 
-        String username = registry.getUsername();
-
-        if(registryCache.getIfPresent(player.getUniqueId()) != null && player.getName().equalsIgnoreCase(username)){
+        String username = redisRegistry.getUsername();
+        if (player.getName().equalsIgnoreCase(username)) {
             Inferris.getInstance().getLogger().warning("In registr");
-        }else{
-            registryCache.put(player.getUniqueId(), new Registry(player.getUniqueId(), player.getName(), Channels.valueOf(Channels.NONE.getMessage()), VanishState.DISABLED));
-            Inferris.getInstance().getLogger().warning("Not in registry, caching");
-
+            return;
         }
 
         try (Connection connection = DatabasePool.getConnection();
@@ -100,10 +100,9 @@ public class PlayerDataManager {
                     updateStatement.setString(2, player.getUniqueId().toString());
                     updateStatement.executeUpdate();
                     Inferris.getInstance().getLogger().warning("Updated username");
-                    Channels channel = registry.getChannel();
 
-                    registryCache.invalidate(player.getUniqueId());
-                    registryCache.put(player.getUniqueId(), new Registry(player.getUniqueId(), player.getName(), channel, vanishState));
+                    RegistryManager.getInstance().invalidateEntry(player.getUniqueId());
+                    registryManager.addPlayer(player, new Registry(player.getUniqueId(), player.getName(), channel, vanishState));
                 }
             }else{
                 /* If they are not in the database */
@@ -115,8 +114,8 @@ public class PlayerDataManager {
                 insertStatement.execute();
 
                 Inferris.getInstance().getLogger().severe("Added player to table");
-                registryCache.invalidate(player.getUniqueId());
-                registryCache.put(player.getUniqueId(), new Registry(player.getUniqueId(), player.getName(), Channels.valueOf(Channels.NONE.getMessage()), VanishState.DISABLED));
+                registryManager.invalidateEntry(player.getUniqueId());
+                registryManager.addPlayer(player, new Registry(player.getUniqueId(), player.getName(), Channels.valueOf(Channels.NONE.getMessage()), VanishState.DISABLED));
 
                 Inferris.getPlayersConfiguration().getSection("players").set(player.getUniqueId() + "." + "channel", Channels.valueOf(Channels.NONE.getMessage()));
 

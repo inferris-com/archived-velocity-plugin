@@ -1,13 +1,18 @@
 package com.inferris.events;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.inferris.player.registry.Registry;
 import com.inferris.player.registry.RegistryManager;
 import com.inferris.player.vanish.VanishState;
+import com.inferris.util.CacheSerializationUtils;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.ServerPing;
 import net.md_5.bungee.api.event.ProxyPingEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
+import redis.clients.jedis.Jedis;
+
+import java.util.Map;
 
 public class EventPing implements Listener {
 
@@ -29,10 +34,19 @@ public class EventPing implements Listener {
 
     private int getTotalVanishedPlayers() {
         int count = 0;
-        for (Registry registry : RegistryManager.getPlayerRegistryCache().asMap().values()) {
-            if (registry.getVanishState() == VanishState.ENABLED) {
-                count++;
+
+        try (Jedis jedis = RegistryManager.getInstance().getJedisPool().getResource()) {
+            Map<String, String> registryEntries = jedis.hgetAll("registry");
+
+            for (String registryJson : registryEntries.values()) {
+                Registry registry = new CacheSerializationUtils().deserializeRegistry(registryJson);
+
+                if (registry.getVanishState() == VanishState.ENABLED) {
+                    count++;
+                }
             }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
         return count;
     }
