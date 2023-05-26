@@ -13,6 +13,7 @@ import com.inferris.player.registry.Registry;
 import com.inferris.player.registry.RegistryManager;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.server.Initializer;
+import com.inferris.server.Ports;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -110,11 +111,14 @@ public class CommandTest extends Command {
                         if (player.getUniqueId().equals(uuid)) {
                             RegistryManager.getInstance().invalidateEntry(player.getUniqueId());
                         }
-                        RegistryManager.getInstance().addToRegistryDefault(ProxyServer.getInstance().getPlayer(args[3]));
+                       // RegistryManager.getInstance().addToRegistryDefault(ProxyServer.getInstance().getPlayer(args[3]));
                         player.sendMessage(new TextComponent(ChatColor.GREEN + "Added " + username + " to registry"));
                     }
                 }
             }
+        }else{
+            JedisPool jedisPool = new JedisPool("localhost", Ports.JEDIS.getPort()); // Set Redis server details
+
         }
     }
 }

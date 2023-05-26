@@ -1,7 +1,7 @@
 package com.inferris.events;
 
-import com.inferris.util.Tags;
 import com.inferris.player.PlayerDataManager;
+import com.inferris.util.Tags;
 import com.inferris.rank.*;
 import com.inferris.util.ConfigUtils;
 import net.md_5.bungee.api.ChatColor;
@@ -24,22 +24,24 @@ public class EventJoin implements Listener {
         RanksManager ranksManager = RanksManager.getInstance();
         PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
 
-        Rank rank = ranksManager.getRank(player);
-        ranksManager.cacheRank(player, rank);
+        playerDataManager.checkJoinedBefore(player); // Important implementation
 
-        RankRegistry rankRegistry = playerDataManager.getPlayerData(player).getByBranch();
+        //Rank rank = ranksManager.getRank(player);
+        //ranksManager.cacheRank(player, rank);
 
-        Permissions.attachPermissions(player);
+        //RankRegistry rankRegistry = playerDataManager.getPlayerData(player).getByBranch();
 
-        if (rank.getBranchID(Branch.STAFF) >= 1) {
-            for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                if (ranksManager.getRank(proxiedPlayers).getBranchID(Branch.STAFF) >= 1) {
-                    proxiedPlayers.sendMessage(new TextComponent(Tags.STAFF.getName(true) + rankRegistry.getPrefix(true) + player.getName() + ChatColor.YELLOW + " connected"));
-                }
-            }
-        }
+        //Permissions.attachPermissions(player);
 
-        playerDataManager.checkJoinedBefore(player);
+//        if (rank.getBranchID(Branch.STAFF) >= 1) {
+//            for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
+//                if (ranksManager.getRank(proxiedPlayers).getBranchID(Branch.STAFF) >= 1) {
+//                    proxiedPlayers.sendMessage(new TextComponent(Tags.STAFF.getName(true) + rankRegistry.getPrefix(true) + player.getName() + ChatColor.YELLOW + " connected"));
+//                }
+//            }
+//        }
+//
+//        playerDataManager.checkJoinedBefore(player);
     }
 
     private void sendHeader(ProxiedPlayer player) {

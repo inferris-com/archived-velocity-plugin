@@ -6,7 +6,6 @@ import com.inferris.events.EventJoin;
 import com.inferris.events.EventPing;
 import com.inferris.events.EventQuit;
 import com.inferris.events.EventReceive;
-import com.inferris.player.PlayerDataManager;
 import com.inferris.server.BungeeChannel;
 import com.inferris.server.Initializer;
 import com.inferris.util.ConfigUtils;
@@ -44,7 +43,7 @@ public class Inferris extends Plugin {
         createPermissionsConfig();
         createPlayersConfig();
 
-        PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
+        //PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
 
         PluginManager pluginManager = getProxy().getPluginManager();
         pluginManager.registerListener(this, new EventJoin());
@@ -53,8 +52,8 @@ public class Inferris extends Plugin {
         pluginManager.registerListener(this, new EventPing());
         pluginManager.registerCommand(this, new CommandTest("bungeetest"));
         pluginManager.registerCommand(this, new CommandConfig("config"));
-        pluginManager.registerCommand(this, new CommandMessage("message"));
-        pluginManager.registerCommand(this, new CommandReply("reply"));
+        //pluginManager.registerCommand(this, new CommandMessage("message"));
+        //pluginManager.registerCommand(this, new CommandReply("reply")); odo
         pluginManager.registerCommand(this, new CommandVanish("vanish"));
 
         getProxy().registerChannel(BungeeChannel.STAFFCHAT.getName());

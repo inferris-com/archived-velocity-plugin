@@ -4,7 +4,11 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.inferris.Inferris;
 import com.inferris.database.DatabasePool;
+import com.inferris.player.registry.RegistryManager;
+import com.inferris.server.Ports;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -16,10 +20,10 @@ import java.util.concurrent.TimeUnit;
 
 public class RanksManager {
     private static RanksManager instance;
-    private final Cache<UUID,Rank> rankCache;
+    private final JedisPool jedisPool;
 
     private RanksManager() {
-        rankCache = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.HOURS).build();
+        jedisPool = new JedisPool("localhost", Ports.JEDIS.getPort()); // Set Redis server details
     }
 
     public static RanksManager getInstance() {
@@ -29,24 +33,8 @@ public class RanksManager {
         return instance;
     }
 
-    public void cacheRank(ProxiedPlayer player, Rank rank){
-        rankCache.put(player.getUniqueId(), rank);
-    }
-
-    public Rank getRank(ProxiedPlayer player){
-        try{
-            return rankCache.get(player.getUniqueId(), () -> {
-                Inferris.getInstance().getLogger().severe("Rank not found in cache");
-                return loadRanks(player);
-            });
-        }catch(ExecutionException e){
-            e.printStackTrace();
-        }
-        return new Rank(0, 0 ,0);
-    }
-
-    public Cache<UUID, Rank> getRankCache() {
-        return rankCache;
+    public Rank getRank(ProxiedPlayer player) {
+        return loadRanks(player);
     }
 
     public Rank loadRanks(ProxiedPlayer player){
@@ -69,7 +57,18 @@ public class RanksManager {
         return new Rank(0, 0, 0);
     }
 
-    public void invalidate(ProxiedPlayer player){
-        rankCache.invalidate(player.getUniqueId());
+    private Rank createEmpty(ProxiedPlayer player) {
+        // Create and return an empty Registry object with default values
+        return new Rank(0, 0, 0);
+    }
+
+    public void invalidateEntry() {
+        try (Jedis jedis = RegistryManager.getInstance().getJedisPool().getResource()) {
+            jedis.del("playerdata");
+        }
+    }
+
+    public JedisPool getJedisPool() {
+        return jedisPool;
     }
 }

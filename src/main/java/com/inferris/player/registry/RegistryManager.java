@@ -2,15 +2,23 @@ package com.inferris.player.registry;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.inferris.Inferris;
 import com.inferris.SerializationModule;
+import com.inferris.database.DatabasePool;
 import com.inferris.player.Channels;
 import com.inferris.player.vanish.VanishState;
+import com.inferris.rank.Branch;
+import com.inferris.rank.Rank;
 import com.inferris.server.Ports;
 import com.inferris.util.CacheSerializationUtils;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -35,19 +43,6 @@ public class RegistryManager {
         return instance;
     }
 
-    public Registry getRegistry(ProxiedPlayer player) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            String json = jedis.get(player.getUniqueId().toString());
-            if (json != null) {
-                return deserializeRegistry(json);
-            } else {
-                return createEmptyRegistry(player); // Create an empty Registry object instead of returning null
-            }
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     public void addPlayer(ProxiedPlayer player, Registry registry) {
         try (Jedis jedis = jedisPool.getResource()) {
             String json = serializeRegistry(registry);
@@ -55,6 +50,48 @@ public class RegistryManager {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public Registry getRegistry(ProxiedPlayer player, Rank rank){
+        Inferris.getInstance().getLogger().info("getRegistry() triggered");
+
+        try (Connection connection = DatabasePool.getConnection();
+             PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM players WHERE uuid = ?");
+             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO players (uuid, username, channel, vanished) VALUES (?, ?, ?)");
+             PreparedStatement updateStatement = connection.prepareStatement("UPDATE players SET username = ? WHERE uuid =?")) {
+
+            queryStatement.setString(1, player.getUniqueId().toString());
+            ResultSet resultSet = queryStatement.executeQuery();
+
+            /* If they are in the database */
+
+            if(resultSet.next()) {
+                String storedUsername = resultSet.getString("username");
+                Channels channel = Channels.valueOf(resultSet.getString("channel"));
+                int vanished = resultSet.getInt("vanished");
+                VanishState vanishState = VanishState.DISABLED;
+
+                if(vanished == 1 || rank.getBranchID(Branch.STAFF) >=3){
+                    vanishState = VanishState.ENABLED;
+                }
+                Inferris.getInstance().getLogger().info("Properly in table");
+
+                return new Registry(player.getUniqueId(), player.getName(), channel, vanishState);
+
+            }else{
+                Inferris.getInstance().getLogger().warning("Inserting into table.");
+                insertStatement.setString(1, player.getUniqueId().toString());
+                insertStatement.setString(2, player.getName());
+                insertStatement.setString(3, String.valueOf(Channels.NONE));
+                insertStatement.setInt(4, 0);
+                insertStatement.execute();
+
+                Inferris.getInstance().getLogger().severe("Added player to table");
+            }
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+        return new Registry(player.getUniqueId(), player.getName(), Channels.NONE, VanishState.DISABLED);
     }
 
 
@@ -89,19 +126,6 @@ public class RegistryManager {
     public void invalidateEntry(UUID uuid) {
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.hdel("registry", uuid.toString());
-        }
-    }
-
-    /*
-    For new registry entries only
-     */
-    public void addToRegistryDefault(ProxiedPlayer player) {
-        Registry registry = new Registry(player.getUniqueId(), player.getName(), Channels.NONE, VanishState.DISABLED);
-        try (Jedis jedis = jedisPool.getResource()) {
-            String json = serializeRegistry(registry);
-            jedis.set(player.getUniqueId().toString(), json);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
         }
     }
 

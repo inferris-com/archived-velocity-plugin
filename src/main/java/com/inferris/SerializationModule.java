@@ -5,8 +5,11 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.inferris.player.Channels;
+import com.inferris.player.Coins;
+import com.inferris.player.PlayerData;
 import com.inferris.player.registry.Registry;
 import com.inferris.player.vanish.VanishState;
+import com.inferris.rank.Rank;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -15,7 +18,24 @@ public class SerializationModule extends SimpleModule {
 
     public SerializationModule() {
         addDeserializer(Registry.class, new RegistryDeserializer());
+        addDeserializer(PlayerData.class, new PlayerDataDeserializer());
+
         addSerializer(Registry.class, new RegistrySerializer());
+        addSerializer(PlayerData.class, new PlayerDataSerializer());
+    }
+
+    public static class PlayerDataSerializer extends JsonSerializer<PlayerData> {
+        private final ObjectMapper objectMapper = new ObjectMapper();
+
+        @Override
+        public void serialize(PlayerData playerData, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+            // Serialize the cache contents or any other relevant information
+            objectMapper.configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, false);
+
+            String serializedCache = objectMapper.writeValueAsString(playerData);
+            //jsonGenerator.writeString(serializedCache);
+            jsonGenerator.writeRawValue(serializedCache);
+        }
     }
 
     public static class RegistrySerializer extends JsonSerializer<Registry> {
@@ -44,6 +64,20 @@ public class SerializationModule extends SimpleModule {
             VanishState vanishState = VanishState.valueOf(registryNode.get("vanishState").asText());
 
             return new Registry(uuid, username, channel, vanishState);
+        }
+    }
+
+    public static class PlayerDataDeserializer extends JsonDeserializer<PlayerData> {
+        @Override
+        public PlayerData deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
+            ObjectMapper objectMapper = (ObjectMapper) jsonParser.getCodec();
+            JsonNode registryNode = objectMapper.readTree(jsonParser);
+
+            Registry registry = objectMapper.treeToValue(registryNode.get("registry"), Registry.class);
+            Rank rank = objectMapper.treeToValue(registryNode.get("rank"), Rank.class);
+            Coins coins = objectMapper.treeToValue(registryNode.get("coins"), Coins.class);
+
+            return new PlayerData(registry, rank, coins);
         }
     }
 }

@@ -34,12 +34,12 @@ public class CommandVanish extends Command implements TabExecutor {
             if(length == 1){
                 if(args[0].equalsIgnoreCase("on")){
                     BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_REGISTRY, Subchannel.VANISH, Subchannel.FORWARD, VanishState.ENABLED.name());
-                    RegistryManager.getInstance().getRegistry(player).setVanishState(VanishState.ENABLED);
+                    //RegistryManager.getInstance().getRegistry(player).setVanishState(VanishState.ENABLED); todo
                     updateData(player, 1);
                 }
                 if(args[0].equalsIgnoreCase("off")){
                     BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_REGISTRY, Subchannel.VANISH, Subchannel.FORWARD, VanishState.DISABLED.name());
-                    RegistryManager.getInstance().getRegistry(player).setVanishState(VanishState.DISABLED);
+                    //RegistryManager.getInstance().getRegistry(player).setVanishState(VanishState.DISABLED); todo
                     updateData(player, 0);
                 }
             }

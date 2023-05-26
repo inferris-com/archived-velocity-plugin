@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.inferris.SerializationModule;
+import com.inferris.player.PlayerData;
 import com.inferris.player.registry.Registry;
 import com.inferris.player.registry.RegistryManager;
 import com.inferris.rank.Rank;
@@ -24,24 +25,29 @@ import java.io.IOException;
 
 public class CacheSerializationUtils {
 
-    public void handlePlayerRegistryRequest(PluginMessageEvent event, ProxiedPlayer player) throws IOException {
-        DataInputStream in = new DataInputStream(new ByteArrayInputStream(event.getData()));
-        String message = in.readUTF();
+//    public void handlePlayerRegistryRequest(PluginMessageEvent event, ProxiedPlayer player) throws IOException {
+//        DataInputStream in = new DataInputStream(new ByteArrayInputStream(event.getData()));
+//        String message = in.readUTF();
+//
+//        if (message.equalsIgnoreCase("request")) {
+//
+//            String cacheJson = serializeRegistry(RegistryManager.getInstance().getRegistry(player));
+//
+//            ByteArrayDataOutput out = ByteStreams.newDataOutput();
+//            out.writeUTF(BungeeChannel.PLAYER_REGISTRY.getName());
+//            out.writeUTF("response");
+//            out.writeUTF(cacheJson);
+//
+//            if(event.getReceiver() instanceof ProxiedPlayer) {
+//                player.getServer().sendData(BungeeChannel.PLAYER_REGISTRY.getName(), out.toByteArray());
+//
+//            }
+//        }
+//    } todo
 
-        if (message.equalsIgnoreCase("request")) {
-
-            String cacheJson = serializeRegistry(RegistryManager.getInstance().getRegistry(player));
-
-            ByteArrayDataOutput out = ByteStreams.newDataOutput();
-            out.writeUTF(BungeeChannel.PLAYER_REGISTRY.getName());
-            out.writeUTF("response");
-            out.writeUTF(cacheJson);
-
-            if(event.getReceiver() instanceof ProxiedPlayer) {
-                player.getServer().sendData(BungeeChannel.PLAYER_REGISTRY.getName(), out.toByteArray());
-
-            }
-        }
+    public static String serializePlayerData(PlayerData playerData) throws JsonProcessingException {
+        ObjectMapper objectMapper = createObjectMapper(new SerializationModule());
+        return objectMapper.writeValueAsString(playerData);
     }
 
     public static String serializeRank(Rank rank) throws JsonProcessingException {
@@ -52,6 +58,12 @@ public class CacheSerializationUtils {
     public static String serializeRegistry(Registry registry) throws JsonProcessingException {
         ObjectMapper objectMapper = createObjectMapper(new SerializationModule());
         return objectMapper.writeValueAsString(registry);
+    }
+
+    public static PlayerData deserializePlayerData(String json) throws JsonProcessingException {
+        ObjectMapper objectMapper = createObjectMapper(new SerializationModule());
+
+        return objectMapper.readValue(json, PlayerData.class);
     }
 
     public static Registry deserializeRegistry(String json) throws JsonProcessingException {
