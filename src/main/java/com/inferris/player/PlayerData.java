@@ -12,8 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PlayerData {
-    private final Rank rank;
     private final Registry registry;
+    private final Rank rank;
     private final Coins coins;
 
     public PlayerData(Registry registry, Rank rank, Coins coins){

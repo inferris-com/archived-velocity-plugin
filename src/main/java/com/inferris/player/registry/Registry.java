@@ -7,8 +7,8 @@ import java.io.Serializable;
 import java.util.UUID;
 
 public class Registry implements Serializable {
-    private final UUID uuid;
-    private final String username;
+    private UUID uuid;
+    private String username;
     private Channels channel;
     private VanishState vanishState;
     public Registry(UUID uuid, String username, Channels channel, VanishState vanishState){
@@ -16,6 +16,9 @@ public class Registry implements Serializable {
         this.username = username;
         this.channel = channel;
         this.vanishState = vanishState;
+    }
+
+    public Registry(){
     }
 
     public UUID getUuid() {

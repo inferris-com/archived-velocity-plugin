@@ -1,7 +1,5 @@
 package com.inferris.rank;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.inferris.Inferris;
 import com.inferris.database.DatabasePool;
 import com.inferris.player.registry.RegistryManager;
@@ -14,9 +12,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 public class RanksManager {
     private static RanksManager instance;

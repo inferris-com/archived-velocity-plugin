@@ -7,6 +7,9 @@ public class Coins {
         this.balance = balance;
     }
 
+    public Coins(){
+    }
+
     public int getBalance() {
         return balance;
     }

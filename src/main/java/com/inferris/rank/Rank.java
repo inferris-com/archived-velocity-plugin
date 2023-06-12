@@ -11,6 +11,9 @@ public class Rank {
         this.other = other;
     }
 
+    public Rank(){
+    }
+
     public int getStaff() {
         return staff;
     }
