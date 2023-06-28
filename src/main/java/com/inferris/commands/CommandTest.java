@@ -72,7 +72,7 @@ public class CommandTest extends Command {
                     player.sendMessage(new TextComponent(configuration.get(player.getUniqueId() + ".channel").toString()));
                 }
                 if(args[0].equalsIgnoreCase("redis")){
-                    try(Jedis jedis = new Jedis("localhost")){
+                    try(Jedis jedis = new Jedis("localhost", Ports.JEDIS.getPort())){
                         jedis.publish("playerdata_channel", "hello");
                     }
                 }
