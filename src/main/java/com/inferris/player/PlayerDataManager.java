@@ -6,6 +6,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.inferris.Inferris;
 import com.inferris.SerializationModule;
+import com.inferris.database.DatabasePool;
 import com.inferris.player.registry.Registry;
 import com.inferris.player.registry.RegistryManager;
 import com.inferris.player.vanish.VanishState;
@@ -18,9 +19,15 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 public class PlayerDataManager {
+    private final Logger logger = Inferris.getInstance().getLogger();
 
     /*
     This class is responsible for storing a master PlayerData object, which includes registry and rank info.
@@ -32,12 +39,12 @@ public class PlayerDataManager {
     private static PlayerDataManager instance;
     private final JedisPool jedisPool;
     private final ObjectMapper objectMapper;
-    private final Cache<UUID, PlayerData> cache;
+    private final Cache<UUID, PlayerData> caffeineCache;
 
     private PlayerDataManager() {
         jedisPool = new JedisPool("localhost", Ports.JEDIS.getPort()); // Set Redis server details
         objectMapper = CacheSerializationUtils.createObjectMapper(new SerializationModule());
-        cache = Caffeine.newBuilder().build();
+        caffeineCache = Caffeine.newBuilder().build();
     }
 
     public static PlayerDataManager getInstance() {
@@ -48,9 +55,9 @@ public class PlayerDataManager {
     }
 
     public PlayerData getPlayerData(ProxiedPlayer player) {
-        if(cache.getIfPresent(player.getUniqueId()) != null){
-            return cache.asMap().get(player.getUniqueId());
-        }else{
+        if (caffeineCache.getIfPresent(player.getUniqueId()) != null) {
+            return caffeineCache.asMap().get(player.getUniqueId());
+        } else {
             return getRedisData(player);
         }
     }
@@ -76,21 +83,25 @@ public class PlayerDataManager {
 
         /*
         Master playerdata object setting
+            Reminder: Redis cache is PERSISTENT
          */
 
         try (Jedis jedis = getJedisPool().getResource()) {
-            if(jedis.hexists("playerdata", player.getUniqueId().toString())){
+            if (jedis.hexists("playerdata", player.getUniqueId().toString())) {
                 Inferris.getInstance().getLogger().warning("Exists");
+                hasDifferentUsername(player);
 
-                if(cache.asMap().get(player.getUniqueId()) == null){
-                    cache.asMap().put(player.getUniqueId(), CacheSerializationUtils.deserializePlayerData(jedis.hget("playerdata", player.getUniqueId().toString())));
-                    Inferris.getInstance().getLogger().severe(cache.asMap().get(player.getUniqueId()).getRank().getBranchID(Branch.STAFF) + "");
-                    Inferris.getInstance().getLogger().severe(cache.asMap().get(player.getUniqueId()).getRegistry().getVanishState() + "");
-                    Inferris.getInstance().getLogger().severe(cache.asMap().get(player.getUniqueId()).getRegistry().getChannel() + "");
-                    Inferris.getInstance().getLogger().severe(cache.asMap().get(player.getUniqueId()).getRegistry().getUsername() + "");
-                    Inferris.getInstance().getLogger().severe(cache.asMap().get(player.getUniqueId()).getCoins().getBalance() + "");
+                /* If in Redis, but not caffeine cache */
+
+                if (caffeineCache.asMap().get(player.getUniqueId()) == null) {
+                    caffeineCache.asMap().put(player.getUniqueId(), CacheSerializationUtils.deserializePlayerData(jedis.hget("playerdata", player.getUniqueId().toString())));
+                    Inferris.getInstance().getLogger().severe(String.valueOf(caffeineCache.asMap().get(player.getUniqueId()).getRank().getBranchID(Branch.STAFF)));
+                    Inferris.getInstance().getLogger().severe(String.valueOf(caffeineCache.asMap().get(player.getUniqueId()).getRegistry().getVanishState()));
+                    Inferris.getInstance().getLogger().severe(String.valueOf(caffeineCache.asMap().get(player.getUniqueId()).getRegistry().getChannel()));
+                    Inferris.getInstance().getLogger().severe(caffeineCache.asMap().get(player.getUniqueId()).getRegistry().getUsername());
+                    Inferris.getInstance().getLogger().severe(String.valueOf(caffeineCache.asMap().get(player.getUniqueId()).getCoins().getBalance()));
                 }
-            }else{
+            } else {
                 Inferris.getInstance().getLogger().warning("Not in registry, caching");
 
                 /*
@@ -101,17 +112,38 @@ public class PlayerDataManager {
                 Registry registry = RegistryManager.getInstance().getRegistry(player, rank); // todo
 
                 PlayerData playerData = new PlayerData(registry, rank, new Coins(36));
+
                 String json = CacheSerializationUtils.serializePlayerData(playerData);
                 jedis.hset("playerdata", player.getUniqueId().toString(), json);
 
                 Inferris.getInstance().getLogger().severe(">>>> " + json);
 
-                if(cache.asMap().get(player.getUniqueId()) != null){
-                    cache.asMap().put(player.getUniqueId(), CacheSerializationUtils.deserializePlayerData(jedis.hget("playerdata", player.getUniqueId().toString())));
+                if (caffeineCache.asMap().get(player.getUniqueId()) != null) {
+                    caffeineCache.asMap().put(player.getUniqueId(), CacheSerializationUtils.deserializePlayerData(jedis.hget("playerdata", player.getUniqueId().toString())));
                 }
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void hasDifferentUsername(ProxiedPlayer player) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            PlayerData deserializedPlayerData = CacheSerializationUtils.deserializePlayerData(jedis.hget("playerdata", player.getUniqueId().toString()));
+
+            if (!deserializedPlayerData.getRegistry().getUsername().equals(player.getName())) {
+                logger.info("Username is different");
+
+                PlayerData redisData = getRedisData(player);
+
+                Registry registry = new Registry(player.getUniqueId(), player.getName(), redisData.getRegistry().getChannel(), redisData.getRegistry().getVanishState());
+                PlayerData playerData = new PlayerData(registry, redisData.getRank(), redisData.getCoins());
+                jedis.hset("playerdata", player.getUniqueId().toString(), CacheSerializationUtils.serializePlayerData(playerData));
+
+                Inferris.getInstance().getLogger().warning("Updated username!");
+            }
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
         }
     }
 
@@ -128,12 +160,12 @@ public class PlayerDataManager {
         }
     }
 
-    public void invalidateCache(ProxiedPlayer player){
-        cache.invalidate(player.getUniqueId());
+    public void invalidateCache(ProxiedPlayer player) {
+        caffeineCache.invalidate(player.getUniqueId());
     }
 
     public Cache<UUID, PlayerData> getCache() {
-        return cache;
+        return caffeineCache;
     }
 
     public JedisPool getJedisPool() {

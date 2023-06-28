@@ -57,8 +57,8 @@ public class RegistryManager {
 
         try (Connection connection = DatabasePool.getConnection();
              PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM players WHERE uuid = ?");
-             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO players (uuid, username, channel, vanished) VALUES (?, ?, ?)");
-             PreparedStatement updateStatement = connection.prepareStatement("UPDATE players SET username = ? WHERE uuid =?")) {
+             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO players (uuid, username, channel, vanished) VALUES (?, ?, ?, ?)");
+             PreparedStatement updateStatement = connection.prepareStatement("UPDATE players SET username = ? WHERE uuid = ?")) {
 
             queryStatement.setString(1, player.getUniqueId().toString());
             ResultSet resultSet = queryStatement.executeQuery();
@@ -75,6 +75,13 @@ public class RegistryManager {
                     vanishState = VanishState.ENABLED;
                 }
                 Inferris.getInstance().getLogger().info("Properly in table");
+
+                if(!storedUsername.equals(player.getName())){
+                    updateStatement.setString(1, player.getName());
+                    updateStatement.setString(2, player.getUniqueId().toString());
+                    updateStatement.executeUpdate();
+                    Inferris.getInstance().getLogger().warning("Updated username (getRegistry)");
+                }
 
                 return new Registry(player.getUniqueId(), player.getName(), channel, vanishState);
 

@@ -1,5 +1,6 @@
 package com.inferris.events;
 
+import com.inferris.player.PlayerDataManager;
 import com.inferris.util.Tags;
 import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
@@ -33,5 +34,8 @@ public class EventQuit implements Listener {
 //        RanksManager.getInstance().invalidate(player);
 //        PlayerDataManager.getInstance().invalidatePlayerData(player); //todo
 //    }
+
+        PlayerDataManager.getInstance().invalidateCache(event.getPlayer());
+        //PlayerDataManager.getInstance().invalidateRedisEntry(event.getPlayer());
     }
 }

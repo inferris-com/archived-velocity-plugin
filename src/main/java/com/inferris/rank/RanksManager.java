@@ -45,6 +45,8 @@ public class RanksManager {
                 int donor = rs.getInt("donor");
                 int other = rs.getInt("other");
                 return new Rank(staff, donor, other);
+            }else{
+                insertStatement.execute();
             }
         }catch(SQLException e){
             e.printStackTrace();
