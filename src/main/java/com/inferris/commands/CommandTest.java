@@ -70,7 +70,11 @@ public class CommandTest extends Command {
                 if (args[0].equalsIgnoreCase("players")) {
                     Configuration configuration = Inferris.getPlayersConfiguration().getSection("players");
                     player.sendMessage(new TextComponent(configuration.get(player.getUniqueId() + ".channel").toString()));
-
+                }
+                if(args[0].equalsIgnoreCase("redis")){
+                    try(Jedis jedis = new Jedis("localhost")){
+                        jedis.publish("playerdata_channel", "hello");
+                    }
                 }
             }
 

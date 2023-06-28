@@ -27,7 +27,6 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 public class PlayerDataManager {
-    private final Logger logger = Inferris.getInstance().getLogger();
 
     /*
     This class is responsible for storing a master PlayerData object, which includes registry and rank info.
@@ -40,6 +39,7 @@ public class PlayerDataManager {
     private final JedisPool jedisPool;
     private final ObjectMapper objectMapper;
     private final Cache<UUID, PlayerData> caffeineCache;
+    private final Logger logger = Inferris.getInstance().getLogger();
 
     private PlayerDataManager() {
         jedisPool = new JedisPool("localhost", Ports.JEDIS.getPort()); // Set Redis server details
@@ -142,6 +142,7 @@ public class PlayerDataManager {
                 caffeineCache.put(player.getUniqueId(), playerData);
 
                 Inferris.getInstance().getLogger().warning("Updated username!");
+                player.sendMessage(caffeineCache.getIfPresent(player.getUniqueId()).getRegistry().getUsername());
             }
         } catch (JsonProcessingException e) {
             e.printStackTrace();
