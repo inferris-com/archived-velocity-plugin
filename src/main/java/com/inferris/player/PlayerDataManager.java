@@ -139,6 +139,7 @@ public class PlayerDataManager {
                 Registry registry = new Registry(player.getUniqueId(), player.getName(), redisData.getRegistry().getChannel(), redisData.getRegistry().getVanishState());
                 PlayerData playerData = new PlayerData(registry, redisData.getRank(), redisData.getCoins());
                 jedis.hset("playerdata", player.getUniqueId().toString(), CacheSerializationUtils.serializePlayerData(playerData));
+                caffeineCache.put(player.getUniqueId(), playerData);
 
                 Inferris.getInstance().getLogger().warning("Updated username!");
             }
