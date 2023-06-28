@@ -1,6 +1,7 @@
 package com.inferris.events;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.inferris.Inferris;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.server.Ports;
 import com.inferris.util.CacheSerializationUtils;
@@ -32,6 +33,8 @@ public class EventJoin implements Listener {
 
         try(Jedis jedis = new Jedis("localhost", Ports.JEDIS.getPort())){
             String json = CacheSerializationUtils.serializePlayerData(playerDataManager.getPlayerData(player));
+            player.sendMessage(new TextComponent("Bungee " + json));
+            Inferris.getInstance().getLogger().info(json);
             jedis.publish("playerdata_channel", json);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
