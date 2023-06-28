@@ -9,11 +9,13 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.inferris.*;
 import com.inferris.SerializationModule;
 import com.inferris.player.Channels;
+import com.inferris.player.PlayerDataManager;
 import com.inferris.player.registry.Registry;
 import com.inferris.player.registry.RegistryManager;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.server.Initializer;
 import com.inferris.server.Ports;
+import com.inferris.util.CacheSerializationUtils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -72,8 +74,14 @@ public class CommandTest extends Command {
                     player.sendMessage(new TextComponent(configuration.get(player.getUniqueId() + ".channel").toString()));
                 }
                 if(args[0].equalsIgnoreCase("redis")){
+                    try {
+                        String json = CacheSerializationUtils.serializePlayerData(PlayerDataManager.getInstance().getPlayerData(player));
+                        player.sendMessage("> " + json);
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
                     try(Jedis jedis = new Jedis("localhost", Ports.JEDIS.getPort())){
-                        jedis.publish("playerdata_channel", "hello");
+                        //jedis.publish("playerdata_channel", "hello");
                     }
                 }
             }

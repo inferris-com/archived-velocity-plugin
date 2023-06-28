@@ -1,6 +1,9 @@
 package com.inferris.events;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.inferris.player.PlayerDataManager;
+import com.inferris.server.Ports;
+import com.inferris.util.CacheSerializationUtils;
 import com.inferris.util.Tags;
 import com.inferris.rank.*;
 import com.inferris.util.ConfigUtils;
@@ -12,6 +15,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
+import redis.clients.jedis.Jedis;
 
 public class EventJoin implements Listener {
 
@@ -25,6 +29,13 @@ public class EventJoin implements Listener {
         PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
 
         playerDataManager.checkJoinedBefore(player); // Important implementation
+
+        try(Jedis jedis = new Jedis("localhost", Ports.JEDIS.getPort())){
+            String json = CacheSerializationUtils.serializePlayerData(playerDataManager.getPlayerData(player));
+            jedis.publish("playerdata_channel", json);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
 
         //Rank rank = ranksManager.getRank(player);
         //ranksManager.cacheRank(player, rank);

@@ -1,5 +1,7 @@
 package com.inferris;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.*;
@@ -10,6 +12,7 @@ import com.inferris.player.PlayerData;
 import com.inferris.player.registry.Registry;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Rank;
+import com.inferris.util.CacheSerializationUtils;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -31,6 +34,8 @@ public class SerializationModule extends SimpleModule {
         public void serialize(PlayerData playerData, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
             // Serialize the cache contents or any other relevant information
             objectMapper.configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, false);
+            objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY).disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+
 
             String serializedCache = objectMapper.writeValueAsString(playerData);
             //jsonGenerator.writeString(serializedCache);

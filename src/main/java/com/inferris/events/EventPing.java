@@ -39,7 +39,7 @@ public class EventPing implements Listener {
             Map<String, String> registryEntries = jedis.hgetAll("registry");
 
             for (String registryJson : registryEntries.values()) {
-                Registry registry = new CacheSerializationUtils().deserializeRegistry(registryJson);
+                Registry registry = CacheSerializationUtils.deserializeRegistry(registryJson);
 
                 if (registry.getVanishState() == VanishState.ENABLED) {
                     count++;

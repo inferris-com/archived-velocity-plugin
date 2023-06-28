@@ -1,5 +1,6 @@
 package com.inferris.player;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.inferris.player.registry.Registry;
 import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
@@ -8,13 +9,15 @@ import com.inferris.rank.RanksManager;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PlayerData {
-    private final Registry registry;
-    private final Rank rank;
-    private final Coins coins;
+public class PlayerData implements Serializable {
+
+    private Registry registry;
+    private Rank rank;
+    private Coins coins;
 
     public PlayerData(Registry registry, Rank rank, Coins coins){
         this.registry = registry;
@@ -22,6 +25,9 @@ public class PlayerData {
         this.coins  =coins;
     }
 
+    PlayerData(){
+
+    }
     public Registry getRegistry() {
         return registry;
     }

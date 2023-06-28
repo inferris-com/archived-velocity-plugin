@@ -1,14 +1,16 @@
 package com.inferris.player.registry;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.inferris.player.Channels;
 import com.inferris.player.vanish.VanishState;
+import net.md_5.bungee.api.Favicon;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.io.Serializable;
 import java.util.UUID;
 
-public class Registry implements Serializable {
+public class Registry {
     private UUID uuid;
     private String username;
     private Channels channel;
@@ -21,10 +23,6 @@ public class Registry implements Serializable {
     }
 
     public Registry(){
-    }
-
-    public ProxiedPlayer getPlayer(){
-        return ProxyServer.getInstance().getPlayer(uuid);
     }
 
     public UUID getUuid() {

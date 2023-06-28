@@ -75,6 +75,19 @@ public class PlayerDataManager {
         }
     }
 
+    public PlayerData getDeserializedRedisData(ProxiedPlayer player) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            String json = jedis.get(player.getUniqueId().toString());
+            if (json != null) {
+                return CacheSerializationUtils.deserializePlayerData(json);
+            } else {
+                return createEmpty(player); // Create an empty Registry object instead of returning null
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /*
     We store them in the PlayerData cache here
      */
@@ -87,6 +100,7 @@ public class PlayerDataManager {
          */
 
         try (Jedis jedis = getJedisPool().getResource()) {
+
             if (jedis.hexists("playerdata", player.getUniqueId().toString())) {
                 Inferris.getInstance().getLogger().warning("Exists");
                 hasDifferentUsername(player);
@@ -101,6 +115,9 @@ public class PlayerDataManager {
                     Inferris.getInstance().getLogger().severe(caffeineCache.asMap().get(player.getUniqueId()).getRegistry().getUsername());
                     Inferris.getInstance().getLogger().severe(String.valueOf(caffeineCache.asMap().get(player.getUniqueId()).getCoins().getBalance()));
                 }
+                PlayerData playerData = getPlayerData(player);
+                String json = CacheSerializationUtils.serializePlayerData(playerData);
+                jedis.publish("playerdata_channel", json);
             } else {
                 Inferris.getInstance().getLogger().warning("Not in registry, caching");
 
@@ -115,6 +132,7 @@ public class PlayerDataManager {
 
                 String json = CacheSerializationUtils.serializePlayerData(playerData);
                 jedis.hset("playerdata", player.getUniqueId().toString(), json);
+                jedis.publish("playerdata_channel", json);
 
                 Inferris.getInstance().getLogger().severe(">>>> " + json);
 
