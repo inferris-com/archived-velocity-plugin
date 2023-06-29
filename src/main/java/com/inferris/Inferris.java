@@ -55,6 +55,8 @@ public class Inferris extends Plugin {
         pluginManager.registerListener(this, new EventPing());
         pluginManager.registerCommand(this, new CommandTest("bungeetest"));
         pluginManager.registerCommand(this, new CommandConfig("config"));
+        pluginManager.registerCommand(this, new CommandMessage("message"));
+        pluginManager.registerCommand(this, new CommandReply("reply"));
         //pluginManager.registerCommand(this, new CommandMessage("message"));
         //pluginManager.registerCommand(this, new CommandReply("reply")); odo
         pluginManager.registerCommand(this, new CommandVanish("vanish"));
