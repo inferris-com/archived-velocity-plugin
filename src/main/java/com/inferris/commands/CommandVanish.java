@@ -1,11 +1,15 @@
 package com.inferris.commands;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.inferris.Inferris;
+import com.inferris.player.PlayerData;
+import com.inferris.player.PlayerDataManager;
 import com.inferris.player.registry.RegistryManager;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.server.BungeeChannel;
 import com.inferris.server.Subchannel;
 import com.inferris.util.BungeeUtils;
+import com.inferris.util.CacheSerializationUtils;
 import com.inferris.util.DatabaseUtils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -27,42 +31,48 @@ public class CommandVanish extends Command implements TabExecutor {
     @Override
     public void execute(CommandSender sender, String[] args) {
         int length = args.length;
-        if(sender instanceof ProxiedPlayer player){
-            if(length == 0){
+        if (sender instanceof ProxiedPlayer player) {
+            if (length == 0) {
                 player.sendMessage(new TextComponent(ChatColor.RED + "Usage: /vanish <on:off>"));
             }
-            if(length == 1){
-                if(args[0].equalsIgnoreCase("on")){
-                    BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_REGISTRY, Subchannel.VANISH, Subchannel.FORWARD, VanishState.ENABLED.name());
-                    //RegistryManager.getInstance().getRegistry(player).setVanishState(VanishState.ENABLED); todo
-                    updateData(player, 1);
+            if (length == 1) {
+                if (args[0].equalsIgnoreCase("on")) {
+                    BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_DATA, Subchannel.VANISH, Subchannel.FORWARD, VanishState.ENABLED.name());
+                    updateDatabase(player, 1);
+                    updatePlayerData(player, VanishState.ENABLED);
                 }
-                if(args[0].equalsIgnoreCase("off")){
+                if (args[0].equalsIgnoreCase("off")) {
                     BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_REGISTRY, Subchannel.VANISH, Subchannel.FORWARD, VanishState.DISABLED.name());
-                    //RegistryManager.getInstance().getRegistry(player).setVanishState(VanishState.DISABLED); todo
-                    updateData(player, 0);
+                    updateDatabase(player, 0);
+                    updatePlayerData(player, VanishState.DISABLED);
                 }
             }
         }
     }
 
-    private void updateData(ProxiedPlayer player, int isVanished){
+    private void updateDatabase(ProxiedPlayer player, int isVanished) {
         String sql = "UPDATE players SET vanished = ? WHERE uuid = ?";
         Object vanished = isVanished;
         Object uuid = player.getUniqueId().toString();
 
-        try{
+        try {
             int affectedRows = DatabaseUtils.executeUpdate(sql, vanished, uuid);
             Inferris.getInstance().getLogger().info("Affected rows: " + affectedRows);
-        }catch(SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    private void updatePlayerData(ProxiedPlayer player, VanishState vanishState) {
+        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
+        playerData.getRegistry().setVanishState(vanishState);
+        PlayerDataManager.getInstance().updateRedisData(player, playerData);
     }
 
 
     @Override
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
-        if(sender instanceof ProxiedPlayer player && args.length == 1){
+        if (sender instanceof ProxiedPlayer player && args.length == 1) {
             List<String> list = new ArrayList<>();
             list.add("on");
             list.add("off");

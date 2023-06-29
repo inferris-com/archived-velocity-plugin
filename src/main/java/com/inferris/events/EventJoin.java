@@ -42,7 +42,7 @@ public class EventJoin implements Listener {
             String json = CacheSerializationUtils.serializePlayerData(playerDataManager.getPlayerData(player));
             player.sendMessage(new TextComponent("Bungee " + json));
             Inferris.getInstance().getLogger().info(json);
-            jedis.publish("playerdata_channel", json);
+            jedis.publish("playerdata_join", json);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

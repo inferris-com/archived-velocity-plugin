@@ -42,7 +42,7 @@ public class PlayerDataManager {
     private final Logger logger = Inferris.getInstance().getLogger();
 
     private PlayerDataManager() {
-        jedisPool = new JedisPool("localhost", Ports.JEDIS.getPort()); // Set Redis server details
+        jedisPool = Inferris.getJedisPool(); // Set Redis server details
         objectMapper = CacheSerializationUtils.createObjectMapper(new SerializationModule());
         caffeineCache = Caffeine.newBuilder().build();
     }
@@ -70,6 +70,16 @@ public class PlayerDataManager {
             } else {
                 return createEmpty(player); // Create an empty Registry object instead of returning null
             }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void updateRedisData(ProxiedPlayer player, PlayerData playerData){
+        try(Jedis jedis = jedisPool.getResource()){
+            jedis.hset("playerdata", player.getUniqueId().toString(), CacheSerializationUtils.serializePlayerData(playerData));
+            caffeineCache.put(player.getUniqueId(), playerData);
+            Inferris.getInstance().getLogger().info("Updated Redis information via Jedis. Caches updated!");
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
