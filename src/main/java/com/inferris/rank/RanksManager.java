@@ -1,9 +1,13 @@
 package com.inferris.rank;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.inferris.Inferris;
 import com.inferris.database.DatabasePool;
+import com.inferris.player.PlayerData;
+import com.inferris.player.PlayerDataManager;
 import com.inferris.player.registry.RegistryManager;
 import com.inferris.server.Ports;
+import com.inferris.util.CacheSerializationUtils;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -18,7 +22,7 @@ public class RanksManager {
     private final JedisPool jedisPool;
 
     private RanksManager() {
-        jedisPool = new JedisPool("localhost", Ports.JEDIS.getPort()); // Set Redis server details
+        jedisPool = Inferris.getJedisPool(); // Set Redis server details
     }
 
     public static RanksManager getInstance() {
@@ -46,12 +50,98 @@ public class RanksManager {
                 int other = rs.getInt("other");
                 return new Rank(staff, donor, other);
             }else{
+                insertStatement.setString(1, String.valueOf(player.getUniqueId()));
+                insertStatement.setInt(2, 0); // Default value for staff rank
+                insertStatement.setInt(3, 0); // Default value for donor rank
+                insertStatement.setInt(4, 0); // Default value for other rank
                 insertStatement.execute();
             }
         }catch(SQLException e){
             e.printStackTrace();
         }
         return new Rank(0, 0, 0);
+    }
+
+    public void setRank(ProxiedPlayer player, Branch branch, int id) {
+
+
+        try (Connection connection = DatabasePool.getConnection();
+             PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM ranks WHERE uuid = ?");
+             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO ranks (uuid, staff, donor, other) VALUES (?, ?, ?, ?)");
+             PreparedStatement updateStatement = connection.prepareStatement("UPDATE ranks SET staff = ?, donor = ?, other = ? WHERE uuid = ?")) {
+
+            // Check if player exists in ranks table
+            queryStatement.setString(1, player.getUniqueId().toString());
+            ResultSet resultSet = queryStatement.executeQuery();
+
+            if (resultSet.next()) {
+                // Player exists, update their rank
+                int currentStaff = resultSet.getInt("staff");
+                int currentDonor = resultSet.getInt("donor");
+                int currentOther = resultSet.getInt("other");
+
+                // Set the values for the update statement
+                updateStatement.setInt(1, branch == Branch.STAFF ? id : currentStaff);
+                updateStatement.setInt(2, branch == Branch.DONOR ? id : currentDonor);
+                updateStatement.setInt(3, branch == Branch.OTHER ? id : currentOther);
+                updateStatement.setString(4, player.getUniqueId().toString());
+                updateStatement.executeUpdate();
+            } else {
+                // Player does not exist, insert their rank
+                insertStatement.setString(1, player.getUniqueId().toString());
+                insertStatement.setInt(2, 0);
+                insertStatement.setInt(3, 0);
+                insertStatement.setInt(4, 0);
+                insertStatement.executeUpdate();
+            }
+
+            // Update the cached rank for the player
+            PlayerData playerData = PlayerDataManager.getInstance().getRedisData(player);
+            //Rank rank = getRank(player);
+            Rank rank = playerData.getRank();
+            switch (branch) {
+                case STAFF -> {
+                    rank.setStaff(id);
+                    break;
+                }
+                case DONOR -> {
+                    rank.setDonor(id);
+                    break;
+                }
+                case OTHER -> {
+                    rank.setOther(id);
+                    break;
+
+                }
+                default -> {
+                    Inferris.getInstance().getLogger().warning("Invalid rank branch specified");
+                    return;
+                }
+            }
+
+            /*
+            Caching, updating, and Jedis publishing
+             */
+
+            try(Jedis jedis = jedisPool.getResource()){
+                String json = CacheSerializationUtils.serializePlayerData(playerData);
+                jedis.hset("playerdata", player.getUniqueId().toString(), json);
+                jedis.publish("playerdata_update", json);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+
+        } catch (SQLException e) {
+            return;
+        }
+
+        if (player.isConnected()) {
+//            TeamManager.removePlayerFromTeams(player);
+//            TeamManager.filterTeams(player);
+//            Bukkit.getLogger().warning("Updated rank for " + player.getName() + " to " + branch.name() + "-" + id);
+        } else {
+//            Bukkit.getLogger().warning("Updated rank for offline player " + player.getName() + " to " + branch.name() + "-" + id);
+        }
     }
 
     private Rank createEmpty(ProxiedPlayer player) {

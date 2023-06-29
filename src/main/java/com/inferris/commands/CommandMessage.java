@@ -6,7 +6,6 @@ import com.inferris.commands.cache.CommandMessageCache;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.PlayerTaskManager;
 import com.inferris.commands.cache.CommandJokeCache;
-import com.inferris.player.registry.RegistryManager;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
 import com.inferris.rank.RankRegistry;
@@ -53,10 +52,10 @@ public class CommandMessage extends Command implements TabExecutor {
                 return;
             }
 
-            if (receiver.getUniqueId().equals(player.getUniqueId())) {
-                sendJoke(receiver, String.join(" ", Arrays.copyOfRange(args, 1, length)));
-                return;
-            }
+//            if (receiver.getUniqueId().equals(player.getUniqueId())) {
+//                sendJoke(receiver, String.join(" ", Arrays.copyOfRange(args, 1, length)));
+//                return;
+//            }
 
             // Check if the receiver is in a vanished state
             if (PlayerDataManager.getInstance().getPlayerData(receiver).getRegistry().getVanishState() == VanishState.ENABLED) {

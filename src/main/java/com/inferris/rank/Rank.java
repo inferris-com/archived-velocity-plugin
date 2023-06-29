@@ -26,6 +26,18 @@ public class Rank {
         return other;
     }
 
+    public void setStaff(int staff) {
+        this.staff = staff;
+    }
+
+    public void setDonor(int donor) {
+        this.donor = donor;
+    }
+
+    public void setOther(int other) {
+        this.other = other;
+    }
+
     public int getBranchID(Branch branch) {
         switch (branch) {
             case STAFF:

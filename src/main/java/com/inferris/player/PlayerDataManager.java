@@ -15,6 +15,7 @@ import com.inferris.rank.Rank;
 import com.inferris.rank.RanksManager;
 import com.inferris.server.Ports;
 import com.inferris.util.CacheSerializationUtils;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -64,11 +65,24 @@ public class PlayerDataManager {
 
     public PlayerData getRedisData(ProxiedPlayer player) {
         try (Jedis jedis = jedisPool.getResource()) {
-            String json = jedis.get(player.getUniqueId().toString());
+            String json = jedis.hget("playerdata", player.getUniqueId().toString());
             if (json != null) {
                 return CacheSerializationUtils.deserializePlayerData(json);
             } else {
                 return createEmpty(player); // Create an empty Registry object instead of returning null
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public PlayerData getRedisDataOrNull(ProxiedPlayer player) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            String json = jedis.get(player.getUniqueId().toString());
+            if (json != null) {
+                return CacheSerializationUtils.deserializePlayerData(json);
+            } else {
+                return null;
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
@@ -166,7 +180,7 @@ public class PlayerDataManager {
                 caffeineCache.put(player.getUniqueId(), playerData);
 
                 Inferris.getInstance().getLogger().warning("Updated username!");
-                player.sendMessage(caffeineCache.getIfPresent(player.getUniqueId()).getRegistry().getUsername());
+                player.sendMessage(new TextComponent(caffeineCache.getIfPresent(player.getUniqueId()).getRegistry().getUsername()));
             }
         } catch (JsonProcessingException e) {
             e.printStackTrace();

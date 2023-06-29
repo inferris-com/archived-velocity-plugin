@@ -45,6 +45,10 @@ public class PlayerData implements Serializable {
         return rank.getBranchID(branch);
     }
 
+    public void setRank(Branch branch, int level) {
+        RanksManager.getInstance().setRank(ProxyServer.getInstance().getPlayer(registry.getUuid()), branch, level);
+    }
+
     @JsonIgnore
     public List<RankRegistry> getByBranches() {
         List<RankRegistry> ranks = new ArrayList<>();

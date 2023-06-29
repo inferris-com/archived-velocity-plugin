@@ -60,6 +60,7 @@ public class Inferris extends Plugin {
         //pluginManager.registerCommand(this, new CommandMessage("message"));
         //pluginManager.registerCommand(this, new CommandReply("reply")); odo
         pluginManager.registerCommand(this, new CommandVanish("vanish"));
+        pluginManager.registerCommand(this, new CommandSetrank("setrank"));
 
         getProxy().registerChannel(BungeeChannel.STAFFCHAT.getName());
         getProxy().registerChannel(BungeeChannel.PLAYER_REGISTRY.getName());

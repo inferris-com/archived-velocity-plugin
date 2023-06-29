@@ -20,3 +20,7 @@ commands:
     description: Alright
   alright2:
     description: Alright2
+  setrank:
+    description: Set rank for a player
+  setcoins:
+    description: Set coins for a player
