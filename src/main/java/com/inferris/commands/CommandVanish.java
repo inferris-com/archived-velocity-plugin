@@ -38,12 +38,12 @@ public class CommandVanish extends Command implements TabExecutor {
             }
             if (length == 1) {
                 if (args[0].equalsIgnoreCase("on")) {
-                    BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_DATA, Subchannel.VANISH, Subchannel.FORWARD, VanishState.ENABLED.name());
+                    //BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_DATA, Subchannel.VANISH, Subchannel.FORWARD, VanishState.ENABLED.name());
                     updateDatabase(player, 1);
                     updatePlayerData(player, VanishState.ENABLED);
                 }
                 if (args[0].equalsIgnoreCase("off")) {
-                    BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_REGISTRY, Subchannel.VANISH, Subchannel.FORWARD, VanishState.DISABLED.name());
+                    //BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_REGISTRY, Subchannel.VANISH, Subchannel.FORWARD, VanishState.DISABLED.name());
                     updateDatabase(player, 0);
                     updatePlayerData(player, VanishState.DISABLED);
                 }
@@ -68,7 +68,7 @@ public class CommandVanish extends Command implements TabExecutor {
         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
         playerData.getRegistry().setVanishState(vanishState);
         PlayerDataManager.getInstance().updateRedisData(player, playerData);
-        String json = null;
+        String json;
         try {
             json = CacheSerializationUtils.serializePlayerData(playerData);
         } catch (JsonProcessingException e) {
@@ -77,6 +77,7 @@ public class CommandVanish extends Command implements TabExecutor {
 
         /* Publishes the player data update so that Inferris front-end can pick it up
         and update their caches accordingly */
+        Inferris.getInstance().getLogger().info(".....");
         try(Jedis jedis = Inferris.getJedisPool().getResource()){
             jedis.publish("playerdata_update", json);
         }

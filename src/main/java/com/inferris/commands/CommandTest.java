@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.inferris.*;
 import com.inferris.SerializationModule;
 import com.inferris.player.Channels;
+import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.registry.Registry;
 import com.inferris.player.registry.RegistryManager;
@@ -74,14 +75,10 @@ public class CommandTest extends Command {
                     player.sendMessage(new TextComponent(configuration.get(player.getUniqueId() + ".channel").toString()));
                 }
                 if(args[0].equalsIgnoreCase("redis")){
-                    try {
-                        String json = CacheSerializationUtils.serializePlayerData(PlayerDataManager.getInstance().getPlayerData(player));
-                        player.sendMessage("> " + json);
+                    try(Jedis jedis = Inferris.getJedisPool().getResource()){
+                        jedis.publish("playerdata_update", CacheSerializationUtils.serializePlayerData(PlayerDataManager.getInstance().getPlayerData(player)));
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException(e);
-                    }
-                    try(Jedis jedis = new Jedis("localhost", Ports.JEDIS.getPort())){
-                        //jedis.publish("playerdata_channel", "hello");
                     }
                 }
             }
