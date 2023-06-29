@@ -17,6 +17,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
+import redis.clients.jedis.Jedis;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -67,6 +68,18 @@ public class CommandVanish extends Command implements TabExecutor {
         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
         playerData.getRegistry().setVanishState(vanishState);
         PlayerDataManager.getInstance().updateRedisData(player, playerData);
+        String json = null;
+        try {
+            json = CacheSerializationUtils.serializePlayerData(playerData);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
+        /* Publishes the player data update so that Inferris front-end can pick it up
+        and update their caches accordingly */
+        try(Jedis jedis = Inferris.getJedisPool().getResource()){
+            jedis.publish("playerdata_update", json);
+        }
     }
 
 
