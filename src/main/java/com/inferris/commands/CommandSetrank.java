@@ -57,7 +57,7 @@ public class CommandSetrank extends Command implements TabExecutor {
             return;
         }
 
-        PlayerData playerData = PlayerDataManager.getInstance().getRedisData(target);
+        PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(target);
         player.sendMessage(new TextComponent(ChatColor.RED + String.valueOf(playerData.getRank().getStaff())));
         player.sendMessage(new TextComponent(ChatColor.AQUA + String.valueOf(playerData.getRank().getDonor())));
         player.sendMessage(new TextComponent(ChatColor.YELLOW + String.valueOf(playerData.getRank().getOther())));

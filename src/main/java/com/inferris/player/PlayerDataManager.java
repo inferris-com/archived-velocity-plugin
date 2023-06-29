@@ -78,7 +78,7 @@ public class PlayerDataManager {
 
     public PlayerData getRedisDataOrNull(ProxiedPlayer player) {
         try (Jedis jedis = jedisPool.getResource()) {
-            String json = jedis.get(player.getUniqueId().toString());
+            String json = jedis.hget("playerdata", player.getUniqueId().toString());
             if (json != null) {
                 return CacheSerializationUtils.deserializePlayerData(json);
             } else {
