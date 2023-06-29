@@ -8,12 +8,14 @@ import com.inferris.events.EventQuit;
 import com.inferris.events.EventReceive;
 import com.inferris.server.BungeeChannel;
 import com.inferris.server.Initializer;
+import com.inferris.server.Ports;
 import com.inferris.util.ConfigUtils;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.plugin.PluginManager;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
+import redis.clients.jedis.JedisPool;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -34,6 +36,7 @@ public class Inferris extends Plugin {
     private static Configuration configuration;
     private static Configuration permissionsConfiguration;
     private static Configuration playersConfiguration;
+    private static JedisPool jedisPool;
 
     @Override
     public void onEnable() {
@@ -74,11 +77,14 @@ public class Inferris extends Plugin {
         playersConfiguration = ConfigUtils.createConfigFile(playersFile, playersConfiguration, "players");
 
         Initializer initializer = new Initializer();
-        initializer.loadPlayerRegistry();
+        //initializer.loadPlayerRegistry();
+        jedisPool = new JedisPool("localhost", Ports.JEDIS.getPort());
+
     }
 
     @Override
     public void onDisable() {
+        jedisPool.close();
     }
 
     public void createConfig() {
@@ -185,6 +191,10 @@ public class Inferris extends Plugin {
 
     public static Inferris getInstance() {
         return instance;
+    }
+
+    public static JedisPool getJedisPool() {
+        return jedisPool;
     }
 
     public static void setPermissionsConfiguration(Configuration permissionsConfiguration) {

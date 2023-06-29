@@ -2,6 +2,8 @@ package com.inferris.events;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.inferris.Inferris;
+import com.inferris.Messages;
+import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.server.Ports;
 import com.inferris.util.CacheSerializationUtils;
@@ -30,8 +32,13 @@ public class EventJoin implements Listener {
         PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
 
         playerDataManager.checkJoinedBefore(player); // Important implementation
+        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
+        Rank rank = playerData.getRank();
+        RankRegistry rankRegistry = playerDataManager.getPlayerData(player).getByBranch();
 
-        try(Jedis jedis = new Jedis("localhost", Ports.JEDIS.getPort())){
+       Permissions.attachPermissions(player);
+
+        try(Jedis jedis = Inferris.getJedisPool().getResource()){
             String json = CacheSerializationUtils.serializePlayerData(playerDataManager.getPlayerData(player));
             player.sendMessage(new TextComponent("Bungee " + json));
             Inferris.getInstance().getLogger().info(json);
@@ -40,27 +47,18 @@ public class EventJoin implements Listener {
             throw new RuntimeException(e);
         }
 
-        //Rank rank = ranksManager.getRank(player);
-        //ranksManager.cacheRank(player, rank);
-
-        //RankRegistry rankRegistry = playerDataManager.getPlayerData(player).getByBranch();
-
-        //Permissions.attachPermissions(player);
-
-//        if (rank.getBranchID(Branch.STAFF) >= 1) {
-//            for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-//                if (ranksManager.getRank(proxiedPlayers).getBranchID(Branch.STAFF) >= 1) {
-//                    proxiedPlayers.sendMessage(new TextComponent(Tags.STAFF.getName(true) + rankRegistry.getPrefix(true) + player.getName() + ChatColor.YELLOW + " connected"));
-//                }
-//            }
-//        }
-//
-//        playerDataManager.checkJoinedBefore(player);
+        if (rank.getBranchID(Branch.STAFF) >= 1) {
+            for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
+                if (ranksManager.getRank(proxiedPlayers).getBranchID(Branch.STAFF) >= 1) {
+                    proxiedPlayers.sendMessage(new TextComponent(Tags.STAFF.getName(true) + rankRegistry.getPrefix(true) + player.getName() + ChatColor.YELLOW + " connected"));
+                }
+            }
+        }
     }
 
     private void sendHeader(ProxiedPlayer player) {
         BaseComponent headerComponent = new TextComponent(ChatColor.AQUA + "Inferris");
-        BaseComponent footerComponent = new TextComponent(ChatColor.GREEN + "https://inferris.com");
+        BaseComponent footerComponent = new TextComponent(Messages.WEBSITE_URL.getMessage());
         player.setTabHeader(headerComponent, footerComponent);
     }
 }
