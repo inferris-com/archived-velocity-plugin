@@ -48,7 +48,7 @@ public class CommandCoins extends Command implements TabExecutor {
                     }
 
                     targetData.setCoins(Integer.parseInt(args[2]));
-                    player.sendMessage(new TextComponent("Coins set for " + args[0] + " to " + args[2]));
+                    player.sendMessage(new TextComponent("Coins set for " + args[0] + " to " + ChatColor.AQUA + args[2]));
                 }
             }
         }
