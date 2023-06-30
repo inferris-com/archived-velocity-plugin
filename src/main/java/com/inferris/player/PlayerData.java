@@ -9,6 +9,7 @@ import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
 import com.inferris.rank.RankRegistry;
 import com.inferris.rank.RanksManager;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
@@ -21,7 +22,7 @@ import java.util.List;
  *
  * @since 1.0
  */
-public class PlayerData implements Serializable {
+public class PlayerData implements PlayerDataService,Serializable {
 
     private Registry registry;
     private Rank rank;
@@ -64,6 +65,18 @@ public class PlayerData implements Serializable {
     public VanishState getVanishState() {
         return vanishState;
     }
+
+    @Override
+    public ChatColor getNameColor() {
+        return switch (getByBranch()) {
+            case ADMIN -> ChatColor.RED;
+            case MOD -> ChatColor.DARK_GREEN;
+            case HELPER -> ChatColor.BLUE;
+            case DONOR -> ChatColor.AQUA;
+            default -> ChatColor.RESET;
+        };
+    }
+
 
     public void setCoins(int amount) {
         CoinsManager.setCoins(ProxyServer.getInstance().getPlayer(getRegistry().getUuid()), amount);

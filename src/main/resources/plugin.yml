@@ -1,7 +1,7 @@
 name: Inferris
 main: com.inferris.Inferris
 version: 1.0
-author: [Refrizor]
+author: Refrizor
 
 commands:
   config:
@@ -26,3 +26,5 @@ commands:
     description: Set coins for a player
   channel:
     description: Set channel
+  profile:
+    description: Set or view profile for a player

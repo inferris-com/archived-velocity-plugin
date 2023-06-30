@@ -39,15 +39,11 @@ public class Rank {
     }
 
     public int getBranchID(Branch branch) {
-        switch (branch) {
-            case STAFF:
-                return staff;
-            case DONOR:
-                return donor;
-            case OTHER:
-                return other;
-            default:
-                return -1;
-        }
+        return switch (branch) {
+            case STAFF -> staff;
+            case DONOR -> donor;
+            case OTHER -> other;
+            default -> -1;
+        };
     }
 }
