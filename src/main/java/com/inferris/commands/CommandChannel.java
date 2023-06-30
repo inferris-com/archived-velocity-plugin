@@ -13,6 +13,7 @@ import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -49,19 +50,16 @@ public class CommandChannel extends Command implements TabExecutor {
 
     @Override
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
-
         if (args.length == 1 && sender instanceof ProxiedPlayer player) {
-            String partialOption = args[0];
+            String partialOption = args[0].toLowerCase();
             List<String> options = new ArrayList<>();
 
-            if ("staff".startsWith(partialOption)) {
-                options.add("staff");
-            }
-            if ("special".startsWith(partialOption)) {
-                options.add("special");
-            }
-            if ("none".startsWith(partialOption)) {
-                options.add("none");
+            List<String> availableOptions = Arrays.asList("staff", "special", "none");
+
+            for (String option : availableOptions) {
+                if (option.toLowerCase().startsWith(partialOption)) {
+                    options.add(option);
+                }
             }
             return options;
         }
