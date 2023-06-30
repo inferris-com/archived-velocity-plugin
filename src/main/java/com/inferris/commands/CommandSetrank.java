@@ -58,9 +58,6 @@ public class CommandSetrank extends Command implements TabExecutor {
         }
 
         PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(target);
-        player.sendMessage(new TextComponent(ChatColor.RED + String.valueOf(playerData.getRank().getStaff())));
-        player.sendMessage(new TextComponent(ChatColor.AQUA + String.valueOf(playerData.getRank().getDonor())));
-        player.sendMessage(new TextComponent(ChatColor.YELLOW + String.valueOf(playerData.getRank().getOther())));
         if(playerData == null){
             player.sendMessage(new TextComponent(ChatColor.RED + "Player does not exist in our system."));
             return;

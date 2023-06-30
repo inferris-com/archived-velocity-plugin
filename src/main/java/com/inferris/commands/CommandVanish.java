@@ -7,6 +7,7 @@ import com.inferris.player.PlayerDataManager;
 import com.inferris.player.registry.RegistryManager;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.server.BungeeChannel;
+import com.inferris.server.JedisChannels;
 import com.inferris.server.Subchannel;
 import com.inferris.util.BungeeUtils;
 import com.inferris.util.CacheSerializationUtils;
@@ -38,14 +39,15 @@ public class CommandVanish extends Command implements TabExecutor {
             }
             if (length == 1) {
                 if (args[0].equalsIgnoreCase("on")) {
-                    //BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_DATA, Subchannel.VANISH, Subchannel.FORWARD, VanishState.ENABLED.name());
                     updateDatabase(player, 1);
                     updatePlayerData(player, VanishState.ENABLED);
+                    //BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_DATA, Subchannel.VANISH, Subchannel.FORWARD, VanishState.ENABLED.name());
                 }
                 if (args[0].equalsIgnoreCase("off")) {
-                    //BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_REGISTRY, Subchannel.VANISH, Subchannel.FORWARD, VanishState.DISABLED.name());
                     updateDatabase(player, 0);
                     updatePlayerData(player, VanishState.DISABLED);
+                    //BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_DATA, Subchannel.VANISH, Subchannel.FORWARD, VanishState.ENABLED.name());
+
                 }
             }
         }
@@ -79,7 +81,7 @@ public class CommandVanish extends Command implements TabExecutor {
         and update their caches accordingly */
         Inferris.getInstance().getLogger().info(".....");
         try(Jedis jedis = Inferris.getJedisPool().getResource()){
-            jedis.publish("playerdata_update", json);
+            jedis.publish(JedisChannels.PLAYERDATA_VANISH.name(), json);
         }
     }
 

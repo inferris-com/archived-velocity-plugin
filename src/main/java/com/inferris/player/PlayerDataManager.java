@@ -92,7 +92,7 @@ public class PlayerDataManager {
     public void updateRedisData(ProxiedPlayer player, PlayerData playerData){
         try(Jedis jedis = jedisPool.getResource()){
             jedis.hset("playerdata", player.getUniqueId().toString(), CacheSerializationUtils.serializePlayerData(playerData));
-            caffeineCache.put(player.getUniqueId(), playerData);
+            caffeineCache.put(player.getUniqueId(), playerData);    // Automatically update the cache
             Inferris.getInstance().getLogger().info("Updated Redis information via Jedis. Caches updated!");
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);

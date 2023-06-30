@@ -6,6 +6,7 @@ import com.inferris.database.DatabasePool;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.registry.RegistryManager;
+import com.inferris.server.JedisChannels;
 import com.inferris.server.Ports;
 import com.inferris.util.CacheSerializationUtils;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -126,7 +127,7 @@ public class RanksManager {
             try(Jedis jedis = jedisPool.getResource()){
                 String json = CacheSerializationUtils.serializePlayerData(playerData);
                 jedis.hset("playerdata", player.getUniqueId().toString(), json);
-                jedis.publish("playerdata_update", json);
+                jedis.publish(JedisChannels.PLAYERDATA_UPDATE.name(), json);
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }

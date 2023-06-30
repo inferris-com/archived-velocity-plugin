@@ -5,6 +5,7 @@ import com.inferris.Inferris;
 import com.inferris.Messages;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
+import com.inferris.server.JedisChannels;
 import com.inferris.server.Ports;
 import com.inferris.util.CacheSerializationUtils;
 import com.inferris.util.Tags;
@@ -42,7 +43,7 @@ public class EventJoin implements Listener {
             String json = CacheSerializationUtils.serializePlayerData(playerDataManager.getPlayerData(player));
             player.sendMessage(new TextComponent("Bungee " + json));
             Inferris.getInstance().getLogger().info(json);
-            jedis.publish("playerdata_join", json);
+            jedis.publish(JedisChannels.PLAYERDATA_JOIN.name(), json);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
