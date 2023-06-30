@@ -41,7 +41,6 @@ public class CommandCoins extends Command implements TabExecutor {
                         player.sendMessage(new TextComponent("Player " + args[1] + " not found or is offline."));
                         return;
                     }
-                    Coins coins;
                     PlayerData targetData = PlayerDataManager.getInstance().getRedisDataOrNull(target);
                     if (targetData == null) {
                         player.sendMessage(new TextComponent(ChatColor.RED + "Player does not exist in our system."));
@@ -49,7 +48,7 @@ public class CommandCoins extends Command implements TabExecutor {
                     }
 
                     targetData.setCoins(Integer.parseInt(args[2]));
-                    player.sendMessage(new TextComponent("Coins set for " + args[0] + " to " + args[1]));
+                    player.sendMessage(new TextComponent("Coins set for " + args[0] + " to " + args[2]));
                 }
             }
         }

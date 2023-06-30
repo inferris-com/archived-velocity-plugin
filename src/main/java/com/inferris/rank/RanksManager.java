@@ -125,6 +125,7 @@ public class RanksManager {
              */
 
             try(Jedis jedis = jedisPool.getResource()){
+                PlayerDataManager.getInstance().updateAllData(player, playerData);
                 String json = CacheSerializationUtils.serializePlayerData(playerData);
                 jedis.hset("playerdata", player.getUniqueId().toString(), json);
                 jedis.publish(JedisChannels.PLAYERDATA_UPDATE.name(), json);

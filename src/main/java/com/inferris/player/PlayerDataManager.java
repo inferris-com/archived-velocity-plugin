@@ -126,14 +126,29 @@ public class PlayerDataManager {
      * @param playerData The PlayerData object containing the updated player data.
      */
 
-    public void updateRedisData(ProxiedPlayer player, PlayerData playerData){
+
+    public void updateAllData(ProxiedPlayer player, PlayerData playerData){
         try(Jedis jedis = jedisPool.getResource()){
             jedis.hset("playerdata", player.getUniqueId().toString(), CacheSerializationUtils.serializePlayerData(playerData));
-            caffeineCache.put(player.getUniqueId(), playerData);    // Automatically update the cache
+            updateCaffeineCache(player, playerData);
             Inferris.getInstance().getLogger().info("Updated Redis information via Jedis. Caches updated!");
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+   public void updateRedisData(ProxiedPlayer player, PlayerData playerData){
+        try(Jedis jedis = jedisPool.getResource()){
+            jedis.hset("playerdata", player.getUniqueId().toString(), CacheSerializationUtils.serializePlayerData(playerData));
+            Inferris.getInstance().getLogger().info("Updated Redis information via Jedis. Caches updated!");
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void updateCaffeineCache(ProxiedPlayer player, PlayerData playerData) {
+        caffeineCache.put(player.getUniqueId(), playerData);
+        Inferris.getInstance().getLogger().info("Updated Caffeine cache for player: " + player.getName());
     }
 
     public PlayerData getDeserializedRedisData(ProxiedPlayer player) {

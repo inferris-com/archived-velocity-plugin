@@ -27,11 +27,11 @@ public class CoinsManager {
         }
 
         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
-        playerData.setCoins(amount);
+        playerData.getCoins().setBalance(amount);
+        PlayerDataManager.getInstance().updateAllData(player, playerData);
 
         try(Jedis jedis = Inferris.getJedisPool().getResource()){
             String json = CacheSerializationUtils.serializePlayerData(playerData);
-            jedis.hset("playerdata", player.getUniqueId().toString(), json);
             jedis.publish(JedisChannels.PLAYERDATA_COINS.name(), json);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
