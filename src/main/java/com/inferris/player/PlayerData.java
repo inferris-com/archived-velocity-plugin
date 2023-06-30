@@ -12,6 +12,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents the data associated with a player, including their {@link Registry} information, {@link Rank}, and {@link Coins}.
+ *
+ * @since 1.0
+ */
 public class PlayerData implements Serializable {
 
     private Registry registry;
