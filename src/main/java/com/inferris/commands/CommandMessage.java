@@ -59,9 +59,9 @@ public class CommandMessage extends Command implements TabExecutor {
 
             // Check if the receiver is in a vanished state
             if (PlayerDataManager.getInstance().getPlayerData(receiver).getRegistry().getVanishState() == VanishState.ENABLED) {
-                if(RanksManager.getInstance().getRank(player).getBranchID(Branch.STAFF) >=3) {
+                if (RanksManager.getInstance().getRank(player).getBranchID(Branch.STAFF) >= 3) {
                     return;
-                }else{
+                } else {
                     // Vanished message
                     player.sendMessage(new TextComponent(ChatColor.RED + "Error: Couldn't find that player!"));
                 }
@@ -88,22 +88,22 @@ public class CommandMessage extends Command implements TabExecutor {
 
     @Override
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
-
         if (args.length == 1 && sender instanceof ProxiedPlayer player) {
-            String partialPlayerName = args[0];
-            List<String> playerNames = new ArrayList<>();
-            for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                if (!(PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getRegistry().getVanishState() == VanishState.ENABLED)) {
-                    String playerName = proxiedPlayers.getName();
-                    if (playerName.toLowerCase().startsWith(partialPlayerName.toLowerCase())) {
-                        playerNames.add(playerName);
-                    }
+            String partialOption = args[0].toLowerCase();
+            List<String> options = new ArrayList<>();
+
+            List<String> availableOptions = Arrays.asList("staff", "special", "none");
+
+            for (String option : availableOptions) {
+                if (option.toLowerCase().startsWith(partialOption)) {
+                    options.add(option);
                 }
             }
-            return playerNames;
+            return options;
         }
         return Collections.emptyList();
     }
+
 
     private void sendJoke(ProxiedPlayer receiver, String message) {
         if (cacheJokeHandler == null) {

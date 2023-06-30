@@ -14,6 +14,7 @@ import net.md_5.bungee.api.plugin.TabExecutor;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 public class CommandChannel extends Command implements TabExecutor {
     public CommandChannel(String name) {
@@ -22,21 +23,21 @@ public class CommandChannel extends Command implements TabExecutor {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        if(sender instanceof ProxiedPlayer player){
+        if (sender instanceof ProxiedPlayer player) {
             int length = args.length;
 
-            if(length != 1){
+            if (length != 1) {
                 player.sendMessage(new TextComponent(ChatColor.RED + "/channel <channel>"));
                 return;
             }
             ChannelManager channelManager = new ChannelManager();
             String channel = args[0].toLowerCase();
 
-            switch (channel){
+            switch (channel) {
                 case "staff" -> {
-                    if(PlayerDataManager.getInstance().getPlayerData(player).getBranchValue(Branch.STAFF) >=1){
+                    if (PlayerDataManager.getInstance().getPlayerData(player).getBranchValue(Branch.STAFF) >= 1) {
                         channelManager.setChannel(player, Channels.STAFF, true);
-                    }else{
+                    } else {
                         player.sendMessage(Messages.NO_PERMISSION.getMessage());
                     }
                 }
@@ -47,12 +48,21 @@ public class CommandChannel extends Command implements TabExecutor {
     }
 
     @Override
-    public Iterable<String> onTabComplete(CommandSender commandSender, String[] strings) {
-        if(commandSender instanceof ProxiedPlayer player){
-            ArrayList<String> options = new ArrayList<>();
-            options.add("staff");
-            options.add("special");
-            options.add("none");
+    public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
+
+        if (args.length == 1 && sender instanceof ProxiedPlayer player) {
+            String partialOption = args[0];
+            List<String> options = new ArrayList<>();
+
+            if ("staff".startsWith(partialOption)) {
+                options.add("staff");
+            }
+            if ("special".startsWith(partialOption)) {
+                options.add("special");
+            }
+            if ("none".startsWith(partialOption)) {
+                options.add("none");
+            }
             return options;
         }
         return Collections.emptyList();
