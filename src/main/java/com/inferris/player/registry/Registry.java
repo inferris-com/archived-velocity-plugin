@@ -1,15 +1,18 @@
 package com.inferris.player.registry;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.inferris.player.Channels;
 import com.inferris.player.vanish.VanishState;
-import net.md_5.bungee.api.Favicon;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
 
-import java.io.Serializable;
 import java.util.UUID;
 
+/**
+ * Represents the registry information of a player, including their UUID, username, channel, and vanish state.
+ * This class is primarily used within the {@link com.inferris.player.PlayerData} class, which represents the data associated with a player.
+ *
+ * <p>The registry data is cached and serialized/deserialized for network transmission between Bungee plugin and Spigot using Redis.</p>
+ *
+ * @since 1.0
+ */
 public class Registry {
     private UUID uuid;
     private String username;
