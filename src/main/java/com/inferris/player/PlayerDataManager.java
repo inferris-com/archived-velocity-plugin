@@ -19,6 +19,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
+import java.time.LocalDate;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -202,7 +203,7 @@ public class PlayerDataManager {
                 Rank rank = RanksManager.getInstance().getRank(player); // Finished
                 Registry registry = RegistryManager.getInstance().getRegistry(player, rank); // todo
 
-                PlayerData playerData = new PlayerData(registry, rank, new Coins(36), Channels.NONE, VanishState.DISABLED);
+                PlayerData playerData = new PlayerData(registry, rank, new Profile(null, null, LocalDate.now()), new Coins(36), Channels.NONE, VanishState.DISABLED);
 
                 String json = CacheSerializationUtils.serializePlayerData(playerData);
                 jedis.hset("playerdata", player.getUniqueId().toString(), json);
@@ -228,7 +229,8 @@ public class PlayerDataManager {
                 PlayerData redisData = getRedisData(player);
 
                 Registry registry = new Registry(player.getUniqueId(), player.getName());
-                PlayerData playerData = new PlayerData(registry, redisData.getRank(), redisData.getCoins(), redisData.getChannel(), redisData.getVanishState());
+                Profile profile = new Profile(redisData.getProfile().getBio(), redisData.getProfile().getPronouns(), redisData.getProfile().getRegistrationDate());
+                PlayerData playerData = new PlayerData(registry, redisData.getRank(), profile, redisData.getCoins(), redisData.getChannel(), redisData.getVanishState());
                 jedis.hset("playerdata", player.getUniqueId().toString(), CacheSerializationUtils.serializePlayerData(playerData));
                 caffeineCache.put(player.getUniqueId(), playerData);
 
@@ -244,6 +246,7 @@ public class PlayerDataManager {
         // Create and return an empty Registry object with default values
         return new PlayerData(new Registry(player.getUniqueId(), player.getName()),
                 new Rank(0, 0, 0),
+                new Profile(null, null, null),
                 new Coins(36), Channels.NONE, VanishState.DISABLED);
     }
 

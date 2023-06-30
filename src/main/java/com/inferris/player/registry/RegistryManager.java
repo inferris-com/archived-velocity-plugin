@@ -15,10 +15,8 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -57,7 +55,8 @@ public class RegistryManager {
 
         try (Connection connection = DatabasePool.getConnection();
              PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM players WHERE uuid = ?");
-             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO players (uuid, username, coins, channel, vanished) VALUES (?, ?, ?, ?, ?)");
+             PreparedStatement insertPlayersStatement = connection.prepareStatement("INSERT INTO players (uuid, username, coins, channel, vanished, join_date) VALUES (?, ?, ?, ?, ?, ?)");
+             PreparedStatement insertProfileStatement = connection.prepareStatement("INSERT INTO profile (uuid, bio, pronouns) VALUES (?, ?, ?)");
              PreparedStatement updateStatement = connection.prepareStatement("UPDATE players SET username = ? WHERE uuid = ?")) {
 
             queryStatement.setString(1, player.getUniqueId().toString());
@@ -86,12 +85,18 @@ public class RegistryManager {
 
             }else{
                 Inferris.getInstance().getLogger().warning("Inserting into table.");
-                insertStatement.setString(1, player.getUniqueId().toString());
-                insertStatement.setString(2, player.getName());
-                insertStatement.setInt(3, 36);
-                insertStatement.setString(4, String.valueOf(Channels.NONE));
-                insertStatement.setInt(5, 0);
-                insertStatement.execute();
+                insertPlayersStatement.setString(1, player.getUniqueId().toString());
+                insertPlayersStatement.setString(2, player.getName());
+                insertPlayersStatement.setInt(3, 36);
+                insertPlayersStatement.setString(4, String.valueOf(Channels.NONE));
+                insertPlayersStatement.setInt(5, 0);
+                insertPlayersStatement.setObject(6, LocalDate.now());
+                insertPlayersStatement.execute();
+
+                insertProfileStatement.setString(1, player.getUniqueId().toString());;
+                insertProfileStatement.setString(2, null);
+                insertProfileStatement.setString(3, null);
+                insertProfileStatement.execute();
 
                 Inferris.getInstance().getLogger().severe("Added player to table");
             }

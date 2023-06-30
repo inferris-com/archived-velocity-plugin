@@ -25,13 +25,14 @@ public class PlayerData implements Serializable {
 
     private Registry registry;
     private Rank rank;
+    private Profile profile;
     private Coins coins;
     private Channels channel;
     private VanishState vanishState;
-
-    public PlayerData(Registry registry, Rank rank, Coins coins, Channels channel, VanishState vanishState){
+    public PlayerData(Registry registry, Rank rank, Profile profile, Coins coins, Channels channel, VanishState vanishState){
         this.registry = registry;
         this.rank = rank;
+        this.profile = profile;
         this.coins = coins;
         this.channel = channel;
         this.vanishState = vanishState;
@@ -46,6 +47,10 @@ public class PlayerData implements Serializable {
 
     public Rank getRank() {
         return rank;
+    }
+
+    public Profile getProfile() {
+        return profile;
     }
 
     public Coins getCoins() {

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.inferris.SerializationModule;
@@ -79,7 +80,8 @@ public class CacheSerializationUtils {
                 .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
                 .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
 
-                .registerModule(module); // Register your custom Caffeine module here
+                .registerModule(module) // Register your custom Caffeine module here
+                .registerModule(new JavaTimeModule());
 
         return objectMapper;
     }
