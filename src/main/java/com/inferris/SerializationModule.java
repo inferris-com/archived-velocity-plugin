@@ -12,7 +12,6 @@ import com.inferris.player.PlayerData;
 import com.inferris.player.registry.Registry;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Rank;
-import com.inferris.util.CacheSerializationUtils;
 
 import java.io.IOException;
 import java.util.UUID;
