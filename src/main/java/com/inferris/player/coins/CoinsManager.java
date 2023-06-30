@@ -15,20 +15,24 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class CoinsManager {
-    public void setCoins(ProxiedPlayer player, int amount){
+    public static void setCoins(ProxiedPlayer player, int amount){
         try (Connection connection = DatabasePool.getConnection();
-             PreparedStatement updateStatement = connection.prepareStatement("UPDATE coins SET staff = ?, donor = ?, other = ? WHERE uuid = ?")){
+             PreparedStatement updateStatement = connection.prepareStatement("UPDATE players SET coins = ? WHERE uuid = ?")){
+            updateStatement.setInt(1, amount);
+            updateStatement.setString(2, player.getUniqueId().toString());
+            updateStatement.executeUpdate();
 
         }catch(SQLException e){
             e.printStackTrace();
         }
 
         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
+        playerData.setCoins(amount);
 
         try(Jedis jedis = Inferris.getJedisPool().getResource()){
             String json = CacheSerializationUtils.serializePlayerData(playerData);
             jedis.hset("playerdata", player.getUniqueId().toString(), json);
-            jedis.publish(JedisChannels.PLAYERDATA_UPDATE.name(), json);
+            jedis.publish(JedisChannels.PLAYERDATA_COINS.name(), json);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

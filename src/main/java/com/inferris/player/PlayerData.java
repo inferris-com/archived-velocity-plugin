@@ -2,6 +2,7 @@ package com.inferris.player;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.inferris.player.coins.Coins;
+import com.inferris.player.coins.CoinsManager;
 import com.inferris.player.registry.Registry;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
@@ -9,6 +10,7 @@ import com.inferris.rank.Rank;
 import com.inferris.rank.RankRegistry;
 import com.inferris.rank.RanksManager;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -59,7 +61,7 @@ public class PlayerData implements Serializable {
     }
 
     public void setCoins(int amount) {
-        this.coins.setBalance(amount);
+        CoinsManager.setCoins(ProxyServer.getInstance().getPlayer(getRegistry().getUuid()), amount);
     }
 
     /**

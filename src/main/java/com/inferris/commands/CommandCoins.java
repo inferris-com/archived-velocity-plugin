@@ -12,6 +12,11 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 public class CommandCoins extends Command implements TabExecutor {
     public CommandCoins(String name) {
         super(name);
@@ -28,33 +33,56 @@ public class CommandCoins extends Command implements TabExecutor {
                 return;
             }
 
-            if (!(args.length == 2) && playerData.getBranchValue(Branch.STAFF) >= 3) {
-                player.sendMessage(new TextComponent("Usage: /coins set <player> <amount>"));
-                return;
-            }
+            if (length == 3 && playerData.getBranchValue(Branch.STAFF) >= 3) {
+                if (args[0].equalsIgnoreCase("set")) {
 
-            if (args.length == 2 && playerData.getBranchValue(Branch.STAFF) >= 3) {
+                    ProxiedPlayer target = ProxyServer.getInstance().getPlayer(args[1]);
+                    if (target == null) {
+                        player.sendMessage(new TextComponent("Player " + args[1] + " not found or is offline."));
+                        return;
+                    }
+                    Coins coins;
+                    PlayerData targetData = PlayerDataManager.getInstance().getRedisDataOrNull(target);
+                    if (targetData == null) {
+                        player.sendMessage(new TextComponent(ChatColor.RED + "Player does not exist in our system."));
+                        return;
+                    }
 
-                ProxiedPlayer target = ProxyServer.getInstance().getPlayer(args[0]);
-                if (target == null) {
-                    player.sendMessage(new TextComponent("Player " + args[0] + " not found or is offline."));
-                    return;
+                    targetData.setCoins(Integer.parseInt(args[2]));
+                    player.sendMessage(new TextComponent("Coins set for " + args[0] + " to " + args[1]));
                 }
-                Coins coins;
-                PlayerData targetData = PlayerDataManager.getInstance().getRedisDataOrNull(target);
-                if (targetData == null) {
-                    player.sendMessage(new TextComponent(ChatColor.RED + "Player does not exist in our system."));
-                    return;
-                }
-
-               // targetData.setCoins(args[1]);
-                player.sendMessage(new TextComponent("Coins set for " + args[0] + " to " + args[1]));
             }
         }
     }
 
     @Override
-    public Iterable<String> onTabComplete(CommandSender commandSender, String[] strings) {
-        return null;
+    public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
+        if (sender instanceof ProxiedPlayer player) {
+            if (args.length == 1) {
+                String partialOption = args[0].toLowerCase();
+                List<String> options = new ArrayList<>();
+
+                List<String> availableOptions = List.of("set");
+
+                for (String option : availableOptions) {
+                    if (option.toLowerCase().startsWith(partialOption)) {
+                        options.add(option);
+                    }
+                }
+                return options;
+            }
+            if (args.length == 2) {
+                String partialPlayerName = args[1];
+                List<String> playerNames = new ArrayList<>();
+                for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
+                    String playerName = proxiedPlayers.getName();
+                    if (playerName.toLowerCase().startsWith(partialPlayerName.toLowerCase())) {
+                        playerNames.add(playerName);
+                    }
+                }
+                return playerNames;
+            }
+        }
+        return Collections.emptyList();
     }
 }
