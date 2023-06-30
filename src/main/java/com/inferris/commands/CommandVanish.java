@@ -69,7 +69,7 @@ public class CommandVanish extends Command implements TabExecutor {
 
     private void updatePlayerData(ProxiedPlayer player, VanishState vanishState) {
         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
-        playerData.getRegistry().setVanishState(vanishState);
+        playerData.setVanishState(vanishState);
         PlayerDataManager.getInstance().updateRedisData(player, playerData);
         String json;
         try {

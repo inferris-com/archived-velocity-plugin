@@ -16,16 +16,13 @@ import java.util.UUID;
 public class Registry {
     private UUID uuid;
     private String username;
-    private Channels channel;
-    private VanishState vanishState;
-    public Registry(UUID uuid, String username, Channels channel, VanishState vanishState){
+
+    public Registry(UUID uuid, String username) {
         this.uuid = uuid;
         this.username = username;
-        this.channel = channel;
-        this.vanishState = vanishState;
     }
 
-    public Registry(){
+    public Registry() {
     }
 
     public UUID getUuid() {
@@ -34,21 +31,5 @@ public class Registry {
 
     public String getUsername() {
         return username;
-    }
-
-    public Channels getChannel() {
-        return channel;
-    }
-
-    public Channels setChannel(Channels channels){
-        return this.channel = channels;
-    }
-
-    public VanishState getVanishState() {
-        return vanishState;
-    }
-
-    public VanishState setVanishState(VanishState vanishState){
-        return this.vanishState = vanishState;
     }
 }

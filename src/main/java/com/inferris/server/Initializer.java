@@ -60,7 +60,7 @@ public class Initializer {
 
                     JedisPool pool = new JedisPool("localhost", Ports.JEDIS.getPort());
                     try (Jedis jedis = pool.getResource()) {
-                       String serialized = CacheSerializationUtils.serializeRegistry(new Registry(UUID.fromString(uuid), username, channel, vanishState));
+                       String serialized = CacheSerializationUtils.serializeRegistry(new Registry(UUID.fromString(uuid), username));
 
                       //jedis.hset("registryy", uuid, serialized);
                     } catch (JsonProcessingException e) {

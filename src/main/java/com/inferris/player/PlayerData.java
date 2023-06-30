@@ -1,7 +1,9 @@
 package com.inferris.player;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.inferris.player.coins.Coins;
 import com.inferris.player.registry.Registry;
+import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
 import com.inferris.rank.RankRegistry;
@@ -22,11 +24,15 @@ public class PlayerData implements Serializable {
     private Registry registry;
     private Rank rank;
     private Coins coins;
+    private Channels channel;
+    private VanishState vanishState;
 
-    public PlayerData(Registry registry, Rank rank, Coins coins){
+    public PlayerData(Registry registry, Rank rank, Coins coins, Channels channel, VanishState vanishState){
         this.registry = registry;
         this.rank = rank;
-        this.coins  =coins;
+        this.coins = coins;
+        this.channel = channel;
+        this.vanishState = vanishState;
     }
 
     PlayerData(){
@@ -44,8 +50,16 @@ public class PlayerData implements Serializable {
         return coins;
     }
 
-    public int getBranchValue(Branch branch) {
-        return rank.getBranchID(branch);
+    public Channels getChannel() {
+        return channel;
+    }
+
+    public VanishState getVanishState() {
+        return vanishState;
+    }
+
+    public void setCoins(int amount) {
+        this.coins.setBalance(amount);
     }
 
     /**
@@ -58,6 +72,18 @@ public class PlayerData implements Serializable {
 
     public void setRank(Branch branch, int level) {
         RanksManager.getInstance().setRank(ProxyServer.getInstance().getPlayer(registry.getUuid()), branch, level);
+    }
+
+    public void setChannel(Channels channel) {
+        this.channel = channel;
+    }
+
+    public void setVanishState(VanishState vanishState) {
+        this.vanishState = vanishState;
+    }
+
+    public int getBranchValue(Branch branch) {
+        return rank.getBranchID(branch);
     }
 
     /**

@@ -6,6 +6,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.inferris.Inferris;
 import com.inferris.SerializationModule;
+import com.inferris.player.coins.Coins;
 import com.inferris.player.registry.Registry;
 import com.inferris.player.registry.RegistryManager;
 import com.inferris.player.vanish.VanishState;
@@ -170,8 +171,8 @@ public class PlayerDataManager {
                 if (caffeineCache.asMap().get(player.getUniqueId()) == null) {
                     caffeineCache.asMap().put(player.getUniqueId(), CacheSerializationUtils.deserializePlayerData(jedis.hget("playerdata", player.getUniqueId().toString())));
                     Inferris.getInstance().getLogger().severe(String.valueOf(caffeineCache.asMap().get(player.getUniqueId()).getRank().getBranchID(Branch.STAFF)));
-                    Inferris.getInstance().getLogger().severe(String.valueOf(caffeineCache.asMap().get(player.getUniqueId()).getRegistry().getVanishState()));
-                    Inferris.getInstance().getLogger().severe(String.valueOf(caffeineCache.asMap().get(player.getUniqueId()).getRegistry().getChannel()));
+                    Inferris.getInstance().getLogger().severe(String.valueOf(caffeineCache.asMap().get(player.getUniqueId()).getVanishState()));
+                    Inferris.getInstance().getLogger().severe(String.valueOf(caffeineCache.asMap().get(player.getUniqueId()).getChannel()));
                     Inferris.getInstance().getLogger().severe(caffeineCache.asMap().get(player.getUniqueId()).getRegistry().getUsername());
                     Inferris.getInstance().getLogger().severe(String.valueOf(caffeineCache.asMap().get(player.getUniqueId()).getCoins().getBalance()));
                 }
@@ -180,12 +181,13 @@ public class PlayerDataManager {
 
                 /*
                 Check if they are in the database.  Normal database caching
+                    Jedis and caffeine cache
                  */
 
                 Rank rank = RanksManager.getInstance().getRank(player); // Finished
                 Registry registry = RegistryManager.getInstance().getRegistry(player, rank); // todo
 
-                PlayerData playerData = new PlayerData(registry, rank, new Coins(36));
+                PlayerData playerData = new PlayerData(registry, rank, new Coins(36), Channels.NONE, VanishState.DISABLED);
 
                 String json = CacheSerializationUtils.serializePlayerData(playerData);
                 jedis.hset("playerdata", player.getUniqueId().toString(), json);
@@ -210,8 +212,8 @@ public class PlayerDataManager {
 
                 PlayerData redisData = getRedisData(player);
 
-                Registry registry = new Registry(player.getUniqueId(), player.getName(), redisData.getRegistry().getChannel(), redisData.getRegistry().getVanishState());
-                PlayerData playerData = new PlayerData(registry, redisData.getRank(), redisData.getCoins());
+                Registry registry = new Registry(player.getUniqueId(), player.getName());
+                PlayerData playerData = new PlayerData(registry, redisData.getRank(), redisData.getCoins(), redisData.getChannel(), redisData.getVanishState());
                 jedis.hset("playerdata", player.getUniqueId().toString(), CacheSerializationUtils.serializePlayerData(playerData));
                 caffeineCache.put(player.getUniqueId(), playerData);
 
@@ -225,9 +227,9 @@ public class PlayerDataManager {
 
     private PlayerData createEmpty(ProxiedPlayer player) {
         // Create and return an empty Registry object with default values
-        return new PlayerData(new Registry(player.getUniqueId(), player.getName(), Channels.NONE, VanishState.DISABLED),
+        return new PlayerData(new Registry(player.getUniqueId(), player.getName()),
                 new Rank(0, 0, 0),
-                new Coins(36));
+                new Coins(36), Channels.NONE, VanishState.DISABLED);
     }
 
     public void invalidateRedisEntry(ProxiedPlayer player) {

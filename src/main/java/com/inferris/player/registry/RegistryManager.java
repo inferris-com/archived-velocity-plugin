@@ -57,7 +57,7 @@ public class RegistryManager {
 
         try (Connection connection = DatabasePool.getConnection();
              PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM players WHERE uuid = ?");
-             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO players (uuid, username, channel, vanished) VALUES (?, ?, ?, ?)");
+             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO players (uuid, username, coins, channel, vanished) VALUES (?, ?, ?, ?, ?)");
              PreparedStatement updateStatement = connection.prepareStatement("UPDATE players SET username = ? WHERE uuid = ?")) {
 
             queryStatement.setString(1, player.getUniqueId().toString());
@@ -67,7 +67,6 @@ public class RegistryManager {
 
             if(resultSet.next()) {
                 String storedUsername = resultSet.getString("username");
-                Channels channel = Channels.valueOf(resultSet.getString("channel"));
                 int vanished = resultSet.getInt("vanished");
                 VanishState vanishState = VanishState.DISABLED;
 
@@ -83,14 +82,15 @@ public class RegistryManager {
                     Inferris.getInstance().getLogger().warning("Updated username (getRegistry)");
                 }
 
-                return new Registry(player.getUniqueId(), player.getName(), channel, vanishState);
+                return new Registry(player.getUniqueId(), player.getName());
 
             }else{
                 Inferris.getInstance().getLogger().warning("Inserting into table.");
                 insertStatement.setString(1, player.getUniqueId().toString());
                 insertStatement.setString(2, player.getName());
-                insertStatement.setString(3, String.valueOf(Channels.NONE));
-                insertStatement.setInt(4, 0);
+                insertStatement.setInt(3, 36);
+                insertStatement.setString(4, String.valueOf(Channels.NONE));
+                insertStatement.setInt(5, 0);
                 insertStatement.execute();
 
                 Inferris.getInstance().getLogger().severe("Added player to table");
@@ -98,13 +98,13 @@ public class RegistryManager {
         }catch(SQLException e){
             e.printStackTrace();
         }
-        return new Registry(player.getUniqueId(), player.getName(), Channels.NONE, VanishState.DISABLED);
+        return new Registry(player.getUniqueId(), player.getName());
     }
 
 
     private Registry createEmptyRegistry(ProxiedPlayer player) {
         // Create and return an empty Registry object with default values
-        return new Registry(player.getUniqueId(), player.getName(), Channels.NONE, VanishState.DISABLED);
+        return new Registry(player.getUniqueId(), player.getName());
     }
 
     public Map<String, Registry> getAllRegistryEntries() {

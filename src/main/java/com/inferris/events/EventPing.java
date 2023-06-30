@@ -1,6 +1,7 @@
 package com.inferris.events;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.inferris.player.PlayerData;
 import com.inferris.player.registry.Registry;
 import com.inferris.player.registry.RegistryManager;
 import com.inferris.player.vanish.VanishState;
@@ -36,18 +37,8 @@ public class EventPing implements Listener {
         int count = 0;
 
         try (Jedis jedis = RegistryManager.getInstance().getJedisPool().getResource()) {
-            Map<String, String> registryEntries = jedis.hgetAll("registry");
 
-            for (String registryJson : registryEntries.values()) {
-                Registry registry = CacheSerializationUtils.deserializeRegistry(registryJson);
-
-                if (registry.getVanishState() == VanishState.ENABLED) {
-                    count++;
-                }
-            }
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
         }
-        return count;
+        return 0;
     }
 }

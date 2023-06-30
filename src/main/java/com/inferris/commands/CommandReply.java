@@ -50,7 +50,7 @@ public class CommandReply extends Command implements TabExecutor {
             }
 
             // Check if the target player is vanished
-            if (PlayerDataManager.getInstance().getPlayerData(target).getRegistry().getVanishState() == VanishState.ENABLED) {
+            if (PlayerDataManager.getInstance().getPlayerData(target).getVanishState() == VanishState.ENABLED) {
                 player.sendMessage(new TextComponent(ChatColor.RED + "Error: The original sender is currently vanished!"));
                 return;
             }
@@ -71,7 +71,7 @@ public class CommandReply extends Command implements TabExecutor {
             String partialPlayerName = args[0];
             List<String> playerNames = new ArrayList<>();
             for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                if (!(PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getRegistry().getVanishState() == VanishState.ENABLED)) {
+                if (!(PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getVanishState() == VanishState.ENABLED)) {
                     String playerName = proxiedPlayers.getName();
                     if (playerName.toLowerCase().startsWith(partialPlayerName.toLowerCase())) {
                         playerNames.add(playerName);

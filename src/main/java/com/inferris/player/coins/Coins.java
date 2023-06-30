@@ -1,4 +1,4 @@
-package com.inferris.player;
+package com.inferris.player.coins;
 
 public class Coins {
     private int balance;

@@ -32,6 +32,6 @@
  * @see com.inferris.rank.Rank
  * @see com.inferris.rank.RanksManager
  * @see com.inferris.rank.Branch
- * @see com.inferris.player.Coins
+ * @see com.inferris.player.coins.Coins
  */
 package com.inferris.player;

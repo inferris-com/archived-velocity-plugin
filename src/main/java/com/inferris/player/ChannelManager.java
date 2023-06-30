@@ -13,7 +13,7 @@ public class ChannelManager {
 
     public void setChannel(ProxiedPlayer player, Channels channel, boolean sendMessage){
         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
-        playerData.getRegistry().setChannel(channel);
+        playerData.setChannel(channel);
         String channelName = null;
 
         if(sendMessage){

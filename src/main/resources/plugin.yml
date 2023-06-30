@@ -20,9 +20,9 @@ commands:
     description: Alright
   alright2:
     description: Alright2
-  setrank:
+  rank:
     description: Set rank for a player
-  setcoins:
+  coins:
     description: Set coins for a player
   channel:
     description: Set channel

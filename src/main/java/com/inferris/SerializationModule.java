@@ -7,7 +7,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.inferris.player.Channels;
-import com.inferris.player.Coins;
+import com.inferris.player.coins.Coins;
 import com.inferris.player.PlayerData;
 import com.inferris.player.registry.Registry;
 import com.inferris.player.vanish.VanishState;
@@ -64,10 +64,8 @@ public class SerializationModule extends SimpleModule {
 
             UUID uuid = UUID.fromString(registryNode.get("uuid").asText());
             String username = registryNode.get("username").asText();
-            Channels channel = Channels.valueOf(registryNode.get("channel").asText());
-            VanishState vanishState = VanishState.valueOf(registryNode.get("vanishState").asText());
 
-            return new Registry(uuid, username, channel, vanishState);
+            return new Registry(uuid, username);
         }
     }
 
@@ -80,8 +78,11 @@ public class SerializationModule extends SimpleModule {
             Registry registry = objectMapper.treeToValue(registryNode.get("registry"), Registry.class);
             Rank rank = objectMapper.treeToValue(registryNode.get("rank"), Rank.class);
             Coins coins = objectMapper.treeToValue(registryNode.get("coins"), Coins.class);
+            Channels channel = objectMapper.treeToValue(registryNode.get("channel"), Channels.class);
+            VanishState vanishState = objectMapper.treeToValue(registryNode.get("vanishState"), VanishState.class);
 
-            return new PlayerData(registry, rank, coins);
+
+            return new PlayerData(registry, rank, coins, channel, vanishState);
         }
     }
 }

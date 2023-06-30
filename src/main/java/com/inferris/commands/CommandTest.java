@@ -54,15 +54,12 @@ public class CommandTest extends Command {
                             .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
                     try (Jedis jedis = pool.getResource()) {
-                        String registryJson = jedis.hget("registry", player.getUniqueId().toString());
-                        Registry value = objectMapper.readValue(registryJson, Registry.class);
-                        player.sendMessage(value.getUsername());
-                        player.sendMessage(value.getUuid().toString());
-                        player.sendMessage(value.getVanishState().toString());
-                        player.sendMessage(value.getChannel().getMessage());
+                        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
+                        player.sendMessage(playerData.getRegistry().getUsername());
+                        player.sendMessage(playerData.getRegistry().toString());
+                        player.sendMessage(playerData.getVanishState().toString());
+                        player.sendMessage(playerData.getChannel().getMessage());
 
-                    } catch (JsonProcessingException e) {
-                        throw new RuntimeException(e);
                     }
                 }
                 if (args[0].equalsIgnoreCase("registry2")) {
