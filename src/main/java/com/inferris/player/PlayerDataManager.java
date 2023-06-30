@@ -55,6 +55,15 @@ public class PlayerDataManager {
         return instance;
     }
 
+    /**
+     * Retrieves the player data for the specified player. The method first checks if the data is available in the
+     * in-memory cache, and if not, retrieves it from the Redis server. If no data is found, an empty PlayerData object
+     * is created.
+     *
+     * @param player The ProxiedPlayer object representing the player.
+     * @return The PlayerData object containing the player's data.
+     */
+
     public PlayerData getPlayerData(ProxiedPlayer player) {
         if (caffeineCache.getIfPresent(player.getUniqueId()) != null) {
             return caffeineCache.asMap().get(player.getUniqueId());
@@ -62,6 +71,13 @@ public class PlayerDataManager {
             return getRedisData(player);
         }
     }
+
+    /**
+     * Retrieves the player data from the Redis server for the specified player.
+     *
+     * @param player The ProxiedPlayer object representing the player.
+     * @return The PlayerData object containing the player's data, or an empty PlayerData object if no data is found.
+     */
 
     public PlayerData getRedisData(ProxiedPlayer player) {
         try (Jedis jedis = jedisPool.getResource()) {
@@ -76,6 +92,13 @@ public class PlayerDataManager {
         }
     }
 
+    /**
+     * Retrieves the player data from the Redis server for the specified player, or returns null if no data is found.
+     *
+     * @param player The ProxiedPlayer object representing the player.
+     * @return The PlayerData object containing the player's data, or null if no data is found.
+     */
+
     public PlayerData getRedisDataOrNull(ProxiedPlayer player) {
         try (Jedis jedis = jedisPool.getResource()) {
             String json = jedis.hget("playerdata", player.getUniqueId().toString());
@@ -88,6 +111,13 @@ public class PlayerDataManager {
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * Updates the player data for the specified player in the Redis server.
+     *
+     * @param player     The ProxiedPlayer object representing the player.
+     * @param playerData The PlayerData object containing the updated player data.
+     */
 
     public void updateRedisData(ProxiedPlayer player, PlayerData playerData){
         try(Jedis jedis = jedisPool.getResource()){
