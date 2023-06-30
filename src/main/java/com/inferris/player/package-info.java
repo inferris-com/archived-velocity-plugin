@@ -18,7 +18,7 @@
  *     <pre>{@code
  *     PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
  *     Rank rank = playerData.getRank();
- *     Registry registry = playerData.getCoins();
+ *     Registry registry = playerData.getRegistry();
  *     Coins coins = playerData.getCoins();
  *     }</pre>
  * </p>

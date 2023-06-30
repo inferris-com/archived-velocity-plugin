@@ -14,6 +14,13 @@
  * @see com.inferris.player.registry.RegistryManager
  * @see com.inferris.player.PlayerData
  * @see com.inferris.player.PlayerDataManager
+ * <p>
+ *     Example usage:
+ *     <pre>{@code
+ *     Registry registry = PlayerDataManager.getInstance().getPlayerData(player).getRegistry();
+ *     registry.setVanishState(VanishState.ENABLED);
+ *     }</pre>
+ * </p>
  * @since 1.0.0
  */
 package com.inferris.player.registry;
