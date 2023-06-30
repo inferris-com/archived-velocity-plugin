@@ -88,18 +88,19 @@ public class CommandMessage extends Command implements TabExecutor {
 
     @Override
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
+
         if (args.length == 1 && sender instanceof ProxiedPlayer player) {
-            String partialOption = args[0].toLowerCase();
-            List<String> options = new ArrayList<>();
-
-            List<String> availableOptions = Arrays.asList("staff", "special", "none");
-
-            for (String option : availableOptions) {
-                if (option.toLowerCase().startsWith(partialOption)) {
-                    options.add(option);
+            String partialPlayerName = args[0];
+            List<String> playerNames = new ArrayList<>();
+            for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
+                if (!(PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getVanishState() == VanishState.ENABLED)) {
+                    String playerName = proxiedPlayers.getName();
+                    if (playerName.toLowerCase().startsWith(partialPlayerName.toLowerCase())) {
+                        playerNames.add(playerName);
+                    }
                 }
             }
-            return options;
+            return playerNames;
         }
         return Collections.emptyList();
     }
