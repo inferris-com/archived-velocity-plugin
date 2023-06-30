@@ -6,35 +6,41 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.inferris.Inferris;
 import com.inferris.SerializationModule;
-import com.inferris.database.DatabasePool;
 import com.inferris.player.registry.Registry;
 import com.inferris.player.registry.RegistryManager;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
-import com.inferris.rank.RanksManager;
-import com.inferris.server.Ports;
+import com.inferris.rank.RanksManager;;
 import com.inferris.util.CacheSerializationUtils;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.UUID;
 import java.util.logging.Logger;
 
+/**
+ * The PlayerDataManager class manages the retrieval, caching, and updating of player data from Redis server and in-memory cache.
+ * It provides methods to retrieve player data, update player data in Redis, invalidate cache entries, and perform other related operations.
+ * <p>
+ * PlayerDataManager utilizes a combination of Redis server and an in-memory cache (Caffeine) to store and retrieve player data.
+ * Redis is used as a persistent storage for player data, while the in-memory cache provides faster access to frequently accessed data.
+ * <p>
+ * This class follows the singleton design pattern to ensure a single instance of PlayerDataManager is used throughout the application.
+ * The instance can be obtained using the {@link #getInstance()} method.
+ * <p>
+ * To retrieve player data, use the {@link #getPlayerData(ProxiedPlayer)} method, which first checks if the data is available in the cache,
+ * and if not, retrieves it from the Redis server. If no data is found, an empty {@link PlayerData} object is created.
+ * <p>
+ * The class also provides methods to update player data in the Redis server using {@link #updateRedisData(ProxiedPlayer, PlayerData)},
+ * retrieve player data from Redis without creating an empty object if no data is found using {@link #getRedisDataOrNull(ProxiedPlayer)},
+ * and perform other operations like checking if a player has joined before, invalidating Redis entries and cache, etc.
+ *
+ * @since 1.0
+ */
 public class PlayerDataManager {
-
-    /*
-    This class is responsible for storing a master PlayerData object, which includes registry and rank info.
-    We are storing PlayerData (Caffeine) cache information from Redis, so we have an additional data layer
-
-    #checkJoinedBefore() includes the caching logic
-     */
 
     private static PlayerDataManager instance;
     private final JedisPool jedisPool;
