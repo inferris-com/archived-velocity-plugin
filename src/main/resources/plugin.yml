@@ -24,3 +24,5 @@ commands:
     description: Set rank for a player
   setcoins:
     description: Set coins for a player
+  channel:
+    description: Set channel
