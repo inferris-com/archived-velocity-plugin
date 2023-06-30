@@ -104,7 +104,6 @@ public class CommandMessage extends Command implements TabExecutor {
         return Collections.emptyList();
     }
 
-
     private void sendJoke(ProxiedPlayer receiver, String message) {
         if (cacheJokeHandler == null) {
             cacheJokeHandler = Caffeine.newBuilder().build();
