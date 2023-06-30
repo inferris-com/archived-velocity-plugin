@@ -22,6 +22,7 @@ import redis.clients.jedis.Jedis;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -88,11 +89,18 @@ public class CommandVanish extends Command implements TabExecutor {
 
     @Override
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
-        if (sender instanceof ProxiedPlayer player && args.length == 1) {
-            List<String> list = new ArrayList<>();
-            list.add("on");
-            list.add("off");
-            return list;
+        if (args.length == 1 && sender instanceof ProxiedPlayer player) {
+            String partialOption = args[0].toLowerCase();
+            List<String> options = new ArrayList<>();
+
+            List<String> availableOptions = Arrays.asList("off", "on");
+
+            for (String option : availableOptions) {
+                if (option.toLowerCase().startsWith(partialOption)) {
+                    options.add(option);
+                }
+            }
+            return options;
         }
         return Collections.emptyList();
     }
