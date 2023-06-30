@@ -44,7 +44,7 @@ public class CommandTest extends Command {
 
             if (length == 1) {
                 if (args[0].equalsIgnoreCase("registry")) {
-                    JedisPool pool = new JedisPool("localhost", 6379);
+                    JedisPool pool = Inferris.getJedisPool();
 
                     ObjectMapper objectMapper = new ObjectMapper();
                     objectMapper.registerModule(new SerializationModule());
