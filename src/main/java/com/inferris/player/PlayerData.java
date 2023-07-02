@@ -16,6 +16,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents the data associated with a player, including their {@link Registry} information, {@link Rank}, and {@link Coins}.
@@ -77,6 +78,10 @@ public class PlayerData implements PlayerDataService,Serializable {
         };
     }
 
+    @Override
+    public boolean isStaff() {
+        return getByBranch().getBranch() == Branch.STAFF;
+    }
 
     public void setCoins(int amount) {
         CoinsManager.setCoins(ProxyServer.getInstance().getPlayer(getRegistry().getUuid()), amount);
