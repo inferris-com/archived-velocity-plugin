@@ -9,11 +9,16 @@ import java.util.logging.Level;
 
 public class PlayerUtils {
 
+    /**
+     * @deprecated
+     */
     public static boolean hasJoinedBefore(String player) {
         return getUuidFromUsername(player) != null;
     }
 
-    // Checks if the player is in the config file by checking their UUID
+    /**
+     * @deprecated
+     */
     public static boolean isPlayerInConfig(ProxiedPlayer player) {
         UUID playerUUID = player.getUniqueId();
         Configuration playersSection = Inferris.getPlayersConfiguration().getSection("players");

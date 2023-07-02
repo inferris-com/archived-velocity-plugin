@@ -136,6 +136,19 @@ public class PlayerDataManager {
         }
     }
 
+    public PlayerData getRedisDataOrNull(UUID uuid) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            String json = jedis.hget("playerdata", uuid.toString());
+            if (json != null) {
+                return CacheSerializationUtils.deserializePlayerData(json);
+            } else {
+                return null;
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public UUID getUUIDByUsername(String username) {
         try (Jedis jedis = jedisPool.getResource()) {
             Map<String, String> playerDataEntries = jedis.hgetAll("playerdata");
