@@ -28,3 +28,5 @@ commands:
     description: Set channel
   profile:
     description: Set or view profile for a player
+  account:
+    description: Account

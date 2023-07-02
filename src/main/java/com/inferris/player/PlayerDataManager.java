@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.inferris.Inferris;
 import com.inferris.SerializationModule;
 import com.inferris.player.coins.Coins;
@@ -20,6 +22,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -100,6 +103,19 @@ public class PlayerDataManager {
         }
     }
 
+    public PlayerData getRedisData(UUID uuid, String username) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            String json = jedis.hget("playerdata", uuid.toString());
+            if (json != null) {
+                return CacheSerializationUtils.deserializePlayerData(json);
+            } else {
+                return createEmpty(uuid, username); // Create an empty Registry object instead of returning null
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * Retrieves the player data from the Redis server for the specified player, or returns null if no data is found.
      *
@@ -119,6 +135,49 @@ public class PlayerDataManager {
             throw new RuntimeException(e);
         }
     }
+
+    public UUID getUUIDByUsername(String username) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            Map<String, String> playerDataEntries = jedis.hgetAll("playerdata");
+
+            for (Map.Entry<String, String> entry : playerDataEntries.entrySet()) {
+                String uuid = entry.getKey();
+
+                // Parse the value as JSON to access the username field
+                JsonElement jsonElement = new JsonParser().parse(entry.getValue());
+                String entryUsername = jsonElement.getAsJsonObject().getAsJsonObject("registry").get("username").getAsString();
+
+                if (entryUsername.equalsIgnoreCase(username)) {
+                    // Match found, return the UUID
+                    return UUID.fromString(uuid);
+                }
+            }
+            // No match found for the username
+            return null;
+        }
+    }
+
+    public boolean hasUUIDByUsername(String username) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            Map<String, String> playerDataEntries = jedis.hgetAll("playerdata");
+
+            for (String value : playerDataEntries.values()) {
+                // Parse the value as JSON to access the username field
+                JsonElement jsonElement = new JsonParser().parse(value);
+                String entryUsername = jsonElement.getAsJsonObject().getAsJsonObject("registry").get("username").getAsString();
+
+                if (entryUsername.equalsIgnoreCase(username)) {
+                    // Match found for the username
+                    return true;
+                }
+            }
+
+            // No match found for the username
+            return false;
+        }
+    }
+
+
 
     /**
      * Updates the player data for the specified player in the Redis server.
@@ -245,6 +304,14 @@ public class PlayerDataManager {
     private PlayerData createEmpty(ProxiedPlayer player) {
         // Create and return an empty Registry object with default values
         return new PlayerData(new Registry(player.getUniqueId(), player.getName()),
+                new Rank(0, 0, 0),
+                new Profile(null, null, null),
+                new Coins(36), Channels.NONE, VanishState.DISABLED);
+    }
+
+    private PlayerData createEmpty(UUID uuid, String username) {
+        // Create and return an empty Registry object with default values
+        return new PlayerData(new Registry(uuid, username),
                 new Rank(0, 0, 0),
                 new Profile(null, null, null),
                 new Coins(36), Channels.NONE, VanishState.DISABLED);
