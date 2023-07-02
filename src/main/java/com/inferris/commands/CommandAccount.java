@@ -32,38 +32,18 @@ public class CommandAccount extends Command {
                 return;
             }
             if (length == 1) {
-                ProxiedPlayer target = ProxyServer.getInstance().getPlayer(args[0]);
-                if (target != null) {
-                    PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(target);
+                String username = args[0];
+                PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
 
-                    player.sendMessage(new TextComponent());
-                    return;
+                UUID uuid = playerDataManager.getUUIDByUsername(username);
+                if (uuid != null) {
+                    PlayerData playerData = playerDataManager.getRedisData(uuid, username);
+
+                    player.sendMessage(new TextComponent("Match found for username: " + playerData.getRegistry().getUsername()));
+                    player.sendMessage(new TextComponent("UUID: " + uuid));
+                    player.sendMessage(new TextComponent(playerData.getCoins().toString()));
+                    player.sendMessage(new TextComponent(playerData.getByBranch().getPrefix()));
                 }
-
-                try (Jedis jedis = Inferris.getJedisPool().getResource()) {
-                    Map<String, String> playerDataEntries = jedis.hgetAll("playerdata");
-
-                    for (Map.Entry<String, String> entry : playerDataEntries.entrySet()) {
-                        UUID uuid = UUID.fromString(entry.getKey());
-
-                        // Parse the value as JSON to access the username field
-                        JsonElement jsonElement = new JsonParser().parse(entry.getValue());
-                        String username = jsonElement.getAsJsonObject().getAsJsonObject("registry").get("username").getAsString();
-
-                        if (username.equalsIgnoreCase(args[0])) {
-                            // Match found, handle the player data entry
-
-                            PlayerData playerData = PlayerDataManager.getInstance().getRedisData(uuid, username);
-
-                            player.sendMessage(new TextComponent("Match found for username: " + username));
-                            player.sendMessage(new TextComponent("UUID: " + uuid));
-                            player.sendMessage(new TextComponent(playerData.getCoins().toString()));
-                            player.sendMessage(new TextComponent(playerData.getByBranch().getPrefix()));
-                            break;
-                        }
-                    }
-                }
-
             }
         }
     }
