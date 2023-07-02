@@ -14,7 +14,10 @@ public enum Tags {
         return name;
     }
 
-    public String getName(boolean withSpace){
-        return name + ChatColor.RESET + " ";
+    public String getName(boolean withSpace) {
+        if (withSpace) {
+            return name + ChatColor.RESET + " ";
+        }
+        return getName();
     }
 }

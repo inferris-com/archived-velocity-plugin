@@ -1,0 +1,105 @@
+package com.inferris.commands;
+
+import com.inferris.player.PlayerData;
+import com.inferris.player.PlayerDataManager;
+import com.inferris.player.registry.Registry;
+import com.inferris.player.vanish.VanishState;
+import com.inferris.util.MessageUtil;
+import com.inferris.util.Tags;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.*;
+import net.md_5.bungee.api.chat.hover.content.Text;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.md_5.bungee.api.plugin.Command;
+import net.md_5.bungee.api.plugin.TabExecutor;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+
+public class CommandAccount extends Command implements TabExecutor {
+    public CommandAccount(String name) {
+        super(name);
+    }
+
+    @Override
+    public void execute(CommandSender sender, String[] args) {
+        if (sender instanceof ProxiedPlayer player) {
+            int length = args.length;
+
+            if (length == 0) {
+                player.sendMessage(new TextComponent(ChatColor.YELLOW + "(Staff command) " + ChatColor.RED + "Usage: /account <user>"));
+                return;
+            }
+            if (length == 1) {
+                String targetName = args[0];
+                PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
+
+                UUID uuid = playerDataManager.getUUIDByUsername(targetName);
+                if (uuid != null) {
+                    PlayerData playerData = playerDataManager.getRedisData(uuid, targetName);
+                    Registry registry = playerData.getRegistry();
+                    String tag = Tags.STAFF.getName(true);
+                    ChatColor reset = ChatColor.RESET;
+
+                    TextComponent header = new TextComponent("----- Player Information -----");
+                    header.setColor(ChatColor.GOLD);
+                    header.setBold(true);
+
+                    TextComponent username = new TextComponent(ChatColor.YELLOW + "Username: ");
+                    username.addExtra(playerData.getNameColor() + registry.getUsername());
+
+                    TextComponent prefix = new TextComponent("Ranks: " + playerData.formatRankList(playerData.getTopRanksByBranches()));
+                    prefix.setColor(ChatColor.YELLOW);
+
+                    TextComponent registration_date = new TextComponent(ChatColor.YELLOW + "Registration date: " + reset + playerData.getProfile().getRegistrationDate());
+
+                    TextComponent divider = new TextComponent("-------------------------------");
+                    divider.setColor(ChatColor.GOLD);
+
+                    TextComponent uuidText = new TextComponent(ChatColor.YELLOW + "UUID: " + reset + uuid);
+                    uuidText.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to copy UUID")));
+                    uuidText.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, uuid.toString()));
+
+                    TextComponent coins = new TextComponent(ChatColor.YELLOW + "Coins: " + reset + playerData.getCoins().getBalance());
+
+                    player.sendMessage(header);
+                    player.sendMessage(new TextComponent(""));
+                    MessageUtil.sendMessage(player, username);
+                    MessageUtil.sendMessage(player, prefix);
+                    MessageUtil.sendMessage(player, uuidText);
+                    MessageUtil.sendMessage(player, registration_date);
+                    MessageUtil.sendMessage(player, coins);
+                    player.sendMessage(divider);
+                }
+            }
+        }
+    }
+
+    @Override
+    public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
+        if (sender instanceof ProxiedPlayer player) {
+            if (args.length == 1) {
+                String partialPlayerName = args[0];
+                List<String> completions = new ArrayList<>();
+
+                for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
+                    String playerName = proxiedPlayers.getName();
+                    if (playerName.toLowerCase().startsWith(partialPlayerName.toLowerCase())) {
+                        completions.add(playerName);
+                    }
+                }
+                return completions;
+            }
+        }
+        return Collections.emptyList();
+    }
+}
+
+//    @Override
+//    public Iterable<String> onTabComplete(CommandSender commandSender, String[] strings) {
+//        return null;
+//    }

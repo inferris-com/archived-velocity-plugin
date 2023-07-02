@@ -18,7 +18,7 @@ public class DatabasePool {
     static {
         String address = Inferris.getConfiguration().getString("database.address");
         String database = Inferris.getConfiguration().getString("database.database");
-        config.setJdbcUrl("jdbc:mysql://" + address + "/" + database + "?useSSL=false&allowPublicKeyRetrieval=true");
+        config.setJdbcUrl("jdbc:mysql://" + address + "/" + database + "?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8");
         config.setUsername(Inferris.getConfiguration().getString("database.user"));
         config.setPassword(Inferris.getConfiguration().getString("database.password"));
         config.setMaximumPoolSize(5); // set maximum number of connections

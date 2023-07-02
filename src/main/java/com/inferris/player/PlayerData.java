@@ -9,19 +9,22 @@ import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
 import com.inferris.rank.RankRegistry;
 import com.inferris.rank.RanksManager;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents the data associated with a player, including their {@link Registry} information, {@link Rank}, and {@link Coins}.
  *
  * @since 1.0
  */
-public class PlayerData implements Serializable {
+public class PlayerData implements PlayerDataService, Serializable {
 
     private Registry registry;
     private Rank rank;
@@ -29,7 +32,8 @@ public class PlayerData implements Serializable {
     private Coins coins;
     private Channels channel;
     private VanishState vanishState;
-    public PlayerData(Registry registry, Rank rank, Profile profile, Coins coins, Channels channel, VanishState vanishState){
+
+    public PlayerData(Registry registry, Rank rank, Profile profile, Coins coins, Channels channel, VanishState vanishState) {
         this.registry = registry;
         this.rank = rank;
         this.profile = profile;
@@ -38,9 +42,10 @@ public class PlayerData implements Serializable {
         this.vanishState = vanishState;
     }
 
-    PlayerData(){
+    PlayerData() {
 
     }
+
     public Registry getRegistry() {
         return registry;
     }
@@ -65,6 +70,22 @@ public class PlayerData implements Serializable {
         return vanishState;
     }
 
+    @Override
+    public ChatColor getNameColor() {
+        return switch (getByBranch()) {
+            case ADMIN -> ChatColor.RED;
+            case MOD -> ChatColor.DARK_GREEN;
+            case HELPER -> ChatColor.BLUE;
+            case DONOR -> ChatColor.AQUA;
+            default -> ChatColor.RESET;
+        };
+    }
+
+    @Override
+    public boolean isStaff() {
+        return getByBranch().getBranch() == Branch.STAFF;
+    }
+
     public void setCoins(int amount) {
         CoinsManager.setCoins(ProxyServer.getInstance().getPlayer(getRegistry().getUuid()), amount);
     }
@@ -78,7 +99,17 @@ public class PlayerData implements Serializable {
      */
 
     public void setRank(Branch branch, int level) {
-        RanksManager.getInstance().setRank(ProxyServer.getInstance().getPlayer(registry.getUuid()), branch, level);
+        RanksManager.getInstance().setRank(registry.getUuid(), branch, level);
+    }
+
+    public void setRank(Branch branch, int level, boolean hasMessage) {
+        RanksManager.getInstance().setRank(registry.getUuid(), branch, level);
+        if(ProxyServer.getInstance().getPlayer(registry.getUuid()) != null) {
+            if (ProxyServer.getInstance().getPlayer(registry.getUuid()).isConnected()) {
+                ProxiedPlayer player = ProxyServer.getInstance().getPlayer(registry.getUuid());
+                player.sendMessage(new TextComponent(ChatColor.GREEN + "Your rank has been set"));
+            }
+        }
     }
 
     public void setChannel(Channels channel) {
@@ -96,6 +127,7 @@ public class PlayerData implements Serializable {
     /**
      * Returns a list of {@link RankRegistry} objects based on the branches of the player's rank.
      * The returned list includes all applicable branches based on the player's rank.
+     *
      * @return A list of RankRegistry objects representing the branches of the player's rank.
      * @since 1.0
      */
@@ -119,8 +151,48 @@ public class PlayerData implements Serializable {
     }
 
     /**
+     * Retrieves the top ranks from each branch (staff and donor) for the player.
+     * Only the highest rank from each branch will be included in the list.
+     *
+     * @return A list of the top ranks from each branch.
+     */
+
+    @JsonIgnore
+    public List<RankRegistry> getTopRanksByBranches() {
+        List<RankRegistry> ranks = new ArrayList<>();
+
+        if (rank.getStaff() >= 3) {
+            ranks.add(RankRegistry.ADMIN);
+        } else if (rank.getStaff() >= 2) {
+            ranks.add(RankRegistry.MOD);
+        } else if (rank.getStaff() >= 1) {
+            ranks.add(RankRegistry.HELPER);
+        }
+
+        if (rank.getDonor() >= 1) {
+            ranks.add(RankRegistry.DONOR);
+        }
+        return ranks;
+    }
+
+    @JsonIgnore
+    public String formatRankList(List<RankRegistry> ranks) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < ranks.size(); i++) {
+            RankRegistry rank = ranks.get(i);
+            sb.append(rank.getPrefix());
+            if (i < ranks.size() - 1) {
+                sb.append(ChatColor.RESET).append(", ");
+            }
+        }
+        return sb.toString();
+    }
+
+
+    /**
      * Returns the {@link RankRegistry} associated with the highest branch of the player's rank.
      * The returned RankRegistry represents the highest level of authority or privilege based on the player's rank.
+     *
      * @return The RankRegistry associated with the highest branch of the player's rank.
      * @since 1.0
      */

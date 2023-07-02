@@ -9,6 +9,7 @@ import com.inferris.player.registry.RegistryManager;
 import com.inferris.server.JedisChannels;
 import com.inferris.server.Ports;
 import com.inferris.util.CacheSerializationUtils;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -17,6 +18,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.UUID;
 
 public class RanksManager {
     private static RanksManager instance;
@@ -27,7 +29,7 @@ public class RanksManager {
     }
 
     public static RanksManager getInstance() {
-        if(instance == null){
+        if (instance == null) {
             instance = new RanksManager();
         }
         return instance;
@@ -37,34 +39,35 @@ public class RanksManager {
         return loadRanks(player);
     }
 
-    public Rank loadRanks(ProxiedPlayer player){
+    public Rank loadRanks(ProxiedPlayer player) {
         Inferris.getInstance().getLogger().warning("Loading ranks");
         try (Connection connection = DatabasePool.getConnection();
              PreparedStatement statement = connection.prepareStatement("SELECT staff, donor, other FROM ranks WHERE `uuid` = ?");
-             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO ranks (uuid, staff, donor, other) VALUES (?,?,?,?)")){
+             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO ranks (uuid, staff, donor, other) VALUES (?,?,?,?)")) {
             statement.setString(1, String.valueOf(player.getUniqueId()));
             ResultSet rs = statement.executeQuery();
 
-            if(rs.next()){
+            if (rs.next()) {
                 int staff = rs.getInt("staff");
                 int donor = rs.getInt("donor");
                 int other = rs.getInt("other");
                 return new Rank(staff, donor, other);
-            }else{
+            } else {
                 insertStatement.setString(1, String.valueOf(player.getUniqueId()));
                 insertStatement.setInt(2, 0); // Default value for staff rank
                 insertStatement.setInt(3, 0); // Default value for donor rank
                 insertStatement.setInt(4, 0); // Default value for other rank
                 insertStatement.execute();
             }
-        }catch(SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return new Rank(0, 0, 0);
     }
 
-    public void setRank(ProxiedPlayer player, Branch branch, int id) {
-
+    public void setRank(UUID uuid, Branch branch, int id) {
+        ProxiedPlayer player = ProxyServer.getInstance().getPlayer(uuid);
+        boolean isNull = player == null;
 
         try (Connection connection = DatabasePool.getConnection();
              PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM ranks WHERE uuid = ?");
@@ -72,7 +75,7 @@ public class RanksManager {
              PreparedStatement updateStatement = connection.prepareStatement("UPDATE ranks SET staff = ?, donor = ?, other = ? WHERE uuid = ?")) {
 
             // Check if player exists in ranks table
-            queryStatement.setString(1, player.getUniqueId().toString());
+            queryStatement.setString(1, uuid.toString());
             ResultSet resultSet = queryStatement.executeQuery();
 
             if (resultSet.next()) {
@@ -85,11 +88,11 @@ public class RanksManager {
                 updateStatement.setInt(1, branch == Branch.STAFF ? id : currentStaff);
                 updateStatement.setInt(2, branch == Branch.DONOR ? id : currentDonor);
                 updateStatement.setInt(3, branch == Branch.OTHER ? id : currentOther);
-                updateStatement.setString(4, player.getUniqueId().toString());
+                updateStatement.setString(4, uuid.toString());
                 updateStatement.executeUpdate();
             } else {
                 // Player does not exist, insert their rank
-                insertStatement.setString(1, player.getUniqueId().toString());
+                insertStatement.setString(1, uuid.toString());
                 insertStatement.setInt(2, 0);
                 insertStatement.setInt(3, 0);
                 insertStatement.setInt(4, 0);
@@ -97,7 +100,7 @@ public class RanksManager {
             }
 
             // Update the cached rank for the player
-            PlayerData playerData = PlayerDataManager.getInstance().getRedisData(player);
+            PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(uuid);
             //Rank rank = getRank(player);
             Rank rank = playerData.getRank();
             switch (branch) {
@@ -124,25 +127,19 @@ public class RanksManager {
             Caching, updating, and Jedis publishing
              */
 
-            try(Jedis jedis = jedisPool.getResource()){
-                PlayerDataManager.getInstance().updateAllData(player, playerData);
+            try (Jedis jedis = jedisPool.getResource()) {
                 String json = CacheSerializationUtils.serializePlayerData(playerData);
-                jedis.hset("playerdata", player.getUniqueId().toString(), json);
-                jedis.publish(JedisChannels.PLAYERDATA_UPDATE.name(), json);
+                jedis.hset("playerdata", uuid.toString(), json);
+                if (!isNull) {
+                    PlayerDataManager.getInstance().updateAllData(player, playerData);
+                    jedis.publish(JedisChannels.PLAYERDATA_UPDATE.name(), json);
+                }
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
 
         } catch (SQLException e) {
             return;
-        }
-
-        if (player.isConnected()) {
-//            TeamManager.removePlayerFromTeams(player);
-//            TeamManager.filterTeams(player);
-//            Bukkit.getLogger().warning("Updated rank for " + player.getName() + " to " + branch.name() + "-" + id);
-        } else {
-//            Bukkit.getLogger().warning("Updated rank for offline player " + player.getName() + " to " + branch.name() + "-" + id);
         }
     }
 
