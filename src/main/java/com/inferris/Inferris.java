@@ -2,10 +2,7 @@ package com.inferris;
 
 import com.inferris.commands.*;
 import com.inferris.database.DatabasePool;
-import com.inferris.events.EventJoin;
-import com.inferris.events.EventPing;
-import com.inferris.events.EventQuit;
-import com.inferris.events.EventReceive;
+import com.inferris.events.*;
 import com.inferris.server.*;
 import com.inferris.util.ConfigUtils;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -78,6 +75,12 @@ public class Inferris extends Plugin {
 
         getProxy().registerChannel(BungeeChannel.STAFFCHAT.getName());
         getProxy().registerChannel(BungeeChannel.PLAYER_REGISTRY.getName());
+
+        JedisReceive jedisReceive = new JedisReceive();
+
+        Thread subscriptionThread = new Thread(() -> Inferris.getJedisPool().getResource().subscribe(jedisReceive,
+                JedisChannels.PLAYERDATA_UPDATE.name(), JedisChannels.PLAYERDATA_JOIN.name(), JedisChannels.PLAYERDATA_VANISH.name(), JedisChannels.PROXY_TO_SPIGOT_PLAYERDATA_CACHE_UPDATE.name()));
+        subscriptionThread.start();
 
         try {
             Connection connection = DatabasePool.getConnection();
