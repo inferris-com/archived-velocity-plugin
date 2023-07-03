@@ -9,7 +9,10 @@ import com.inferris.util.Tags;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
@@ -60,9 +63,44 @@ public class CommandReport extends Command implements TabExecutor {
                     return;
                 }
 
+                String stringBuilder = reason.substring(0, 1).toUpperCase() + reason.substring(1);
+
                 PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(player.getUniqueId());
                 PlayerData targetPlayerData = PlayerDataManager.getInstance().getRedisDataOrNull(uuid);
-                ReportPayload reportPayload = new ReportPayload(playerData.getNameColor() + player.getName(), targetPlayerData.getRegistry().getUsername(), args[1], player.getServer().getInfo().getName());
+                String username = targetPlayerData.getRegistry().getUsername();
+
+                ReportPayload reportPayload = new ReportPayload(
+                        playerData.getByBranch().getPrefix(true) + playerData.getNameColor() + player.getName(),
+                        targetPlayerData.getRegistry().getUsername(), stringBuilder,
+                        player.getServer().getInfo().getName());
+
+                TextComponent reportedPlayer = new TextComponent(ChatColor.GRAY + "Reported: " + ChatColor.YELLOW + reportPayload.getReported());
+                TextComponent info = new TextComponent(ChatColor.GREEN + "[Infractions]");
+                info.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GREEN + "Click to view info")));;
+                info.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/history " + username));
+
+                TextComponent accountInfo = new TextComponent(ChatColor.GREEN + "[Account]");
+                accountInfo.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GREEN + "Click to view account info")));
+                accountInfo.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/account " + username));
+
+                reportedPlayer.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to copy username")));
+                reportedPlayer.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, username));
+
+                TextComponent server = new TextComponent(ChatColor.GRAY + "Server: " + ChatColor.GOLD + reportPayload.getServer());
+                server.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.AQUA + "Click to join server")));
+                server.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/server lobby"));
+                //server.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/server lobby"));
+
+                TextComponent senderPlayer = new TextComponent(ChatColor.GRAY + "Reported by: " + ChatColor.RESET + reportPayload.getSender());
+                senderPlayer.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to copy username")));
+                senderPlayer.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, playerData.getRegistry().getUsername()));
+
+                TextComponent logs = new TextComponent(ChatColor.GRAY + "Use " + ChatColor.YELLOW + "/viewlogs " + reportPayload.getServer() + ChatColor.GRAY + " or click here");
+                logs.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.AQUA + "Click to run command")));
+                logs.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewlogs " + reportPayload.getServer()));
+
+                TextComponent spacer = new TextComponent("");
+
 
                 for (ProxiedPlayer staffPlayer : ProxyServer.getInstance().getPlayers()) {
                     // Check if the player is a staff member
@@ -71,12 +109,14 @@ public class CommandReport extends Command implements TabExecutor {
                         staffPlayer.sendMessage(new TextComponent(""));
 
                         // Send the report information to the staff player
-                        staffPlayer.sendMessage(new TextComponent(ChatColor.GRAY + "Reported Player: " + ChatColor.YELLOW + reportPayload.getReported()));
-                        staffPlayer.sendMessage(new TextComponent(ChatColor.GRAY + "Reported by: " + ChatColor.RESET + reportPayload.getSender()));
-                        staffPlayer.sendMessage(new TextComponent(""));
+                        staffPlayer.sendMessage(reportedPlayer, new TextComponent(" "), info, new TextComponent(" "), accountInfo);
+                        staffPlayer.sendMessage(new TextComponent(ChatColor.GRAY + "Reason: " + ChatColor.RESET + reportPayload.getReason()));
+                        staffPlayer.sendMessage(spacer);
+                        staffPlayer.sendMessage(server);
+                        staffPlayer.sendMessage(senderPlayer);
+                        staffPlayer.sendMessage(spacer);
+                        staffPlayer.sendMessage(logs);
 
-                        staffPlayer.sendMessage(new TextComponent(ChatColor.GRAY + "Reason: " + ChatColor.YELLOW + reportPayload.getReason()));
-                        staffPlayer.sendMessage(new TextComponent(ChatColor.GRAY + "Server: " + ChatColor.GOLD + reportPayload.getServer()));
                     }
                 }
             }

@@ -79,6 +79,16 @@ public class CommandAccount extends Command implements TabExecutor {
                 uuidText.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, uuid.toString()));
 
                 TextComponent coins = new TextComponent(ChatColor.YELLOW + "Coins: " + reset + playerData.getCoins().getBalance());
+                TextComponent staff;
+                TextComponent misc = new TextComponent(ChatColor.GOLD + "\nProfile info");
+                TextComponent bio = new TextComponent(ChatColor.YELLOW + "Bio: " + reset + playerData.getProfile().getBio());
+                TextComponent pronouns = new TextComponent(ChatColor.YELLOW + "Pronouns: " + reset + playerData.getProfile().getPronouns());
+
+                if(playerData.isStaff()) {
+                    staff = new TextComponent(ChatColor.YELLOW + "Staff: " + ChatColor.AQUA + playerData.isStaff());
+                }else{
+                    staff = new TextComponent(ChatColor.YELLOW + "Staff: " + reset + playerData.isStaff());
+                }
 
                 player.sendMessage(header);
                 player.sendMessage(new TextComponent(""));
@@ -89,6 +99,7 @@ public class CommandAccount extends Command implements TabExecutor {
                 MessageUtil.sendMessage(player, coins);
                 MessageUtil.sendMessage(player, channel);
                 MessageUtil.sendMessage(player, vanished);
+                MessageUtil.sendMessage(player, staff);
                 player.sendMessage(divider);
             }
         }
