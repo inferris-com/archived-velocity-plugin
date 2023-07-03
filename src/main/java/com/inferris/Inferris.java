@@ -6,9 +6,7 @@ import com.inferris.events.EventJoin;
 import com.inferris.events.EventPing;
 import com.inferris.events.EventQuit;
 import com.inferris.events.EventReceive;
-import com.inferris.server.BungeeChannel;
-import com.inferris.server.Initializer;
-import com.inferris.server.Ports;
+import com.inferris.server.*;
 import com.inferris.util.ConfigUtils;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.plugin.PluginManager;
@@ -28,11 +26,12 @@ import java.util.logging.Level;
 public class Inferris extends Plugin {
     private static Inferris instance;
     private Path dataDirectory;
+    private static Properties otherProperties;
     private static Properties properties;
+    private static File propertiesFile;
     private static File configFile;
     private static File permissionsFile;
     private static File playersFile;
-
     private static Configuration configuration;
     private static Configuration permissionsConfiguration;
     private static Configuration playersConfiguration;
@@ -45,6 +44,18 @@ public class Inferris extends Plugin {
         createConfig();
         createPermissionsConfig();
         createPlayersConfig();
+        createProperties();
+
+        String debugMode = properties.getProperty("debug.mode");
+        if(debugMode != null && debugMode.equalsIgnoreCase("true")){
+            ServerStateManager.setCurrentState(ServerState.DEBUG);
+            getLogger().warning("============================");
+            getLogger().warning("Debug is enabled!");
+            getLogger().warning("============================");
+        }else{
+            ServerStateManager.setCurrentState(ServerState.NORMAL);
+        }
+
 
         //PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
 
@@ -58,8 +69,6 @@ public class Inferris extends Plugin {
         pluginManager.registerCommand(this, new CommandMessage("message"));
         pluginManager.registerCommand(this, new CommandReply("reply"));
         pluginManager.registerCommand(this, new CommandChannel("channel"));
-        //pluginManager.registerCommand(this, new CommandMessage("message"));
-        //pluginManager.registerCommand(this, new CommandReply("reply")); odo
         pluginManager.registerCommand(this, new CommandVanish("vanish"));
         pluginManager.registerCommand(this, new CommandSetrank("rank"));
         pluginManager.registerCommand(this, new CommandCoins("coins"));
@@ -167,13 +176,36 @@ public class Inferris extends Plugin {
             }
         }
 
-        properties = new Properties();
+        otherProperties = new Properties();
         try (InputStream inputStream = new FileInputStream(configFile)) {
-            properties.load(inputStream);
+            otherProperties.load(inputStream);
         } catch (IOException e) {
             e.printStackTrace();
         }
         // do something with the config file here
+    }
+
+    public void createProperties() {
+        File pluginFolder = new File("plugins/Inferris");
+
+        propertiesFile = new File(pluginFolder, "inferris.properties");
+
+        if (!propertiesFile.exists()) {
+            try {
+                InputStream defaultConfig = Inferris.class.getResourceAsStream("/inferris.properties");
+                Files.copy(defaultConfig, propertiesFile.toPath());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        properties = new Properties();
+
+        try (InputStream inputStream = new FileInputStream((propertiesFile))) {
+            properties.load(inputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static Configuration getPermissionsConfiguration() {
