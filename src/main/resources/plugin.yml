@@ -32,3 +32,7 @@ commands:
     description: Account
   serverstate:
     description: Server state command
+  report:
+    description: Report command
+  viewlogs:
+    description: View logs
