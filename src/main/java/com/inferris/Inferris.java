@@ -79,7 +79,7 @@ public class Inferris extends Plugin {
         JedisReceive jedisReceive = new JedisReceive();
 
         Thread subscriptionThread = new Thread(() -> Inferris.getJedisPool().getResource().subscribe(jedisReceive,
-                JedisChannels.PLAYERDATA_UPDATE.name(), JedisChannels.PLAYERDATA_JOIN.name(), JedisChannels.PLAYERDATA_VANISH.name(), JedisChannels.PROXY_TO_SPIGOT_PLAYERDATA_CACHE_UPDATE.name()));
+                JedisChannels.SPIGOT_TO_PROXY_PLAYERDATA_CACHE_UPDATE.name()));
         subscriptionThread.start();
 
         try {
