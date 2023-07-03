@@ -76,7 +76,7 @@ public class CommandReport extends Command implements TabExecutor {
 
                 TextComponent reportedPlayer = new TextComponent(ChatColor.GRAY + "Reported: " + ChatColor.YELLOW + reportPayload.getReported());
                 TextComponent info = new TextComponent(ChatColor.GREEN + "[Infractions]");
-                info.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GREEN + "Click to view info")));;
+                info.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GREEN + "Click to view info")));
                 info.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/history " + username));
 
                 TextComponent accountInfo = new TextComponent(ChatColor.GREEN + "[Account]");
