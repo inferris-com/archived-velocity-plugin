@@ -2,10 +2,7 @@ package com.inferris;
 
 import com.inferris.commands.*;
 import com.inferris.database.DatabasePool;
-import com.inferris.events.EventJoin;
-import com.inferris.events.EventPing;
-import com.inferris.events.EventQuit;
-import com.inferris.events.EventReceive;
+import com.inferris.events.*;
 import com.inferris.server.*;
 import com.inferris.util.ConfigUtils;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -74,9 +71,16 @@ public class Inferris extends Plugin {
         pluginManager.registerCommand(this, new CommandCoins("coins"));
         pluginManager.registerCommand(this, new CommandProfile("profile"));
         pluginManager.registerCommand(this, new CommandAccount("account"));
+        pluginManager.registerCommand(this, new CommandServerState("serverstate"));
+        pluginManager.registerCommand(this, new CommandViewlogs("viewlogs"));
+        pluginManager.registerCommand(this, new CommandReport("report"));
 
         getProxy().registerChannel(BungeeChannel.STAFFCHAT.getName());
         getProxy().registerChannel(BungeeChannel.PLAYER_REGISTRY.getName());
+        getProxy().registerChannel(BungeeChannel.REPORT.getName());
+
+        JedisReceive jedisReceive = new JedisReceive();
+
 
         try {
             Connection connection = DatabasePool.getConnection();
@@ -95,7 +99,9 @@ public class Inferris extends Plugin {
         Initializer initializer = new Initializer();
         //initializer.loadPlayerRegistry();
         jedisPool = new JedisPool("localhost", Ports.JEDIS.getPort());
-
+        Thread subscriptionThread = new Thread(() -> Inferris.getJedisPool().getResource().subscribe(jedisReceive,
+                JedisChannels.SPIGOT_TO_PROXY_PLAYERDATA_CACHE_UPDATE.name()));
+        subscriptionThread.start();
     }
 
     @Override
