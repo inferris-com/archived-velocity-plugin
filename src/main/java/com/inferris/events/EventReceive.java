@@ -1,18 +1,12 @@
 package com.inferris.events;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.Branch;
 import com.inferris.rank.RankRegistry;
-import com.inferris.rank.RanksManager;
 import com.inferris.server.BungeeChannel;
 import com.inferris.server.Subchannel;
 import com.inferris.util.*;
@@ -23,11 +17,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
-import org.json.JSONArray;
-import org.json.JSONException;
-
 import java.io.*;
-import java.util.ArrayList;
 import java.util.List;
 
 public class EventReceive implements Listener {

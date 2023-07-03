@@ -1,7 +1,5 @@
 package com.inferris.server;
 
-import java.util.UUID;
-
 public class ReportPayload {
     private String sender;
     private String reported;

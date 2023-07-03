@@ -1,24 +1,17 @@
 package com.inferris.events;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.inferris.Inferris;
 import com.inferris.player.PlayerDataManager;
-import com.inferris.rank.Branch;
 import com.inferris.server.JedisChannels;
 import com.inferris.server.ReportPayload;
-import com.inferris.server.ServerUtil;
 import com.inferris.util.Tags;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import redis.clients.jedis.JedisPubSub;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class JedisReceive extends JedisPubSub {
 
