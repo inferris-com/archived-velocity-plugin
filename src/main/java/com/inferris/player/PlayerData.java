@@ -73,10 +73,10 @@ public class PlayerData implements PlayerDataService, Serializable {
     @Override
     public ChatColor getNameColor() {
         return switch (getByBranch()) {
-            case ADMIN -> ChatColor.RED;
-            case MOD -> ChatColor.DARK_GREEN;
-            case HELPER -> ChatColor.BLUE;
-            case DONOR -> ChatColor.AQUA;
+            case ADMIN -> RankRegistry.ADMIN.getColor();
+            case MOD -> RankRegistry.MOD.getColor();
+            case HELPER -> RankRegistry.HELPER.getColor();
+            case DONOR -> RankRegistry.DONOR.getColor();
             default -> ChatColor.RESET;
         };
     }
