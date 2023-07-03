@@ -12,10 +12,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class CommandCoins extends Command implements TabExecutor {
     public CommandCoins(String name) {
@@ -37,18 +34,16 @@ public class CommandCoins extends Command implements TabExecutor {
                 if (args[0].equalsIgnoreCase("set")) {
 
                     ProxiedPlayer target = ProxyServer.getInstance().getPlayer(args[1]);
-                    if (target == null) {
-                        player.sendMessage(new TextComponent("Player " + args[1] + " not found or is offline."));
-                        return;
-                    }
-                    PlayerData targetData = PlayerDataManager.getInstance().getRedisDataOrNull(target);
+                    UUID uuid = PlayerDataManager.getInstance().getUUIDByUsername(args[1]);
+
+                    PlayerData targetData = PlayerDataManager.getInstance().getRedisDataOrNull(uuid);
                     if (targetData == null) {
                         player.sendMessage(new TextComponent(ChatColor.RED + "Player does not exist in our system."));
                         return;
                     }
 
                     targetData.setCoins(Integer.parseInt(args[2]));
-                    player.sendMessage(new TextComponent("Coins set for " + args[0] + " to " + ChatColor.AQUA + args[2]));
+                    player.sendMessage(new TextComponent("Coins set for " + targetData.getRegistry().getUsername() + " to " + ChatColor.AQUA + args[2]));
                 }
             }
         }
