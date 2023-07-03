@@ -6,7 +6,6 @@ import com.inferris.Messages;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.server.JedisChannels;
-import com.inferris.server.Ports;
 import com.inferris.util.CacheSerializationUtils;
 import com.inferris.util.Tags;
 import com.inferris.rank.*;
