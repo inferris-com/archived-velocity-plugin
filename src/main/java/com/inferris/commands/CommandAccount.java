@@ -57,7 +57,14 @@ public class CommandAccount extends Command implements TabExecutor {
 
                     TextComponent registration_date = new TextComponent(ChatColor.YELLOW + "Registration date: " + reset + playerData.getProfile().getRegistrationDate());
                     TextComponent channel = new TextComponent(ChatColor.YELLOW + "Current channel: " + reset + playerData.getChannel().getMessage());
-                    TextComponent vanished = new TextComponent(ChatColor.YELLOW + "Vanish state: " + reset + playerData.getVanishState());
+
+                    TextComponent vanished;
+                    if(playerData.getVanishState() == VanishState.ENABLED){
+                        vanished = new TextComponent(ChatColor.YELLOW + "Vanish state: " + reset + ChatColor.GREEN + playerData.getVanishState());
+                    }else{
+                        vanished = new TextComponent(ChatColor.YELLOW + "Vanish state: " + reset + ChatColor.RED + playerData.getVanishState());
+
+                    }
 
                     TextComponent divider = new TextComponent("-------------------------------");
                     divider.setColor(ChatColor.GOLD);

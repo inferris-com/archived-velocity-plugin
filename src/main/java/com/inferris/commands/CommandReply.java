@@ -2,7 +2,6 @@ package com.inferris.commands;
 
 import com.inferris.commands.cache.CommandMessageCache;
 import com.inferris.player.PlayerDataManager;
-import com.inferris.player.registry.RegistryManager;
 import com.inferris.player.vanish.VanishState;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;

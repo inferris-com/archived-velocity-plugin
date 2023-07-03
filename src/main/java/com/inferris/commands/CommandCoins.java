@@ -1,7 +1,5 @@
 package com.inferris.commands;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.inferris.player.coins.Coins;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.Branch;
