@@ -26,11 +26,12 @@ public class EventJoin implements Listener {
 
     /**
      * This is responsible for any server switch events
+     *
      * @param event
      */
 
     @EventHandler
-    public void onSwitch(ServerSwitchEvent event){
+    public void onSwitch(ServerSwitchEvent event) {
         ProxiedPlayer player = event.getPlayer();
         sendHeader(player);
         ConfigUtils configUtils = new ConfigUtils();
@@ -45,7 +46,7 @@ public class EventJoin implements Listener {
 
         Permissions.attachPermissions(player);
 
-        try(Jedis jedis = Inferris.getJedisPool().getResource()){
+        try (Jedis jedis = Inferris.getJedisPool().getResource()) {
             String json = CacheSerializationUtils.serializePlayerData(playerDataManager.getPlayerData(player));
             player.sendMessage(new TextComponent("Bungee " + json));
             Inferris.getInstance().getLogger().info(json);
@@ -57,11 +58,13 @@ public class EventJoin implements Listener {
 
     /**
      * Responsible for single proxy connections
+     *
      * @param event
      */
 
     @EventHandler
     public void onPostLogin(PostLoginEvent event) {
+
         ProxiedPlayer player = event.getPlayer();
 
         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
