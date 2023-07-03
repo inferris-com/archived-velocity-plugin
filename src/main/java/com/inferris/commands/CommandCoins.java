@@ -39,7 +39,6 @@ public class CommandCoins extends Command implements TabExecutor {
                     try {
                         uuid = PlayerDataManager.getInstance().getUUIDByUsername(args[1]);
                     }catch(Exception e){
-                        e.printStackTrace();
                         player.sendMessage(new TextComponent(ChatColor.RED + "Player does not exist in our system."));
                         return;
                     }

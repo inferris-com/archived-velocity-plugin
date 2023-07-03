@@ -56,6 +56,8 @@ public class CommandAccount extends Command implements TabExecutor {
                     prefix.setColor(ChatColor.YELLOW);
 
                     TextComponent registration_date = new TextComponent(ChatColor.YELLOW + "Registration date: " + reset + playerData.getProfile().getRegistrationDate());
+                    TextComponent channel = new TextComponent(ChatColor.YELLOW + "Current channel: " + reset + playerData.getChannel().getMessage());
+                    TextComponent vanished = new TextComponent(ChatColor.YELLOW + "Vanish state: " + reset + playerData.getVanishState());
 
                     TextComponent divider = new TextComponent("-------------------------------");
                     divider.setColor(ChatColor.GOLD);
@@ -73,6 +75,8 @@ public class CommandAccount extends Command implements TabExecutor {
                     MessageUtil.sendMessage(player, uuidText);
                     MessageUtil.sendMessage(player, registration_date);
                     MessageUtil.sendMessage(player, coins);
+                    MessageUtil.sendMessage(player, channel);
+                    MessageUtil.sendMessage(player, vanished);
                     player.sendMessage(divider);
                 }
             }
