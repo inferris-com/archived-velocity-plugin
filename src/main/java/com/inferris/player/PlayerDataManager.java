@@ -167,13 +167,13 @@ public class PlayerDataManager {
     public UUID getUUIDByUsername(String username) {
         try (Jedis jedis = jedisPool.getResource()) {
             Map<String, String> playerDataEntries = jedis.hgetAll("playerdata");
+            Gson gson = new Gson();
 
             for (Map.Entry<String, String> entry : playerDataEntries.entrySet()) {
                 String uuid = entry.getKey();
 
                 // Parse the value as JSON to access the username field
                 try {
-                    Gson gson = new Gson();
                     JsonElement jsonElement = gson.fromJson(entry.getValue(), JsonElement.class);
                     String entryUsername = jsonElement.getAsJsonObject().getAsJsonObject("registry").get("username").getAsString();
 
@@ -189,13 +189,19 @@ public class PlayerDataManager {
         }
     }
 
+    /**
+     Checks if a given username has a corresponding UUID in the player data stored in Redis.
+     @param username The username to check.
+     @return {@code true} if a match is found for the username, {@code false} otherwise.
+     */
+
     public boolean hasUUIDByUsername(String username) {
         try (Jedis jedis = jedisPool.getResource()) {
             Map<String, String> playerDataEntries = jedis.hgetAll("playerdata");
-
+            Gson gson = new Gson();
             for (String value : playerDataEntries.values()) {
                 // Parse the value as JSON to access the username field
-                JsonElement jsonElement = new JsonParser().parse(value);
+                JsonElement jsonElement = gson.fromJson(value, JsonElement.class);
                 String entryUsername = jsonElement.getAsJsonObject().getAsJsonObject("registry").get("username").getAsString();
 
                 if (entryUsername.equalsIgnoreCase(username)) {
@@ -203,12 +209,10 @@ public class PlayerDataManager {
                     return true;
                 }
             }
-
             // No match found for the username
             return false;
         }
     }
-
 
     /**
      * Updates the player data for the specified player in the Redis server.
@@ -216,7 +220,6 @@ public class PlayerDataManager {
      * @param player     The ProxiedPlayer object representing the player.
      * @param playerData The PlayerData object containing the updated player data.
      */
-
 
     public void updateAllData(ProxiedPlayer player, PlayerData playerData) {
         try (Jedis jedis = jedisPool.getResource()) {
