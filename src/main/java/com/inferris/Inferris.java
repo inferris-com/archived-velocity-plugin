@@ -26,11 +26,12 @@ import java.util.logging.Level;
 public class Inferris extends Plugin {
     private static Inferris instance;
     private Path dataDirectory;
+    private static Properties otherProperties;
     private static Properties properties;
+    private static File propertiesFile;
     private static File configFile;
     private static File permissionsFile;
     private static File playersFile;
-    private static File propertiesFile;
     private static Configuration configuration;
     private static Configuration permissionsConfiguration;
     private static Configuration playersConfiguration;
@@ -46,7 +47,7 @@ public class Inferris extends Plugin {
         createProperties();
 
         String debugMode = properties.getProperty("debug.mode");
-        if(debugMode !=null && debugMode.equalsIgnoreCase("true")){
+        if(debugMode != null && debugMode.equalsIgnoreCase("true")){
             ServerStateManager.setCurrentState(ServerState.DEBUG);
             getLogger().warning("============================");
             getLogger().warning("Debug is enabled!");
@@ -54,6 +55,7 @@ public class Inferris extends Plugin {
         }else{
             ServerStateManager.setCurrentState(ServerState.NORMAL);
         }
+
 
         //PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
 
@@ -158,8 +160,34 @@ public class Inferris extends Plugin {
         }
     }
 
+    private static void getConfig() {
+        File pluginFolder = new File("plugins/Inferris");
+        if (!pluginFolder.exists()) {
+            pluginFolder.mkdirs(); // create the Inferris folder if it does not exist
+        }
+
+        configFile = new File(pluginFolder, "config.yml");
+        if (!configFile.exists()) {
+            try {
+                InputStream defaultConfig = Inferris.class.getResourceAsStream("/config.yml");
+                Files.copy(defaultConfig, configFile.toPath());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        otherProperties = new Properties();
+        try (InputStream inputStream = new FileInputStream(configFile)) {
+            otherProperties.load(inputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // do something with the config file here
+    }
+
     public void createProperties() {
         File pluginFolder = new File("plugins/Inferris");
+
         propertiesFile = new File(pluginFolder, "inferris.properties");
 
         if (!propertiesFile.exists()) {
@@ -178,31 +206,6 @@ public class Inferris extends Plugin {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private static void getConfig() {
-        File pluginFolder = new File("plugins/Inferris");
-        if (!pluginFolder.exists()) {
-            pluginFolder.mkdirs(); // create the Inferris folder if it does not exist
-        }
-
-        configFile = new File(pluginFolder, "config.yml");
-        if (!configFile.exists()) {
-            try {
-                InputStream defaultConfig = Inferris.class.getResourceAsStream("/config.yml");
-                Files.copy(defaultConfig, configFile.toPath());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        properties = new Properties();
-        try (InputStream inputStream = new FileInputStream(configFile)) {
-            properties.load(inputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        // do something with the config file here
     }
 
     public static Configuration getPermissionsConfiguration() {

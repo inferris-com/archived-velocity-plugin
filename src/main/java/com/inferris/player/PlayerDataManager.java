@@ -16,7 +16,10 @@ import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
 import com.inferris.rank.RanksManager;;
+import com.inferris.server.ServerState;
+import com.inferris.server.ServerStateManager;
 import com.inferris.util.CacheSerializationUtils;
+import com.inferris.util.ServerUtil;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import redis.clients.jedis.Jedis;
@@ -25,6 +28,7 @@ import redis.clients.jedis.JedisPool;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -158,16 +162,22 @@ public class PlayerDataManager {
         }
     }
 
+    /**
+     Retrieves the UUID associated with a given username from player data stored in Redis.
+     @param username The username to search for.
+     @return The UUID corresponding to the provided username, or null if no match is found.
+     */
+
     public UUID getUUIDByUsername(String username) {
         try (Jedis jedis = jedisPool.getResource()) {
             Map<String, String> playerDataEntries = jedis.hgetAll("playerdata");
+            Gson gson = new Gson();
 
             for (Map.Entry<String, String> entry : playerDataEntries.entrySet()) {
                 String uuid = entry.getKey();
 
                 // Parse the value as JSON to access the username field
                 try {
-                    Gson gson = new Gson();
                     JsonElement jsonElement = gson.fromJson(entry.getValue(), JsonElement.class);
                     String entryUsername = jsonElement.getAsJsonObject().getAsJsonObject("registry").get("username").getAsString();
 
@@ -183,13 +193,19 @@ public class PlayerDataManager {
         }
     }
 
+    /**
+     Checks if a given username has a corresponding UUID in the player data stored in Redis.
+     @param username The username to check.
+     @return {@code true} if a match is found for the username, {@code false} otherwise.
+     */
+
     public boolean hasUUIDByUsername(String username) {
         try (Jedis jedis = jedisPool.getResource()) {
             Map<String, String> playerDataEntries = jedis.hgetAll("playerdata");
-
+            Gson gson = new Gson();
             for (String value : playerDataEntries.values()) {
                 // Parse the value as JSON to access the username field
-                JsonElement jsonElement = new JsonParser().parse(value);
+                JsonElement jsonElement = gson.fromJson(value, JsonElement.class);
                 String entryUsername = jsonElement.getAsJsonObject().getAsJsonObject("registry").get("username").getAsString();
 
                 if (entryUsername.equalsIgnoreCase(username)) {
@@ -197,12 +213,10 @@ public class PlayerDataManager {
                     return true;
                 }
             }
-
             // No match found for the username
             return false;
         }
     }
-
 
     /**
      * Updates the player data for the specified player in the Redis server.
@@ -210,7 +224,6 @@ public class PlayerDataManager {
      * @param player     The ProxiedPlayer object representing the player.
      * @param playerData The PlayerData object containing the updated player data.
      */
-
 
     public void updateAllData(ProxiedPlayer player, PlayerData playerData) {
         try (Jedis jedis = jedisPool.getResource()) {
@@ -249,59 +262,65 @@ public class PlayerDataManager {
         }
     }
 
-    /*
-    We store them in the PlayerData cache here
+    /**
+     * Checks if the provided player has joined before by looking up their data in Redis and caching if necessary.
+     *
+     * @param player The ProxiedPlayer object representing the player to check.
      */
     public void checkJoinedBefore(ProxiedPlayer player) {
-        Inferris.getInstance().getLogger().warning("Checking join");
+        boolean isDebug = ServerStateManager.getCurrentState() == ServerState.DEBUG;
 
-        /*
-        Master playerdata object setting
-            Reminder: Redis cache is PERSISTENT
-         */
+        ServerUtil.log("Checking join", Level.WARNING, ServerState.DEBUG);
 
         try (Jedis jedis = getJedisPool().getResource()) {
+            UUID playerUUID = player.getUniqueId();
 
-            if (jedis.hexists("playerdata", player.getUniqueId().toString())) {
-                Inferris.getInstance().getLogger().warning("Exists");
+            if (jedis.hexists("playerdata", playerUUID.toString())) {
+                ServerUtil.log("Exists", Level.WARNING, ServerState.DEBUG);
                 hasDifferentUsername(player);
 
-                /* If in Redis, but not caffeine cache */
-
-                if (caffeineCache.asMap().get(player.getUniqueId()) == null) {
-                    caffeineCache.asMap().put(player.getUniqueId(), CacheSerializationUtils.deserializePlayerData(jedis.hget("playerdata", player.getUniqueId().toString())));
-                    Inferris.getInstance().getLogger().severe(String.valueOf(caffeineCache.asMap().get(player.getUniqueId()).getRank().getBranchID(Branch.STAFF)));
-                    Inferris.getInstance().getLogger().severe(String.valueOf(caffeineCache.asMap().get(player.getUniqueId()).getVanishState()));
-                    Inferris.getInstance().getLogger().severe(String.valueOf(caffeineCache.asMap().get(player.getUniqueId()).getChannel()));
-                    Inferris.getInstance().getLogger().severe(caffeineCache.asMap().get(player.getUniqueId()).getRegistry().getUsername());
-                    Inferris.getInstance().getLogger().severe(String.valueOf(caffeineCache.asMap().get(player.getUniqueId()).getCoins().getBalance()));
+                if (caffeineCache.getIfPresent(playerUUID) == null) {
+                    String playerDataJson = jedis.hget("playerdata", playerUUID.toString());
+                    PlayerData playerData = CacheSerializationUtils.deserializePlayerData(playerDataJson);
+                    caffeineCache.put(playerUUID, playerData);
+                    logPlayerData(playerData);
                 }
             } else {
-                Inferris.getInstance().getLogger().warning("Not in registry, caching");
+                ServerUtil.log("Not in registry, caching", Level.WARNING, ServerState.DEBUG);
 
-                /*
-                Check if they are in the database.  Normal database caching
-                    Jedis and caffeine cache
-                 */
-
-                Rank rank = RanksManager.getInstance().getRank(player); // Finished
-                Registry registry = RegistryManager.getInstance().getRegistry(player, rank); // todo
+                Rank rank = RanksManager.getInstance().getRank(player);
+                Registry registry = RegistryManager.getInstance().getRegistry(player, rank);
 
                 PlayerData playerData = new PlayerData(registry, rank, new Profile(null, null, LocalDate.now()), new Coins(36), Channels.NONE, VanishState.DISABLED);
+                String playerDataJson = CacheSerializationUtils.serializePlayerData(playerData);
+                jedis.hset("playerdata", playerUUID.toString(), playerDataJson);
 
-                String json = CacheSerializationUtils.serializePlayerData(playerData);
-                jedis.hset("playerdata", player.getUniqueId().toString(), json);
+                ServerUtil.log(">>> " + playerDataJson, Level.SEVERE, ServerState.DEBUG);
 
-                Inferris.getInstance().getLogger().severe(">>>> " + json);
 
-                if (caffeineCache.asMap().get(player.getUniqueId()) != null) {
-                    caffeineCache.asMap().put(player.getUniqueId(), CacheSerializationUtils.deserializePlayerData(jedis.hget("playerdata", player.getUniqueId().toString())));
+                if (caffeineCache.getIfPresent(playerUUID) != null) {
+                    PlayerData cachedData = CacheSerializationUtils.deserializePlayerData(playerDataJson);
+                    caffeineCache.put(playerUUID, cachedData);
                 }
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * Logs relevant information about the player's data.
+     *
+     * @param playerData The PlayerData object to log.
+     */
+    private void logPlayerData(PlayerData playerData) {
+        Inferris.getInstance().getLogger().severe(String.valueOf(playerData.getRank().getBranchID(Branch.STAFF)));
+        Inferris.getInstance().getLogger().severe(String.valueOf(playerData.getVanishState()));
+        Inferris.getInstance().getLogger().severe(String.valueOf(playerData.getChannel()));
+        Inferris.getInstance().getLogger().severe(playerData.getRegistry().getUsername());
+        Inferris.getInstance().getLogger().severe(String.valueOf(playerData.getCoins().getBalance()));
+    }
+
 
     private void hasDifferentUsername(ProxiedPlayer player) {
         try (Jedis jedis = jedisPool.getResource()) {
