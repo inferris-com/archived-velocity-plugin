@@ -3,11 +3,14 @@ package com.inferris.rank;
 import com.inferris.Inferris;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
+import com.inferris.server.ServerState;
+import com.inferris.util.ServerUtil;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.config.Configuration;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
 
 public class Permissions {
 
@@ -24,7 +27,8 @@ public class Permissions {
             List<String> nonePermissions = ranksSection.getStringList("none");
 
             for (String rankName : rankNames) {
-                Inferris.getInstance().getLogger().warning(rankName);
+                ServerUtil.log(rankName, Level.INFO, ServerState.DEBUG, ServerState.DEV);
+
 
                 if (ranks.contains(RankRegistry.valueOf(rankName.toUpperCase()))) {
                     List<String> permissions = ranksSection.getStringList(rankName);

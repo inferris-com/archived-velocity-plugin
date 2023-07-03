@@ -74,6 +74,7 @@ public class Inferris extends Plugin {
         pluginManager.registerCommand(this, new CommandCoins("coins"));
         pluginManager.registerCommand(this, new CommandProfile("profile"));
         pluginManager.registerCommand(this, new CommandAccount("account"));
+        pluginManager.registerCommand(this, new CommandServerState("serverstate"));
 
         getProxy().registerChannel(BungeeChannel.STAFFCHAT.getName());
         getProxy().registerChannel(BungeeChannel.PLAYER_REGISTRY.getName());

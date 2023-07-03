@@ -30,3 +30,5 @@ commands:
     description: Set or view profile for a player
   account:
     description: Account
+  serverstate:
+    description: Server state command

@@ -314,13 +314,14 @@ public class PlayerDataManager {
      * @param playerData The PlayerData object to log.
      */
     private void logPlayerData(PlayerData playerData) {
-        Inferris.getInstance().getLogger().severe(String.valueOf(playerData.getRank().getBranchID(Branch.STAFF)));
-        Inferris.getInstance().getLogger().severe(String.valueOf(playerData.getVanishState()));
-        Inferris.getInstance().getLogger().severe(String.valueOf(playerData.getChannel()));
-        Inferris.getInstance().getLogger().severe(playerData.getRegistry().getUsername());
-        Inferris.getInstance().getLogger().severe(String.valueOf(playerData.getCoins().getBalance()));
+        if (ServerStateManager.getCurrentState() == ServerState.DEBUG || ServerStateManager.getCurrentState() == ServerState.DEV) {
+            Inferris.getInstance().getLogger().severe(String.valueOf(playerData.getRank().getBranchID(Branch.STAFF)));
+            Inferris.getInstance().getLogger().severe(String.valueOf(playerData.getVanishState()));
+            Inferris.getInstance().getLogger().severe(String.valueOf(playerData.getChannel()));
+            Inferris.getInstance().getLogger().severe(playerData.getRegistry().getUsername());
+            Inferris.getInstance().getLogger().severe(String.valueOf(playerData.getCoins().getBalance()));
+        }
     }
-
 
     private void hasDifferentUsername(ProxiedPlayer player) {
         try (Jedis jedis = jedisPool.getResource()) {
