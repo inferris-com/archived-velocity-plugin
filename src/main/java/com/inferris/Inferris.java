@@ -32,7 +32,7 @@ public class Inferris extends Plugin {
     private static File configFile;
     private static File permissionsFile;
     private static File playersFile;
-
+    private static File propertiesFile;
     private static Configuration configuration;
     private static Configuration permissionsConfiguration;
     private static Configuration playersConfiguration;
@@ -45,6 +45,7 @@ public class Inferris extends Plugin {
         createConfig();
         createPermissionsConfig();
         createPlayersConfig();
+        createProperties();
 
         //PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
 
@@ -148,6 +149,28 @@ public class Inferris extends Plugin {
             playersConfiguration = ConfigurationProvider.getProvider(YamlConfiguration.class).load(playersFile);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public void createProperties() {
+        File pluginFolder = new File("plugins/Inferris");
+        propertiesFile = new File(pluginFolder, "inferris.properties");
+
+        if (!propertiesFile.exists()) {
+            try {
+                InputStream defaultConfig = Inferris.class.getResourceAsStream("/inferris.properties");
+                Files.copy(defaultConfig, propertiesFile.toPath());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        properties = new Properties();
+
+        try (InputStream inputStream = new FileInputStream((propertiesFile))) {
+            properties.load(inputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
