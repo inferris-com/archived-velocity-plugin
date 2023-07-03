@@ -136,6 +136,14 @@ public class PlayerDataManager {
         }
     }
 
+    /**
+     * Retrieves the Redis data associated with the given player.
+     * If no data is found, it returns null.
+     * @param uuid The unique identifier
+     * @return Either the {@link PlayerData} object, or null, if no data is found
+     * @since 1.0
+     */
+
     public PlayerData getRedisDataOrNull(UUID uuid) {
         try (Jedis jedis = jedisPool.getResource()) {
             String json = jedis.hget("playerdata", uuid.toString());
