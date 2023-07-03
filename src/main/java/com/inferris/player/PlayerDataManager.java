@@ -258,9 +258,14 @@ public class PlayerDataManager {
         }
     }
 
-    /*
-    We store them in the PlayerData cache here
+    /**
+     * Checks if the provided player has joined before by looking up their data in Redis and caching if necessary.
+     * If the player's data exists in Redis, it is checked if it is already cached in the caffeine cache. If not, the data
+     * is retrieved from Redis and stored in the cache. If the player's data does not exist in Redis, it is fetched from
+     * the database, and the retrieved data is both stored in Redis and cached in the caffeine cache.
+     * @param player The ProxiedPlayer object representing the player to check.
      */
+
     public void checkJoinedBefore(ProxiedPlayer player) {
         Inferris.getInstance().getLogger().warning("Checking join");
 
