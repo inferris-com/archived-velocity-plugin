@@ -19,6 +19,21 @@ import net.md_5.bungee.api.plugin.TabExecutor;
 
 import java.util.*;
 
+/**
+ * <p>The CommandReport class represents a command used to report players in a game server.
+ * It allows players to report other players for various reasons and notifies staff members of new reports.
+ * This command can be executed by players who want to report another player's misconduct or inappropriate behavior.
+ * The reported player's username and the reason for the report are collected as command arguments.
+ * The command then notifies online staff members about the new report, providing them with relevant information.</p>
+ * <p>Staff members receive a notification with details about the reported player, including their username, the reason for the report,
+ * the server they are playing on, and the player who initiated the report. The staff members can click on various elements
+ * within the notification to view additional information or perform actions related to the report.
+ * The CommandReport class also provides tab completion functionality, allowing players to autocomplete player names and
+ * available report reasons as they type the command.</p>
+ *
+ * @since 1.0
+ */
+
 public class CommandReport extends Command implements TabExecutor {
     public CommandReport(String name) {
         super(name);
