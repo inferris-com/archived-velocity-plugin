@@ -56,7 +56,7 @@ public class CommandSetrank extends Command implements TabExecutor {
         String targetName = args[0];
         PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
 
-        UUID uuid = null;
+        UUID uuid;
         try {
             uuid = playerDataManager.getUUIDByUsername(targetName);
         } catch (Exception e) {
