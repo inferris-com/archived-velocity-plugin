@@ -6,9 +6,7 @@ import com.inferris.events.EventJoin;
 import com.inferris.events.EventPing;
 import com.inferris.events.EventQuit;
 import com.inferris.events.EventReceive;
-import com.inferris.server.BungeeChannel;
-import com.inferris.server.Initializer;
-import com.inferris.server.Ports;
+import com.inferris.server.*;
 import com.inferris.util.ConfigUtils;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.plugin.PluginManager;
@@ -46,6 +44,16 @@ public class Inferris extends Plugin {
         createPermissionsConfig();
         createPlayersConfig();
         createProperties();
+
+        String debugMode = properties.getProperty("debug.mode");
+        if(debugMode !=null && debugMode.equalsIgnoreCase("true")){
+            ServerStateManager.setCurrentState(ServerState.DEBUG);
+            getLogger().warning("============================");
+            getLogger().warning("Debug is enabled!");
+            getLogger().warning("============================");
+        }else{
+            ServerStateManager.setCurrentState(ServerState.NORMAL);
+        }
 
         //PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
 
