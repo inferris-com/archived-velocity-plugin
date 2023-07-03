@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.inferris.Inferris;
@@ -166,7 +167,8 @@ public class PlayerDataManager {
 
                 // Parse the value as JSON to access the username field
                 try {
-                    JsonElement jsonElement = new JsonParser().parse(entry.getValue());
+                    Gson gson = new Gson();
+                    JsonElement jsonElement = gson.fromJson(entry.getValue(), JsonElement.class);
                     String entryUsername = jsonElement.getAsJsonObject().getAsJsonObject("registry").get("username").getAsString();
 
                     if (entryUsername.equalsIgnoreCase(username)) {
