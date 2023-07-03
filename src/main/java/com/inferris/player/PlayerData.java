@@ -87,7 +87,7 @@ public class PlayerData implements PlayerDataService, Serializable {
     }
 
     public void setCoins(int amount) {
-        CoinsManager.setCoins(ProxyServer.getInstance().getPlayer(getRegistry().getUuid()), amount);
+        CoinsManager.setCoins(registry.getUuid(), amount);
     }
 
     /**
