@@ -5,19 +5,23 @@ import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.server.ReportPayload;
+import com.inferris.util.ChatUtil;
 import com.inferris.util.Tags;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.chat.hover.content.Text;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+
+import static com.inferris.util.ChatUtil.*;
 
 /**
  * <p>The CommandReport class represents a command used to report players in a game server.
@@ -35,11 +39,12 @@ import java.util.*;
  */
 
 public class CommandReport extends Command implements TabExecutor {
+    List<String> possibleReasons = List.of("spamming", "harassment", "inappropriate_behavior", "cheating", "exploiting_bugs", "impersonation", "scamming", "advertisement", "other");
+    private ChatUtil chatUtil;
+
     public CommandReport(String name) {
         super(name);
     }
-
-    List<String> possibleReasons = List.of("spamming", "harassment", "inappropriate_behavior", "cheating", "exploiting_bugs", "impersonation", "scamming", "advertisement", "other");
 
     @Override
     public void execute(CommandSender sender, String[] args) {
@@ -89,30 +94,33 @@ public class CommandReport extends Command implements TabExecutor {
                         targetPlayerData.getRegistry().getUsername(), stringBuilder,
                         player.getServer().getInfo().getName());
 
-                TextComponent reportedPlayer = new TextComponent(ChatColor.GRAY + "Reported: " + ChatColor.YELLOW + reportPayload.getReported());
-                TextComponent info = new TextComponent(ChatColor.GREEN + "[Infractions]");
-                info.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GREEN + "Click to view info")));
-                info.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/history " + username));
+                TextComponent reportedPlayer = createClickableTextComponent(
+                        ChatColor.GRAY + "Reported: " + ChatColor.YELLOW + reportPayload.getReported(),
+                        "Click to copy username", targetPlayerData.getRegistry().getUsername(), ClickEvent.Action.COPY_TO_CLIPBOARD);
 
-                TextComponent accountInfo = new TextComponent(ChatColor.GREEN + "[Account]");
-                accountInfo.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GREEN + "Click to view account info")));
-                accountInfo.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/account " + username));
+                TextComponent info = createClickableTextComponent(
+                        ChatColor.GREEN + "[Infractions]", ChatColor.GREEN + "Click to view info",
+                        "/history " + username, ClickEvent.Action.RUN_COMMAND);
 
-                reportedPlayer.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to copy username")));
-                reportedPlayer.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, username));
+                TextComponent accountInfo = createClickableTextComponent(
+                        ChatColor.GREEN + "[Account]", ChatColor.GREEN + "Click to view account info",
+                        "/account " + username, ClickEvent.Action.RUN_COMMAND);
 
-                TextComponent server = new TextComponent(ChatColor.GRAY + "Server: " + ChatColor.GOLD + reportPayload.getServer());
-                server.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.AQUA + "Click to join server")));
-                server.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/server lobby"));
-                //server.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/server lobby"));
+                reportedPlayer.setHoverEvent(createHoverEvent("Click to copy username"));
+                reportedPlayer.setClickEvent(createClickEvent(username, ClickEvent.Action.COPY_TO_CLIPBOARD));
 
-                TextComponent senderPlayer = new TextComponent(ChatColor.GRAY + "Reported by: " + ChatColor.RESET + reportPayload.getSender());
-                senderPlayer.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to copy username")));
-                senderPlayer.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, playerData.getRegistry().getUsername()));
+                TextComponent server = createClickableTextComponent(
+                        ChatColor.GRAY + "Server: " + ChatColor.GOLD + reportPayload.getServer(),
+                        ChatColor.AQUA + "Click to join server", "/server " + reportPayload.getServer(), ClickEvent.Action.RUN_COMMAND);
 
-                TextComponent logs = new TextComponent(ChatColor.GRAY + "Use " + ChatColor.YELLOW + "/viewlogs " + reportPayload.getServer() + ChatColor.GRAY + " or click here");
-                logs.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.AQUA + "Click to run command")));
-                logs.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewlogs " + reportPayload.getServer()));
+                TextComponent senderPlayer = createClickableTextComponent(
+                        ChatColor.GRAY + "Reported by: " + ChatColor.RESET + reportPayload.getSender(), "Click to copy username", playerData.getRegistry().getUsername(), ClickEvent.Action.COPY_TO_CLIPBOARD);
+
+                TextComponent logs = createClickableTextComponent(
+                        ChatColor.GRAY + "Use " + ChatColor.AQUA + "/viewlogs " + reportPayload.getServer()
+                                + ChatColor.GRAY + " or click " + ChatColor.GREEN + "here",
+                        ChatColor.AQUA + "Click to run command",
+                        "/viewlogs " + reportPayload.getServer(), ClickEvent.Action.RUN_COMMAND);
 
                 TextComponent spacer = new TextComponent("");
 
