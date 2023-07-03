@@ -8,18 +8,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.inferris.*;
 import com.inferris.SerializationModule;
-import com.inferris.player.Channels;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
-import com.inferris.player.registry.Registry;
 import com.inferris.player.registry.RegistryManager;
-import com.inferris.player.vanish.VanishState;
 import com.inferris.server.Initializer;
 import com.inferris.server.Ports;
 import com.inferris.util.CacheSerializationUtils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
-import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
@@ -28,7 +24,6 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 public class CommandTest extends Command {

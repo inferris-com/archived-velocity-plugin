@@ -1,7 +1,9 @@
 package com.inferris.player;
 
+import net.md_5.bungee.api.ChatColor;
+
 public enum Channels {
-    STAFF("STAFF"),
+    STAFF(ChatColor.AQUA + "STAFF"),
     SPECIAL("SPECIAL"),
     NONE("NONE");
 

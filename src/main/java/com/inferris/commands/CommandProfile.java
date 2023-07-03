@@ -21,10 +21,7 @@ import redis.clients.jedis.Jedis;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class CommandProfile extends Command implements TabExecutor {
     public CommandProfile(String name) {
@@ -38,7 +35,7 @@ public class CommandProfile extends Command implements TabExecutor {
             PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
 
             if (length == 0) {
-                sendPlayerProfile(player, player);
+                sendPlayerProfile(player, player.getUniqueId());
             }
             if (length == 1) {
                 if (args[0].equalsIgnoreCase("set")) {
@@ -52,8 +49,12 @@ public class CommandProfile extends Command implements TabExecutor {
                     player.sendMessage(new TextComponent(ChatColor.YELLOW + "/profile unset bio"));
                     return;
                 }
-                ProxiedPlayer target = ProxyServer.getInstance().getPlayer(args[0]);
-                sendPlayerProfile(player, target);
+                UUID uuid = PlayerDataManager.getInstance().getUUIDByUsername(args[0]);
+                if (uuid == null) {
+                    player.sendMessage(new TextComponent(ChatColor.RED + "That player is not in our system."));
+                    return;
+                }
+                sendPlayerProfile(player, uuid);
             }
             if (length == 2) {
                 if (args[0].equalsIgnoreCase("unset")) {
@@ -140,6 +141,7 @@ public class CommandProfile extends Command implements TabExecutor {
                 }
             }
         }
+
     }
 
     @Override
@@ -166,7 +168,7 @@ public class CommandProfile extends Command implements TabExecutor {
                     }
                 }
                 return completions;
-            }else if(args.length == 2) {
+            } else if (args.length == 2) {
                 if (args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("unset")) {
                     String partialOption = args[1].toLowerCase();
                     List<String> options = new ArrayList<>();
@@ -186,12 +188,12 @@ public class CommandProfile extends Command implements TabExecutor {
     }
 
 
-    private void sendPlayerProfile(ProxiedPlayer player, ProxiedPlayer target) {
-        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(target);
+    private void sendPlayerProfile(ProxiedPlayer player, UUID targetUUID) {
+        PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(targetUUID);
         Profile profile = playerData.getProfile();
         ChatColor reset = ChatColor.RESET;
 
-        player.sendMessage(new TextComponent(ChatColor.YELLOW + "Profile of " + playerData.getNameColor() + target.getName()));
+        player.sendMessage(new TextComponent(ChatColor.YELLOW + "Profile of " + playerData.getNameColor() + playerData.getRegistry().getUsername()));
         player.sendMessage(new TextComponent(""));
         player.sendMessage(new TextComponent(ChatColor.GRAY + "Rank: " + playerData.getByBranch().getPrefix()));
         if (profile.getPronouns() != null)

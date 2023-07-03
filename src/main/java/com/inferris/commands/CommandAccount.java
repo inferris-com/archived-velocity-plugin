@@ -39,42 +39,57 @@ public class CommandAccount extends Command implements TabExecutor {
                 PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
 
                 UUID uuid = playerDataManager.getUUIDByUsername(targetName);
-                if (uuid != null) {
-                    PlayerData playerData = playerDataManager.getRedisData(uuid, targetName);
-                    Registry registry = playerData.getRegistry();
-                    String tag = Tags.STAFF.getName(true);
-                    ChatColor reset = ChatColor.RESET;
-
-                    TextComponent header = new TextComponent("----- Player Information -----");
-                    header.setColor(ChatColor.GOLD);
-                    header.setBold(true);
-
-                    TextComponent username = new TextComponent(ChatColor.YELLOW + "Username: ");
-                    username.addExtra(playerData.getNameColor() + registry.getUsername());
-
-                    TextComponent prefix = new TextComponent("Ranks: " + playerData.formatRankList(playerData.getTopRanksByBranches()));
-                    prefix.setColor(ChatColor.YELLOW);
-
-                    TextComponent registration_date = new TextComponent(ChatColor.YELLOW + "Registration date: " + reset + playerData.getProfile().getRegistrationDate());
-
-                    TextComponent divider = new TextComponent("-------------------------------");
-                    divider.setColor(ChatColor.GOLD);
-
-                    TextComponent uuidText = new TextComponent(ChatColor.YELLOW + "UUID: " + reset + uuid);
-                    uuidText.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to copy UUID")));
-                    uuidText.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, uuid.toString()));
-
-                    TextComponent coins = new TextComponent(ChatColor.YELLOW + "Coins: " + reset + playerData.getCoins().getBalance());
-
-                    player.sendMessage(header);
-                    player.sendMessage(new TextComponent(""));
-                    MessageUtil.sendMessage(player, username);
-                    MessageUtil.sendMessage(player, prefix);
-                    MessageUtil.sendMessage(player, uuidText);
-                    MessageUtil.sendMessage(player, registration_date);
-                    MessageUtil.sendMessage(player, coins);
-                    player.sendMessage(divider);
+                if (uuid == null) {
+                    player.sendMessage(new TextComponent(ChatColor.RED + "That player is not in our system."));
+                    return;
                 }
+
+
+                PlayerData playerData = playerDataManager.getRedisData(uuid, targetName);
+                Registry registry = playerData.getRegistry();
+                String tag = Tags.STAFF.getName(true);
+                ChatColor reset = ChatColor.RESET;
+
+                TextComponent header = new TextComponent("----- Player Information -----");
+                header.setColor(ChatColor.GOLD);
+                header.setBold(true);
+
+                TextComponent username = new TextComponent(ChatColor.YELLOW + "Username: ");
+                username.addExtra(playerData.getNameColor() + registry.getUsername());
+
+                TextComponent prefix = new TextComponent("Ranks: " + playerData.formatRankList(playerData.getTopRanksByBranches()));
+                prefix.setColor(ChatColor.YELLOW);
+
+                TextComponent registration_date = new TextComponent(ChatColor.YELLOW + "Registration date: " + reset + playerData.getProfile().getRegistrationDate());
+                TextComponent channel = new TextComponent(ChatColor.YELLOW + "Current channel: " + reset + playerData.getChannel().getMessage());
+
+                TextComponent vanished;
+                if (playerData.getVanishState() == VanishState.ENABLED) {
+                    vanished = new TextComponent(ChatColor.YELLOW + "Vanish state: " + reset + ChatColor.GREEN + playerData.getVanishState());
+                } else {
+                    vanished = new TextComponent(ChatColor.YELLOW + "Vanish state: " + reset + ChatColor.RED + playerData.getVanishState());
+
+                }
+
+                TextComponent divider = new TextComponent("-------------------------------");
+                divider.setColor(ChatColor.GOLD);
+
+                TextComponent uuidText = new TextComponent(ChatColor.YELLOW + "UUID: " + reset + uuid);
+                uuidText.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to copy UUID")));
+                uuidText.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, uuid.toString()));
+
+                TextComponent coins = new TextComponent(ChatColor.YELLOW + "Coins: " + reset + playerData.getCoins().getBalance());
+
+                player.sendMessage(header);
+                player.sendMessage(new TextComponent(""));
+                MessageUtil.sendMessage(player, username);
+                MessageUtil.sendMessage(player, prefix);
+                MessageUtil.sendMessage(player, uuidText);
+                MessageUtil.sendMessage(player, registration_date);
+                MessageUtil.sendMessage(player, coins);
+                MessageUtil.sendMessage(player, channel);
+                MessageUtil.sendMessage(player, vanished);
+                player.sendMessage(divider);
             }
         }
     }
