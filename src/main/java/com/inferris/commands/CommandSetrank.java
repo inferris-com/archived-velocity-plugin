@@ -56,13 +56,12 @@ public class CommandSetrank extends Command implements TabExecutor {
         String targetName = args[0];
         PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
 
-        UUID uuid;
-        try {
-            uuid = playerDataManager.getUUIDByUsername(targetName);
-        } catch (Exception e) {
+        UUID uuid = playerDataManager.getUUIDByUsername(targetName);
+        if (uuid == null) {
             player.sendMessage(new TextComponent(ChatColor.RED + "Player does not exist in our system."));
             return;
         }
+
         PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(uuid);
         playerData.setRank(branch, id, true);
         player.sendMessage(new TextComponent("Rank set for " + args[0] + " to " + branch.name() + "-" + id));

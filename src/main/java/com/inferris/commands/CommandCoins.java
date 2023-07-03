@@ -33,10 +33,8 @@ public class CommandCoins extends Command implements TabExecutor {
                 if (args[0].equalsIgnoreCase("set")) {
 
                     ProxiedPlayer target = ProxyServer.getInstance().getPlayer(args[1]);
-                    UUID uuid = null;
-                    try {
-                        uuid = PlayerDataManager.getInstance().getUUIDByUsername(args[1]);
-                    }catch(Exception e){
+                    UUID uuid = PlayerDataManager.getInstance().getUUIDByUsername(args[1]);
+                    if (uuid == null) {
                         player.sendMessage(new TextComponent(ChatColor.RED + "Player does not exist in our system."));
                         return;
                     }

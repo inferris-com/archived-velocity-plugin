@@ -157,12 +157,15 @@ public class PlayerDataManager {
                 String uuid = entry.getKey();
 
                 // Parse the value as JSON to access the username field
-                JsonElement jsonElement = new JsonParser().parse(entry.getValue());
-                String entryUsername = jsonElement.getAsJsonObject().getAsJsonObject("registry").get("username").getAsString();
+                try {
+                    JsonElement jsonElement = new JsonParser().parse(entry.getValue());
+                    String entryUsername = jsonElement.getAsJsonObject().getAsJsonObject("registry").get("username").getAsString();
 
-                if (entryUsername.equalsIgnoreCase(username)) {
-                    // Match found, return the UUID
-                    return UUID.fromString(uuid);
+                    if (entryUsername.equalsIgnoreCase(username)) {
+                        // Match found, return the UUID
+                        return UUID.fromString(uuid);
+                    }
+                } catch (Exception ignored) {
                 }
             }
             // No match found for the username
@@ -191,7 +194,6 @@ public class PlayerDataManager {
     }
 
 
-
     /**
      * Updates the player data for the specified player in the Redis server.
      *
@@ -200,8 +202,8 @@ public class PlayerDataManager {
      */
 
 
-    public void updateAllData(ProxiedPlayer player, PlayerData playerData){
-        try(Jedis jedis = jedisPool.getResource()){
+    public void updateAllData(ProxiedPlayer player, PlayerData playerData) {
+        try (Jedis jedis = jedisPool.getResource()) {
             jedis.hset("playerdata", player.getUniqueId().toString(), CacheSerializationUtils.serializePlayerData(playerData));
             updateCaffeineCache(player, playerData);
             Inferris.getInstance().getLogger().info("Updated Redis information via Jedis. Caches updated!");
@@ -210,8 +212,8 @@ public class PlayerDataManager {
         }
     }
 
-   public void updateRedisData(ProxiedPlayer player, PlayerData playerData){
-        try(Jedis jedis = jedisPool.getResource()){
+    public void updateRedisData(ProxiedPlayer player, PlayerData playerData) {
+        try (Jedis jedis = jedisPool.getResource()) {
             jedis.hset("playerdata", player.getUniqueId().toString(), CacheSerializationUtils.serializePlayerData(playerData));
             Inferris.getInstance().getLogger().info("Updated Redis information via Jedis. Caches updated!");
         } catch (JsonProcessingException e) {

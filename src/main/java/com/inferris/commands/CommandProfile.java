@@ -49,10 +49,8 @@ public class CommandProfile extends Command implements TabExecutor {
                     player.sendMessage(new TextComponent(ChatColor.YELLOW + "/profile unset bio"));
                     return;
                 }
-                UUID uuid;
-                try{
-                    uuid = PlayerDataManager.getInstance().getUUIDByUsername(args[0]);
-                }catch(Exception e){
+                UUID uuid = PlayerDataManager.getInstance().getUUIDByUsername(args[0]);
+                if (uuid == null) {
                     player.sendMessage(new TextComponent(ChatColor.RED + "That player is not in our system."));
                     return;
                 }
@@ -143,6 +141,7 @@ public class CommandProfile extends Command implements TabExecutor {
                 }
             }
         }
+
     }
 
     @Override
@@ -169,7 +168,7 @@ public class CommandProfile extends Command implements TabExecutor {
                     }
                 }
                 return completions;
-            }else if(args.length == 2) {
+            } else if (args.length == 2) {
                 if (args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("unset")) {
                     String partialOption = args[1].toLowerCase();
                     List<String> options = new ArrayList<>();
