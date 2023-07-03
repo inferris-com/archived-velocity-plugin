@@ -158,6 +158,12 @@ public class PlayerDataManager {
         }
     }
 
+    /**
+     Retrieves the UUID associated with a given username from player data stored in Redis.
+     @param username The username to search for.
+     @return The UUID corresponding to the provided username, or null if no match is found.
+     */
+
     public UUID getUUIDByUsername(String username) {
         try (Jedis jedis = jedisPool.getResource()) {
             Map<String, String> playerDataEntries = jedis.hgetAll("playerdata");
