@@ -1,5 +1,6 @@
 package com.inferris.commands;
 
+import com.inferris.Inferris;
 import com.inferris.server.*;
 import com.inferris.util.BungeeUtils;
 import net.md_5.bungee.api.ChatColor;
@@ -7,6 +8,7 @@ import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
+import redis.clients.jedis.Jedis;
 
 /**
  * The CommandViewlogs class represents a command used to view logs of a specific server in a game proxy.
@@ -34,7 +36,12 @@ public class CommandViewlogs extends Command {
                     player.sendMessage(new TextComponent(ChatColor.RED + "Error: Invalid server!"));
                     return;
                 }
-                BungeeUtils.sendBungeeMessage(player, BungeeChannel.REPORT, Subchannel.REQUEST, requestedServer);
+                //BungeeUtils.sendBungeeMessage(player, BungeeChannel.REPORT, Subchannel.REQUEST, requestedServer);
+                try(Jedis jedis = Inferris.getJedisPool().getResource()){
+                    String payload = requestedServer + ":" + player.getUniqueId().toString();
+
+                    jedis.publish(JedisChannels.VIEW_LOGS_PROXY_TO_SPIGOT.getChannelName(), payload);
+                }
             }
         }
     }
@@ -49,7 +56,7 @@ public class CommandViewlogs extends Command {
 
     private boolean isValidServer(String server) {
         for (Servers validServer : Servers.values()) {
-            if (validServer.toString().toLowerCase().equals(server)) {
+            if (validServer.toString().equalsIgnoreCase(server.toLowerCase())) {
                 return true;
             }
         }

@@ -11,8 +11,11 @@ import com.inferris.SerializationModule;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.registry.RegistryManager;
+import com.inferris.server.BungeeChannel;
 import com.inferris.server.Initializer;
 import com.inferris.server.Ports;
+import com.inferris.server.Subchannel;
+import com.inferris.util.BungeeUtils;
 import com.inferris.util.CacheSerializationUtils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -72,6 +75,10 @@ public class CommandTest extends Command {
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException(e);
                     }
+                }
+
+                if (args[0].equalsIgnoreCase("test")) {
+                    BungeeUtils.sendBungeeMessage(player, BungeeChannel.TEST, Subchannel.FORWARD, "Hi");
                 }
             }
 

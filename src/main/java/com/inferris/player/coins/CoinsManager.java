@@ -39,7 +39,7 @@ public class CoinsManager {
             if(!isNull) {
                 PlayerDataManager.getInstance().updateAllData(player, playerData);
 
-                jedis.publish(JedisChannels.PROXY_TO_SPIGOT_PLAYERDATA_CACHE_UPDATE.name(), json);
+                jedis.publish(JedisChannels.PROXY_TO_SPIGOT_PLAYERDATA_CACHE_UPDATE.getChannelName(), json);
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);

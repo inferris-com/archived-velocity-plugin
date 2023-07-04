@@ -131,7 +131,7 @@ public class RanksManager {
                 jedis.hset("playerdata", uuid.toString(), json);
                 if (!isNull) {
                     PlayerDataManager.getInstance().updateAllData(player, playerData);
-                    jedis.publish(JedisChannels.PLAYERDATA_UPDATE.name(), json);
+                    jedis.publish(JedisChannels.PLAYERDATA_UPDATE.getChannelName(), json);
                 }
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);

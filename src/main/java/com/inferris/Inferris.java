@@ -43,16 +43,6 @@ public class Inferris extends Plugin {
         createPlayersConfig();
         createProperties();
 
-        String debugMode = properties.getProperty("debug.mode");
-        if(debugMode != null && debugMode.equalsIgnoreCase("true")){
-            ServerStateManager.setCurrentState(ServerState.DEBUG);
-            getLogger().warning("============================");
-            getLogger().warning("Debug is enabled!");
-            getLogger().warning("============================");
-        }else{
-            ServerStateManager.setCurrentState(ServerState.NORMAL);
-        }
-
 
         //PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
 
@@ -78,6 +68,7 @@ public class Inferris extends Plugin {
         getProxy().registerChannel(BungeeChannel.STAFFCHAT.getName());
         getProxy().registerChannel(BungeeChannel.PLAYER_REGISTRY.getName());
         getProxy().registerChannel(BungeeChannel.REPORT.getName());
+        getProxy().registerChannel(BungeeChannel.TEST.getName());
 
         JedisReceive jedisReceive = new JedisReceive();
 
@@ -100,8 +91,19 @@ public class Inferris extends Plugin {
         //initializer.loadPlayerRegistry();
         jedisPool = new JedisPool("localhost", Ports.JEDIS.getPort());
         Thread subscriptionThread = new Thread(() -> Inferris.getJedisPool().getResource().subscribe(jedisReceive,
-                JedisChannels.SPIGOT_TO_PROXY_PLAYERDATA_CACHE_UPDATE.name()));
+                JedisChannels.SPIGOT_TO_PROXY_PLAYERDATA_CACHE_UPDATE.getChannelName(),
+                JedisChannels.VIEW_LOGS_SPIGOT_TO_PROXY.getChannelName()));
         subscriptionThread.start();
+
+        String debugMode = properties.getProperty("debug.mode");
+        if(debugMode != null && debugMode.equalsIgnoreCase("true")){
+            ServerStateManager.setCurrentState(ServerState.DEBUG);
+            getLogger().warning("============================");
+            getLogger().warning("Debug is enabled!");
+            getLogger().warning("============================");
+        }else{
+            ServerStateManager.setCurrentState(ServerState.NORMAL);
+        }
     }
 
     @Override
