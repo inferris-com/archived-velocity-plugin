@@ -2,7 +2,6 @@ package com.inferris.commands;
 
 import com.inferris.Inferris;
 import com.inferris.server.*;
-import com.inferris.util.BungeeUtils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -55,7 +54,7 @@ public class CommandViewlogs extends Command {
      */
 
     private boolean isValidServer(String server) {
-        for (Servers validServer : Servers.values()) {
+        for (Server validServer : Server.values()) {
             if (validServer.toString().equalsIgnoreCase(server.toLowerCase())) {
                 return true;
             }

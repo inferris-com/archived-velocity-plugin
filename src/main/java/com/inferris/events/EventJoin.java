@@ -7,6 +7,7 @@ import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.server.JedisChannels;
 import com.inferris.util.CacheSerializationUtils;
+import com.inferris.util.ServerUtil;
 import com.inferris.util.Tags;
 import com.inferris.rank.*;
 import com.inferris.util.ConfigUtils;
@@ -46,9 +47,12 @@ public class EventJoin implements Listener {
         Permissions.attachPermissions(player);
 
         try (Jedis jedis = Inferris.getJedisPool().getResource()) {
-            String json = CacheSerializationUtils.serializePlayerData(playerDataManager.getPlayerData(player));
+            playerData.setCurrentServer(ServerUtil.getServerType(player));
+
+            String json = CacheSerializationUtils.serializePlayerData(playerData);
             player.sendMessage(new TextComponent("Bungee " + json));
             Inferris.getInstance().getLogger().info(json);
+
             jedis.publish(JedisChannels.PLAYERDATA_JOIN.getChannelName(), json);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);

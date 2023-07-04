@@ -13,6 +13,7 @@ import com.inferris.player.PlayerData;
 import com.inferris.player.registry.Registry;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Rank;
+import com.inferris.server.Server;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -45,6 +46,7 @@ public class SerializationModule extends SimpleModule {
             jsonGenerator.writeObjectField("coins", playerData.getCoins());
             jsonGenerator.writeObjectField("channel", playerData.getChannel());
             jsonGenerator.writeObjectField("vanishState", playerData.getVanishState());
+            jsonGenerator.writeObjectField("currentServer", playerData.getCurrentServer());
             jsonGenerator.writeEndObject();
 
 
@@ -65,9 +67,10 @@ public class SerializationModule extends SimpleModule {
             Coins coins = objectMapper.treeToValue(registryNode.get("coins"), Coins.class);
             Channels channel = objectMapper.treeToValue(registryNode.get("channel"), Channels.class);
             VanishState vanishState = objectMapper.treeToValue(registryNode.get("vanishState"), VanishState.class);
+            Server currentServer = objectMapper.treeToValue(registryNode.get("currentServer"), Server.class);
 
 
-            return new PlayerData(registry, rank, profile, coins, channel, vanishState);
+            return new PlayerData(registry, rank, profile, coins, channel, vanishState, currentServer);
         }
     }
 

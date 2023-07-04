@@ -9,6 +9,7 @@ import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
 import com.inferris.rank.RankRegistry;
 import com.inferris.rank.RanksManager;
+import com.inferris.server.Server;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -17,7 +18,6 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Represents the data associated with a player, including their {@link Registry} information, {@link Rank}, and {@link Coins}.
@@ -32,14 +32,16 @@ public class PlayerData implements PlayerDataService, Serializable {
     private Coins coins;
     private Channels channel;
     private VanishState vanishState;
+    private Server currentServer;
 
-    public PlayerData(Registry registry, Rank rank, Profile profile, Coins coins, Channels channel, VanishState vanishState) {
+    public PlayerData(Registry registry, Rank rank, Profile profile, Coins coins, Channels channel, VanishState vanishState, Server currentServer) {
         this.registry = registry;
         this.rank = rank;
         this.profile = profile;
         this.coins = coins;
         this.channel = channel;
         this.vanishState = vanishState;
+        this.currentServer = currentServer;
     }
 
     PlayerData() {
@@ -68,6 +70,10 @@ public class PlayerData implements PlayerDataService, Serializable {
 
     public VanishState getVanishState() {
         return vanishState;
+    }
+
+    public Server getCurrentServer() {
+        return currentServer;
     }
 
     @Override
@@ -118,6 +124,10 @@ public class PlayerData implements PlayerDataService, Serializable {
 
     public void setVanishState(VanishState vanishState) {
         this.vanishState = vanishState;
+    }
+
+    public void setCurrentServer(Server currentServer) {
+        this.currentServer = currentServer;
     }
 
     public int getBranchValue(Branch branch) {

@@ -29,9 +29,9 @@ import redis.clients.jedis.JedisPool;
 import java.util.List;
 import java.util.UUID;
 
-public class CommandTest extends Command {
+public class CommandBungeeTest extends Command {
 
-    public CommandTest(String name) {
+    public CommandBungeeTest(String name) {
         super(name);
     }
 
@@ -78,7 +78,7 @@ public class CommandTest extends Command {
                 }
 
                 if (args[0].equalsIgnoreCase("test")) {
-                    BungeeUtils.sendBungeeMessage(player, BungeeChannel.TEST, Subchannel.FORWARD, "Hi");
+                    player.sendMessage(new TextComponent(ChatColor.AQUA + PlayerDataManager.getInstance().getPlayerData(player).getCurrentServer().name()));
                 }
             }
 

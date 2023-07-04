@@ -2,13 +2,11 @@ package com.inferris.commands;
 
 import com.inferris.server.ServerState;
 import com.inferris.server.ServerStateManager;
-import com.inferris.server.ServerUtil;
+import com.inferris.util.ServerUtil;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
-import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.md_5.bungee.api.connection.Server;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
 
