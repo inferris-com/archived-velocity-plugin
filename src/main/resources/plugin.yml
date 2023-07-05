@@ -38,5 +38,5 @@ commands:
     description: View logs
   locate:
     description: Locate a player
-  friends:
+  friend:
     description: Friends
