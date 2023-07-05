@@ -3,6 +3,7 @@ package com.inferris.commands;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.vanish.VanishState;
+import com.inferris.rank.Branch;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -36,16 +37,19 @@ public class CommandLocate extends Command implements TabExecutor {
             return;
         }
 
-        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(target);
-        if (playerData.getVanishState() == VanishState.ENABLED) {
-            player.sendMessage(new TextComponent(ChatColor.RED + "Error: Could not find player!"));
-            return;
+        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
+        PlayerData targetData = PlayerDataManager.getInstance().getPlayerData(target);
+        if (targetData.getVanishState() == VanishState.ENABLED) {
+            if(playerData.getBranchValue(Branch.STAFF) < 3) {
+                player.sendMessage(new TextComponent(ChatColor.RED + "Error: Could not find player!"));
+                return;
+            }
         }
 
         player.sendMessage(new TextComponent(ChatColor.GRAY + "Player " +
-                playerData.getNameColor() +
-                playerData.getByBranch().getPrefix(true) + playerData.getRegistry().getUsername() + ChatColor.GRAY +
+                targetData.getNameColor() +
+                targetData.getByBranch().getPrefix(true) + targetData.getRegistry().getUsername() + ChatColor.GRAY +
                 " is " + ChatColor.GREEN + "online"));
-        player.sendMessage(new TextComponent(ChatColor.GRAY + "Server: " + ChatColor.GOLD + playerData.getCurrentServer().converted()));
+        player.sendMessage(new TextComponent(ChatColor.GRAY + "Server: " + ChatColor.GOLD + targetData.getCurrentServer().converted()));
     }
 }
