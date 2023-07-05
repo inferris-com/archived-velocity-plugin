@@ -32,12 +32,6 @@ public class CommandSetrank extends Command implements TabExecutor {
             return;
         }
 
-//        ProxiedPlayer target = ProxyServer.getInstance().getPlayer(args[0]);
-//        if (target == null) {
-//            player.sendMessage(new TextComponent("Player " + args[0] + " not found or is offline."));
-//            return;
-//        }
-
         Branch branch;
         try {
             branch = Branch.valueOf(args[1].toUpperCase());
@@ -59,7 +53,7 @@ public class CommandSetrank extends Command implements TabExecutor {
 
         UUID uuid = playerDataManager.getUUIDByUsername(targetName);
         if (uuid == null) {
-            player.sendMessage(new TextComponent(ChatColor.RED + "Player does not exist in our system."));
+            player.sendMessage(Messages.PLAYER_NOT_IN_SYSTEM.getMessage());
             return;
         }
 
