@@ -8,31 +8,44 @@ public class Friends {
     private final List<UUID> friendsList;
     private final List<UUID> pendingFriendsList;
 
-    public Friends(){
+    public Friends() {
         friendsList = new ArrayList<>();
         pendingFriendsList = new ArrayList<>();
     }
-    public void addFriend(UUID friendUUID){ // Request
-        if(!friendsList.contains(friendUUID) && !pendingFriendsList.contains(friendUUID)) {
+
+    public void addFriend(UUID friendUUID) { // Request
+        if (!friendsList.contains(friendUUID) && !pendingFriendsList.contains(friendUUID)) {
             friendsList.add(friendUUID);
         }
     }
 
-    public void acceptFriendRequest(UUID friendUUID) {
-        if (pendingFriendsList.contains(friendUUID)) {
-            pendingFriendsList.remove(friendUUID);
-            friendsList.add(friendUUID);
+    public void addPendingFriend(UUID friendUUID) {
+        if (friendsList.contains(friendUUID)) {
+            throw new IllegalArgumentException("Friend is already in the friends list");
         }
+        if (pendingFriendsList.contains(friendUUID)) {
+            throw new IllegalArgumentException("Friend request is already pending");
+        }
+        pendingFriendsList.add(friendUUID);
     }
+
+
+
+    public void acceptFriendRequest(UUID friendUUID) {
+        pendingFriendsList.remove(friendUUID);
+        friendsList.add(friendUUID);
+    }
+
 
     public void rejectFriendRequest(UUID friendUUID) {
         pendingFriendsList.remove(friendUUID);
     }
 
-    public void removeFriend(UUID friendUUID){
+    public void removeFriend(UUID friendUUID) {
         friendsList.remove(friendUUID);
     }
-    public List<UUID> getFriendsList(){
+
+    public List<UUID> getFriendsList() {
         return friendsList;
     }
 

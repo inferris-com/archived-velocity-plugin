@@ -3,6 +3,8 @@ package com.inferris.commands;
 import com.inferris.Messages;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
+import com.inferris.player.friends.Friends;
+import com.inferris.player.friends.FriendsManager;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -28,16 +30,34 @@ public class CommandFriend extends Command {
                 player.sendMessage(new TextComponent(ChatColor.YELLOW + "/friend remove <player>"));
                 return;
             }
-            if (length == 3) {
-                UUID uuid = PlayerDataManager.getInstance().getUUIDByUsername(args[1]);
-                if(uuid == null){
+            if (length == 2) {
+                UUID targetUUID = PlayerDataManager.getInstance().getUUIDByUsername(args[1]);
+                UUID playerUUID = player.getUniqueId();
+                if (targetUUID == null) {
                     player.sendMessage(new TextComponent(Messages.PLAYER_NOT_IN_SYSTEM.getMessage()));
                     return;
                 }
-                PlayerData playerData = PlayerDataManager.getInstance().getRedisData(uuid, args[0]);
-                String targetName = playerData.getRegistry().getUsername();
+                PlayerData targetData = PlayerDataManager.getInstance().getRedisData(targetUUID, args[1]);
+                String targetName = targetData.getRegistry().getUsername();
+                FriendsManager friendsManager = FriendsManager.getInstance();
+                Friends playerFriends = FriendsManager.getInstance().getFriendsData(playerUUID);
+                Friends targetFriends = FriendsManager.getInstance().getFriendsData(targetUUID);
+
                 if (args[0].equalsIgnoreCase("add")) {
-                    
+                    friendsManager.friendRequest(playerUUID, targetUUID);
+
+                } else if (args[0].equalsIgnoreCase("accept")) {
+                    if (targetFriends.getPendingFriendsList().contains(playerUUID)) {
+                        friendsManager.addFriend(playerUUID, targetUUID);
+
+                        player.sendMessage(new TextComponent(ChatColor.GREEN + "You are now friends with " + targetName));
+
+                        ProxiedPlayer target = ProxyServer.getInstance().getPlayer(targetUUID);
+                        if (target != null)
+                            target.sendMessage(new TextComponent(ChatColor.GREEN + "You are now friends with " + player.getName()));
+                    } else {
+                        player.sendMessage(new TextComponent(ChatColor.RED + "You don't have a pending friend request from " + targetName));
+                    }
                 }
             }
         }

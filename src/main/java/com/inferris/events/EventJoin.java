@@ -41,6 +41,7 @@ public class EventJoin implements Listener {
         PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
         FriendsManager friendsManager = FriendsManager.getInstance();
         Friends friends = friendsManager.getFriendsData(player.getUniqueId());
+        friendsManager.updateCache(player.getUniqueId(), friends);
 
 
         playerDataManager.checkJoinedBefore(player); // Important implementation
