@@ -264,7 +264,7 @@ public class PlayerDataManager {
     }
 
     /**
-     * Checks if the provided player has joined before by looking up their data in Redis and caching if necessary.
+     * Checks if the provided player has joined before by looking up their data in Redis and caching within Caffeine if necessary.
      *
      * @param player The ProxiedPlayer object representing the player to check.
      */

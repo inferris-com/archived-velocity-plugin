@@ -23,7 +23,6 @@ import java.util.logging.Level;
 public class Inferris extends Plugin {
     private static Inferris instance;
     private Path dataDirectory;
-    private static Properties otherProperties;
     private static Properties properties;
     private static File propertiesFile;
     private static File configFile;
@@ -42,8 +41,6 @@ public class Inferris extends Plugin {
         createPermissionsConfig();
         createPlayersConfig();
         createProperties();
-
-
         //PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
 
         PluginManager pluginManager = getProxy().getPluginManager();
@@ -86,9 +83,9 @@ public class Inferris extends Plugin {
         }
 
         playersFile = new File(getDataFolder(), "players.yml");
-        playersConfiguration = ConfigUtils.createConfigFile(playersFile, playersConfiguration, "players");
+        playersConfiguration = ConfigUtils.createConfigFile(playersFile, "players");
 
-        Initializer initializer = new Initializer();
+        new Initializer();
         //initializer.loadPlayerRegistry();
         jedisPool = new JedisPool("localhost", Ports.JEDIS.getPort());
         Thread subscriptionThread = new Thread(() -> Inferris.getJedisPool().getResource().subscribe(jedisReceive,
@@ -185,7 +182,7 @@ public class Inferris extends Plugin {
             }
         }
 
-        otherProperties = new Properties();
+        Properties otherProperties = new Properties();
         try (InputStream inputStream = new FileInputStream(configFile)) {
             otherProperties.load(inputStream);
         } catch (IOException e) {

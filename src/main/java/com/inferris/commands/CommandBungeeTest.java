@@ -77,8 +77,11 @@ public class CommandBungeeTest extends Command {
                     }
                 }
 
-                if (args[0].equalsIgnoreCase("test")) {
+                if (args[0].equalsIgnoreCase("server")) {
                     player.sendMessage(new TextComponent(ChatColor.AQUA + PlayerDataManager.getInstance().getPlayerData(player).getCurrentServer().name()));
+                }
+                if (args[0].equalsIgnoreCase("configtest")) {
+                    player.sendMessage(new TextComponent(Inferris.getProperties().getProperty("verbose.debug.mode")));
                 }
             }
 

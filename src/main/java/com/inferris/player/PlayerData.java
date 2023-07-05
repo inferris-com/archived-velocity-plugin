@@ -110,10 +110,10 @@ public class PlayerData implements PlayerDataService, Serializable {
 
     public void setRank(Branch branch, int level, boolean hasMessage) {
         RanksManager.getInstance().setRank(registry.getUuid(), branch, level);
-        if(ProxyServer.getInstance().getPlayer(registry.getUuid()) != null) {
+        if (ProxyServer.getInstance().getPlayer(registry.getUuid()) != null) {
             if (ProxyServer.getInstance().getPlayer(registry.getUuid()).isConnected()) {
                 ProxiedPlayer player = ProxyServer.getInstance().getPlayer(registry.getUuid());
-                player.sendMessage(new TextComponent(ChatColor.GREEN + "Your rank has been set"));
+                if (hasMessage) player.sendMessage(new TextComponent(ChatColor.GREEN + "Your rank has been set"));
             }
         }
     }

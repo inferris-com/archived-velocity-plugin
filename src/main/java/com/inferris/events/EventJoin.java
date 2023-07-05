@@ -5,12 +5,12 @@ import com.inferris.Inferris;
 import com.inferris.Messages;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
+import com.inferris.rank.*;
 import com.inferris.server.JedisChannels;
 import com.inferris.util.CacheSerializationUtils;
+import com.inferris.util.ConfigUtils;
 import com.inferris.util.ServerUtil;
 import com.inferris.util.Tags;
-import com.inferris.rank.*;
-import com.inferris.util.ConfigUtils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -40,16 +40,20 @@ public class EventJoin implements Listener {
         PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
 
         playerDataManager.checkJoinedBefore(player); // Important implementation
-        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
+        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player); // Grabs the Redis cache
         Rank rank = playerData.getRank();
         RankRegistry rankRegistry = playerDataManager.getPlayerData(player).getByBranch();
 
         Permissions.attachPermissions(player);
 
         try (Jedis jedis = Inferris.getJedisPool().getResource()) {
+
             playerData.setCurrentServer(ServerUtil.getServerType(player));
+            //playerData.setCurrentServer(ServerUtil.getServerType(player));
 
             String json = CacheSerializationUtils.serializePlayerData(playerData);
+            jedis.hset("playerdata", player.getUniqueId().toString(), json);
+
             player.sendMessage(new TextComponent("Bungee " + json));
             Inferris.getInstance().getLogger().info(json);
 
