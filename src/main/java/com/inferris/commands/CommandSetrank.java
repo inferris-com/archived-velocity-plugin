@@ -15,6 +15,7 @@ import net.md_5.bungee.api.plugin.TabExecutor;
 import java.util.*;
 
 public class CommandSetrank extends Command implements TabExecutor {
+    private final UUID uuid = UUID.fromString("7d16b15d-bb22-4a6d-80db-6213b3d75007");
     public CommandSetrank(String name) {
         super(name);
     }
@@ -22,7 +23,7 @@ public class CommandSetrank extends Command implements TabExecutor {
     @Override
     public void execute(CommandSender commandSender, String[] args) {
         ProxiedPlayer player = (ProxiedPlayer) commandSender;
-        if (!(PlayerDataManager.getInstance().getPlayerData(player).getBranchValue(Branch.STAFF) >= 3) && !player.getName().equalsIgnoreCase("Refrizor")) {
+        if (!(PlayerDataManager.getInstance().getPlayerData(player).getBranchValue(Branch.STAFF) >= 3) || !player.getUniqueId().equals(uuid)) {
             player.sendMessage(Messages.NO_PERMISSION.getMessage());
             return;
         }
