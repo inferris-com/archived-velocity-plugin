@@ -217,6 +217,14 @@ public class Inferris extends Plugin {
         }
     }
 
+    public static File getPropertiesFile() {
+        return propertiesFile;
+    }
+
+    public static Properties getProperties() {
+        return properties;
+    }
+
     public static Configuration getPermissionsConfiguration() {
         return permissionsConfiguration;
     }

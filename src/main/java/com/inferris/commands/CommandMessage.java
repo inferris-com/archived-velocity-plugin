@@ -2,10 +2,12 @@ package com.inferris.commands;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.inferris.Inferris;
+import com.inferris.commands.cache.CommandJokeCache;
 import com.inferris.commands.cache.CommandMessageCache;
+import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.PlayerTaskManager;
-import com.inferris.commands.cache.CommandJokeCache;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
 import com.inferris.rank.RankRegistry;
@@ -26,6 +28,11 @@ import java.util.concurrent.TimeUnit;
 public class CommandMessage extends Command implements TabExecutor {
     private static Cache<UUID, CommandJokeCache> cacheJokeHandler;
     private static Cache<UUID, CommandMessageCache> cacheReplyHandler;
+    private final boolean JOKE_ALLOWED;
+
+    {
+        JOKE_ALLOWED = Inferris.getProperties().getProperty("message.joke").equalsIgnoreCase("true");
+    }
 
     public CommandMessage(String name) {
         super(name, null, "msg", "dm", "pm");
@@ -52,18 +59,16 @@ public class CommandMessage extends Command implements TabExecutor {
                 return;
             }
 
-//            if (receiver.getUniqueId().equals(player.getUniqueId())) {
-//                sendJoke(receiver, String.join(" ", Arrays.copyOfRange(args, 1, length)));
-//                return;
-//            }
+            if (JOKE_ALLOWED && receiver.getUniqueId().equals(player.getUniqueId())) {
+                sendJoke(receiver, String.join(" ", Arrays.copyOfRange(args, 1, length)));
+                return;
+            }
 
             // Check if the receiver is in a vanished state
             if (PlayerDataManager.getInstance().getPlayerData(receiver).getVanishState() == VanishState.ENABLED) {
-                if (RanksManager.getInstance().getRank(player).getBranchID(Branch.STAFF) >= 3) {
-                    return;
-                } else {
-                    // Vanished message
+                if (RanksManager.getInstance().getRank(player).getBranchID(Branch.STAFF) < 3) {
                     player.sendMessage(new TextComponent(ChatColor.RED + "Error: Couldn't find that player!"));
+                    return;
                 }
             }
 
@@ -92,8 +97,9 @@ public class CommandMessage extends Command implements TabExecutor {
         if (args.length == 1 && sender instanceof ProxiedPlayer player) {
             String partialPlayerName = args[0];
             List<String> playerNames = new ArrayList<>();
+            PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
             for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                if (!(PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getVanishState() == VanishState.ENABLED)) {
+                if (PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getVanishState() == VanishState.DISABLED || playerData.getBranchValue(Branch.STAFF) >=3) {
                     String playerName = proxiedPlayers.getName();
                     if (playerName.toLowerCase().startsWith(partialPlayerName.toLowerCase())) {
                         playerNames.add(playerName);
