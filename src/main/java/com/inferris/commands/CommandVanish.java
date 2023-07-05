@@ -79,7 +79,7 @@ public class CommandVanish extends Command implements TabExecutor {
         Inferris.getInstance().getLogger().info(".....");
         try(Jedis jedis = Inferris.getJedisPool().getResource()){
             String serverName = player.getServer().getInfo().getName();
-            jedis.publish(JedisChannels.PLAYERDATA_VANISH.getChannelName(), serverName + ":" + json);
+            jedis.publish(JedisChannels.PLAYERDATA_VANISH.getChannelName(), json);
         }
     }
 
