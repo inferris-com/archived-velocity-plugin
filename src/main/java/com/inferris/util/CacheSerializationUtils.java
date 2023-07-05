@@ -12,6 +12,7 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.inferris.SerializationModule;
 import com.inferris.player.PlayerData;
+import com.inferris.player.friends.Friends;
 import com.inferris.player.registry.Registry;
 import com.inferris.player.registry.RegistryManager;
 import com.inferris.rank.Rank;
@@ -45,6 +46,17 @@ public class CacheSerializationUtils {
 //            }
 //        }
 //    } todo
+
+    public static String serializeFriends(Friends friends) throws JsonProcessingException {
+        ObjectMapper objectMapper = createObjectMapper(new SerializationModule());
+        return objectMapper.writeValueAsString(friends);
+    }
+
+    public static Friends deserializeFriends(String json) throws JsonProcessingException {
+        ObjectMapper objectMapper = createObjectMapper(new SerializationModule());
+
+        return objectMapper.readValue(json, Friends.class);
+    }
 
     public static String serializePlayerData(PlayerData playerData) throws JsonProcessingException {
         ObjectMapper objectMapper = createObjectMapper(new SerializationModule());

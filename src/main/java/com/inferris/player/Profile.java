@@ -1,7 +1,5 @@
 package com.inferris.player;
 
-import net.md_5.bungee.api.ChatColor;
-
 import java.time.LocalDate;
 
 public class Profile {

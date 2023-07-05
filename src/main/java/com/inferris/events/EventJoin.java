@@ -34,7 +34,6 @@ public class EventJoin implements Listener {
     public void onSwitch(ServerSwitchEvent event) {
         ProxiedPlayer player = event.getPlayer();
         sendHeader(player);
-        ConfigUtils configUtils = new ConfigUtils();
 
         RanksManager ranksManager = RanksManager.getInstance();
         PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
