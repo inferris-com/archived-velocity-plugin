@@ -31,8 +31,12 @@ public class FriendsManager {
         return instance;
     }
 
-    public Friends getFriends(UUID playerUUID) {
-        return caffeineCache.get(playerUUID, uuid -> getFriendsFromRedis(playerUUID));
+    public Friends getFriendsData(UUID playerUUID) {
+        if (caffeineCache.getIfPresent(playerUUID) != null) {
+            return caffeineCache.asMap().get(playerUUID);
+        } else {
+            return getFriendsFromRedis(playerUUID);
+        }
     }
 
     private Friends getFriendsFromRedis(UUID playerUUID) {
@@ -45,9 +49,12 @@ public class FriendsManager {
         try (Jedis jedis = jedisPool.getResource()) {
             Inferris.getInstance().getLogger().info("Loading Friends from Redis");
             String json = jedis.hget("friends", playerUUID.toString());
+
             if (json != null) {
+                Friends friends = CacheSerializationUtils.deserializeFriends(json);
                 Inferris.getInstance().getLogger().info(json);
-                return CacheSerializationUtils.deserializeFriends(json);
+                caffeineCache.put(playerUUID, friends); // Update Caffeine Cache
+                return friends;
             } else {
                 return new Friends();
             }

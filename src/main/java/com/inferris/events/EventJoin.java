@@ -5,6 +5,8 @@ import com.inferris.Inferris;
 import com.inferris.Messages;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
+import com.inferris.player.friends.Friends;
+import com.inferris.player.friends.FriendsManager;
 import com.inferris.rank.*;
 import com.inferris.server.JedisChannels;
 import com.inferris.util.CacheSerializationUtils;
@@ -37,6 +39,9 @@ public class EventJoin implements Listener {
 
         RanksManager ranksManager = RanksManager.getInstance();
         PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
+        FriendsManager friendsManager = FriendsManager.getInstance();
+        Friends friends = friendsManager.getFriendsData(player.getUniqueId());
+
 
         playerDataManager.checkJoinedBefore(player); // Important implementation
         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player); // Grabs the Redis cache

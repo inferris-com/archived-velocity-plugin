@@ -6,7 +6,6 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import com.inferris.Inferris;
 import com.inferris.SerializationModule;
 import com.inferris.player.coins.Coins;
