@@ -1,6 +1,13 @@
 package com.inferris.commands;
 
+import com.inferris.player.PlayerData;
+import com.inferris.player.PlayerDataManager;
+import com.inferris.player.vanish.VanishState;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
 
@@ -10,12 +17,35 @@ public class CommandLocate extends Command implements TabExecutor {
     }
 
     @Override
-    public Iterable<String> onTabComplete(CommandSender commandSender, String[] strings) {
+    public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
         return null;
     }
 
     @Override
     public void execute(CommandSender sender, String[] args) {
+        ProxiedPlayer player = (ProxiedPlayer) sender;
+        int length = args.length;
 
+        if(length == 0 || length > 1){
+            player.sendMessage(new TextComponent(ChatColor.RED + "Usage: /locate <player>"));
+            return;
+        }
+        ProxiedPlayer target = ProxyServer.getInstance().getPlayer(args[0]);
+        if (target == null) {
+            player.sendMessage(new TextComponent(ChatColor.RED + "Error: Could not find player!"));
+            return;
+        }
+
+        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(target);
+        if (playerData.getVanishState() == VanishState.ENABLED) {
+            player.sendMessage(new TextComponent(ChatColor.RED + "Error: Could not find player!"));
+            return;
+        }
+
+        player.sendMessage(new TextComponent(ChatColor.GRAY + "Player " +
+                playerData.getNameColor() +
+                playerData.getByBranch().getPrefix(true) + playerData.getRegistry().getUsername() + ChatColor.GRAY +
+                " is " + ChatColor.GREEN + "online"));
+        player.sendMessage(new TextComponent(ChatColor.GRAY + "Server: " + ChatColor.GOLD + playerData.getCurrentServer().converted()));
     }
 }

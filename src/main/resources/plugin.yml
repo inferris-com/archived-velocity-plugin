@@ -36,3 +36,5 @@ commands:
     description: Report command
   viewlogs:
     description: View logs
+  locate:
+    description: Locate a player
