@@ -7,8 +7,8 @@ public enum Messages {
     COMMAND_VANISH_ENABLED(new TextComponent(ChatColor.GREEN + "Vanish has been enabled")),
     COMMAND_VANISH_DISABLED(new TextComponent(ChatColor.RED + "Vanish has been disabled")),
     NO_PERMISSION(new TextComponent(ChatColor.RED + "You do not have permission to use this command")),
-    COULD_NOT_FIND_PLAYER(new TextComponent(ChatColor.RED + "Error: Could not find player!")),
-    PLAYER_NOT_IN_SYSTEM(new TextComponent(ChatColor.RED + "Error: That player is not in the system.")),
+    COULD_NOT_FIND_PLAYER(new TextComponent(ChatColor.RED + "Error: Could not find player")),
+    PLAYER_NOT_IN_SYSTEM(new TextComponent(ChatColor.RED + "Error: That player is not in the system")),
     WEBSITE_URL(new TextComponent(ChatColor.GREEN + "https://inferris.com"));
 
     private final TextComponent message;
