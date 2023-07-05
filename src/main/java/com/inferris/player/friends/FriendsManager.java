@@ -71,6 +71,16 @@ public class FriendsManager {
         }
     }
 
+    public void addFriend(UUID playerUUID, Friends friends){
+        try(Jedis jedis = jedisPool.getResource()){
+            friends.addFriend(playerUUID);
+            jedis.hset("friends", playerUUID.toString(), CacheSerializationUtils.serializeFriends(friends));
+            caffeineCache.put(playerUUID, friends);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public Cache<UUID, Friends> getCaffeineCache() {
         return caffeineCache;
     }
