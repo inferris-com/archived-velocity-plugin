@@ -40,7 +40,6 @@ public enum RankRegistry {
         }
     }
 
-
     public Branch getBranch() {
         return branch;
     }
