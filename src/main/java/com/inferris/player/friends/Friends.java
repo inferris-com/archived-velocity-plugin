@@ -30,19 +30,26 @@ public class Friends {
     }
 
 
-
     public void acceptFriendRequest(UUID friendUUID) {
         pendingFriendsList.remove(friendUUID);
         friendsList.add(friendUUID);
     }
 
 
-    public void rejectFriendRequest(UUID friendUUID) {
-        pendingFriendsList.remove(friendUUID);
+    public void removePendingFriendRequest(UUID friendUUID) {
+        if (pendingFriendsList.contains(friendUUID)) {
+            pendingFriendsList.remove(friendUUID);
+        }else{
+            throw new IllegalArgumentException("You have not received a friend request from this player");
+        }
     }
 
     public void removeFriend(UUID friendUUID) {
-        friendsList.remove(friendUUID);
+        if (friendsList.contains(friendUUID)) {
+            friendsList.remove(friendUUID);
+        } else {
+            throw new IllegalArgumentException("You do not have that player friended");
+        }
     }
 
     public List<UUID> getFriendsList() {

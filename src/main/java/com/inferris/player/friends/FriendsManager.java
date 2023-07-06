@@ -126,14 +126,52 @@ public class FriendsManager {
         try (Jedis jedis = jedisPool.getResource()) {
             Friends playerFriends = getFriendsDataFromRedis(playerUUID);
             Friends targetFriends = getFriendsDataFromRedis(targetUUID);
-            playerFriends.removeFriend(targetUUID);
-            targetFriends.removeFriend(playerUUID);
+            PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(playerUUID);
+            PlayerData targetData = PlayerDataManager.getInstance().getRedisDataOrNull(targetUUID);
+
+            try {
+                playerFriends.removeFriend(targetUUID);
+                targetFriends.removeFriend(playerUUID);
+            } catch (IllegalArgumentException e) {
+                ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerUUID);
+                if (player != null) {
+                    player.sendMessage(new TextComponent(ChatColor.RED + e.getMessage()));
+                }
+                return;
+            }
+
             jedis.hset("friends", playerUUID.toString(), CacheSerializationUtils.serializeFriends(playerFriends));
             jedis.hset("friends", targetUUID.toString(), CacheSerializationUtils.serializeFriends(targetFriends));
+
             updateCache(playerUUID, playerFriends);
             updateCache(targetUUID, targetFriends);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+        }
+    }
+
+    public void rejectFriendRequest(UUID playerUUID, UUID targetUUID) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            Friends playerFriends = getFriendsDataFromRedis(playerUUID);
+            Friends targetFriends = getFriendsDataFromRedis(targetUUID);
+            PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(playerUUID);
+            PlayerData targetData = PlayerDataManager.getInstance().getRedisDataOrNull(targetUUID);
+
+            try {
+                ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerUUID);
+
+                targetFriends.removePendingFriendRequest(playerUUID);
+                player.sendMessage(new TextComponent(ChatColor.GREEN + "Rejected " + targetData.getRegistry().getUsername() + "'s friend request"));
+                jedis.hset("friends", targetUUID.toString(), CacheSerializationUtils.serializeFriends(targetFriends));
+                updateCache(targetUUID, targetFriends);
+
+            } catch (IllegalArgumentException e) {
+                ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerUUID);
+                player.sendMessage(new TextComponent(ChatColor.RED + e.getMessage()));
+
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

@@ -81,10 +81,9 @@ public class CommandFriend extends Command {
                         player.sendMessage(new TextComponent(ChatColor.RED + "You don't have a pending friend request from " + targetName));
                     }
                 } else if (args[0].equalsIgnoreCase("remove")) {
-                    if (playerFriends.getFriendsList().contains(targetUUID)) {
-                        FriendsManager.getInstance().removeFriend(playerUUID, targetUUID);
-                        player.sendMessage(new TextComponent(ChatColor.GREEN + "You removed " + targetData.getByBranch().getPrefix(true) + targetName + ChatColor.GREEN + " as a friend"));
-                    }
+                    FriendsManager.getInstance().removeFriend(playerUUID, targetUUID);
+                }else if(args[0].equalsIgnoreCase("reject")){
+                    FriendsManager.getInstance().rejectFriendRequest(playerUUID, targetUUID);
                 }
             }
         }
