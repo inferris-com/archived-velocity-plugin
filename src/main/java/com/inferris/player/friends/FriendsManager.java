@@ -134,7 +134,7 @@ public class FriendsManager {
                 playerFriends.removeFriend(targetUUID);
                 targetFriends.removeFriend(playerUUID);
                 ProxyServer.getInstance().getPlayer(playerUUID).sendMessage(new TextComponent(ChatColor.GREEN + "You have removed "
-                        + targetData.getByBranch().getPrefix(true) + targetData.getByBranch().getBranch() + ChatColor.GREEN + " as a friend"));
+                        + targetData.getByBranch().getPrefix(true) + targetData.getRegistry().getUsername() + ChatColor.GREEN + " as a friend"));
             } catch (IllegalArgumentException e) {
                 ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerUUID);
                 if (player != null) {
@@ -253,10 +253,6 @@ public class FriendsManager {
         // Send offlineFriends next
         offlineFriends.forEach(message -> player.sendMessage(new TextComponent(message)));
     }
-
-
-
-
 
     public void updateRedisData(UUID playerUUID, Friends friends) {
         try (Jedis jedis = jedisPool.getResource()) {
