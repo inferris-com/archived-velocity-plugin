@@ -194,7 +194,6 @@ public class Inferris extends Plugin {
 
     public void createProperties() {
         File pluginFolder = new File("plugins/Inferris");
-
         propertiesFile = new File(pluginFolder, "inferris.properties");
 
         if (!propertiesFile.exists()) {
@@ -208,12 +207,21 @@ public class Inferris extends Plugin {
 
         properties = new Properties();
 
-        try (InputStream inputStream = new FileInputStream((propertiesFile))) {
+        try (InputStream inputStream = new FileInputStream(propertiesFile)) {
             properties.load(inputStream);
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        // ... Perform any modifications to the properties here ...
+
+        try (OutputStream outputStream = new FileOutputStream(propertiesFile)) {
+            properties.store(outputStream, null);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
+
 
     public static File getPropertiesFile() {
         return propertiesFile;
@@ -221,6 +229,10 @@ public class Inferris extends Plugin {
 
     public static Properties getProperties() {
         return properties;
+    }
+
+    public static void setProperties(Properties properties) {
+        Inferris.properties = properties;
     }
 
     public static Configuration getPermissionsConfiguration() {

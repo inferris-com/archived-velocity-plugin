@@ -32,15 +32,16 @@ public class ConfigUtils {
 
     public static void reloadConfiguration(Types types) {
         switch (types) {
-            case CONFIG -> reloadConfiguration(new File(dataFolder, "config.yml"), "config");
-            case PERMISSIONS -> reloadConfiguration(new File(dataFolder, "permissions.yml"), "permissions");
-            case PLAYERS -> reloadConfiguration(new File(dataFolder, "players.yml"), "players");
-            case PROPERTIES -> reloadProperties(new File(dataFolder, "inferris.properties"), "inferris");
+            case CONFIG -> reloadConfiguration("config");
+            case PERMISSIONS -> reloadConfiguration("permissions");
+            case PLAYERS -> reloadConfiguration("players");
+            case PROPERTIES -> reloadProperties("inferris");
         }
     }
 
-    private static void reloadConfiguration(File file, String name) {
-        file = new File(dataFolder, name + ".yml");
+
+    private static void reloadConfiguration(String name) {
+        File file = new File(dataFolder, name + ".yml");
 
         try {
             if (!file.exists()) {
@@ -53,16 +54,31 @@ public class ConfigUtils {
         }
     }
 
-    private static void reloadProperties(File file, String name) {
-        file = new File(dataFolder, name + ".properties");
+    private static void reloadProperties(String name) {
+        File file = new File(dataFolder, name + ".properties");
         properties = new Properties();
 
         try (InputStream inputStream = new FileInputStream(file)) {
             properties.load(inputStream);
+
+            // ... Perform any modifications to the properties here ...
+
+            try (OutputStream outputStream = new FileOutputStream(file)) {
+                properties.store(outputStream, null);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            // Assign the updated properties back to Inferris
+            Inferris.setProperties(properties);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
+
+
+
 
     public static void saveConfiguration(File file, Configuration configuration) {
         try {

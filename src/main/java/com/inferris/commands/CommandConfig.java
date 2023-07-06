@@ -29,6 +29,8 @@ public class CommandConfig extends Command {
                     ConfigUtils.reloadConfiguration(ConfigUtils.Types.PLAYERS);
                 } else if (type == ConfigUtils.Types.PROPERTIES) {
                     ConfigUtils.reloadConfiguration(ConfigUtils.Types.PROPERTIES);
+                    player.sendMessage(new TextComponent(ChatColor.GREEN + "Config reloaded! " + Inferris.getInstance()));
+
 
                 }
             } else if (args[0].equalsIgnoreCase("save")) {
