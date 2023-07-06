@@ -30,6 +30,28 @@ public class CommandFriend extends Command {
                 player.sendMessage(new TextComponent(ChatColor.YELLOW + "/friend remove <player>"));
                 return;
             }
+            if (length == 1) {
+                String subCommand = args[0];
+                if (subCommand.equalsIgnoreCase("remove")) {
+                    player.sendMessage(new TextComponent(ChatColor.YELLOW + "/friend remove <player>"));
+                    player.sendMessage(new TextComponent(ChatColor.GREEN + "Don't worry, we won't inform the player about the removal."));
+                    return;
+                }
+                if (subCommand.equalsIgnoreCase("add")) {
+                    player.sendMessage(new TextComponent(ChatColor.YELLOW + "/friend add <player>"));
+                    return;
+                }
+                if (subCommand.equalsIgnoreCase("accept")) {
+                    player.sendMessage(new TextComponent(ChatColor.YELLOW + "/friend accept <player>"));
+                    return;
+                }
+                if (subCommand.equalsIgnoreCase("list")) {
+                    UUID playerUUID = player.getUniqueId();
+                    FriendsManager.getInstance().listFriends(playerUUID);
+                    return;
+                }
+                player.sendMessage(new TextComponent(ChatColor.YELLOW + "Unknown command argument: " + subCommand));
+            }
             if (length == 2) {
                 UUID targetUUID = PlayerDataManager.getInstance().getUUIDByUsername(args[1]);
                 UUID playerUUID = player.getUniqueId();
@@ -43,7 +65,7 @@ public class CommandFriend extends Command {
                 Friends playerFriends = FriendsManager.getInstance().getFriendsData(playerUUID);
                 Friends targetFriends = FriendsManager.getInstance().getFriendsData(targetUUID);
 
-                if (args[0].equalsIgnoreCase("add")) {
+                if (args[0].equalsIgnoreCase("add") || args[0].equalsIgnoreCase("request")) {
                     friendsManager.friendRequest(playerUUID, targetUUID);
 
                 } else if (args[0].equalsIgnoreCase("accept")) {
@@ -57,6 +79,11 @@ public class CommandFriend extends Command {
                             target.sendMessage(new TextComponent(ChatColor.GREEN + "You are now friends with " + player.getName()));
                     } else {
                         player.sendMessage(new TextComponent(ChatColor.RED + "You don't have a pending friend request from " + targetName));
+                    }
+                } else if (args[0].equalsIgnoreCase("remove")) {
+                    if (playerFriends.getFriendsList().contains(targetUUID)) {
+                        FriendsManager.getInstance().removeFriend(playerUUID, targetUUID);
+                        player.sendMessage(new TextComponent(ChatColor.GREEN + "You removed " + targetData.getByBranch().getPrefix(true) + targetName + ChatColor.GREEN + " as a friend"));
                     }
                 }
             }
