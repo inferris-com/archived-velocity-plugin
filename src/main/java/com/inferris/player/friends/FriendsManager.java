@@ -18,6 +18,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -182,27 +183,39 @@ public class FriendsManager {
         List<String> offlineFriends = new ArrayList<>();
 
         List<UUID> sortedList = new ArrayList<>(friends.getFriendsList());
-        String separator = ChatColor.DARK_GRAY + " -";
-        String online = ChatColor.GREEN + " online";
-        String offline = ChatColor.RED + " offline";
 
+        // Fetch PlayerData objects for all friends
+        List<PlayerData> playerDataList = new ArrayList<>();
         for (UUID friendUUID : sortedList) {
             PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(friendUUID);
-            ProxiedPlayer friendPlayer = ProxyServer.getInstance().getPlayer(friendUUID);
             if (playerData != null) {
-                String playerName = playerData.getRegistry().getUsername();
-                String prefix = playerData.getByBranch().getPrefix(true);
-                String playerStr = ChatColor.YELLOW + "Player ";
-                String is = ChatColor.YELLOW + " is";
+                playerDataList.add(playerData);
+            }
+        }
 
-                if (playerData.getVanishState() == VanishState.ENABLED) {
-                    offlineFriends.add(playerStr + prefix + playerName + is + offline);
+        // Sort the list based on player names
+        playerDataList.sort(Comparator.comparing(playerData -> playerData.getRegistry().getUsername()));
+
+        for (PlayerData playerData : playerDataList) {
+            UUID friendUUID = playerData.getRegistry().getUuid();
+            ProxiedPlayer friendPlayer = ProxyServer.getInstance().getPlayer(friendUUID);
+
+            String playerName = playerData.getRegistry().getUsername();
+            String prefix = playerData.getByBranch().getPrefix(true);
+            String playerStr = ChatColor.YELLOW + "Player ";
+            String is = ChatColor.YELLOW + " is";
+
+            String separator = ChatColor.DARK_GRAY + " -";
+            String online = ChatColor.GREEN + " online";
+            String offline = ChatColor.RED + " offline";
+
+            if (playerData.getVanishState() == VanishState.ENABLED) {
+                offlineFriends.add(playerStr + prefix + playerName + is + offline);
+            } else {
+                if (friendPlayer != null) {
+                    onlineFriends.add(playerStr + prefix + playerName + is + online);
                 } else {
-                    if (friendPlayer != null) {
-                        onlineFriends.add(playerStr + prefix + playerName + is + online);
-                    } else {
-                        offlineFriends.add(playerStr + prefix + playerName + is + offline);
-                    }
+                    offlineFriends.add(playerStr + prefix + playerName + is + offline);
                 }
             }
         }
