@@ -4,7 +4,6 @@ import com.inferris.Messages;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.Branch;
-import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -16,20 +15,27 @@ import java.util.*;
 
 public class CommandSetrank extends Command implements TabExecutor {
     private final UUID uuid = UUID.fromString("7d16b15d-bb22-4a6d-80db-6213b3d75007");
+
     public CommandSetrank(String name) {
         super(name);
     }
 
     @Override
     public void execute(CommandSender commandSender, String[] args) {
-        ProxiedPlayer player = (ProxiedPlayer) commandSender;
-        if (!(PlayerDataManager.getInstance().getPlayerData(player).getBranchValue(Branch.STAFF) >= 3) || !player.getUniqueId().equals(uuid)) {
-            player.sendMessage(Messages.NO_PERMISSION.getMessage());
-            return;
+        ProxiedPlayer player = null;
+        if (commandSender instanceof ProxiedPlayer) {
+            player = (ProxiedPlayer) commandSender;
+        }
+
+        if (player != null) {
+            if (!(PlayerDataManager.getInstance().getPlayerData(player).getBranchValue(Branch.STAFF) >= 3) || !player.getUniqueId().equals(uuid)) {
+                player.sendMessage(Messages.NO_PERMISSION.getMessage());
+                return;
+            }
         }
 
         if (args.length != 3) {
-            player.sendMessage(new TextComponent("Usage: /setrank <player> <branch> <ID>"));
+            commandSender.sendMessage(new TextComponent("Usage: /setrank <player> <branch> <ID>"));
             return;
         }
 
@@ -37,7 +43,7 @@ public class CommandSetrank extends Command implements TabExecutor {
         try {
             branch = Branch.valueOf(args[1].toUpperCase());
         } catch (IllegalArgumentException e) {
-            player.sendMessage(new TextComponent("Invalid rank branch specified."));
+            commandSender.sendMessage(new TextComponent("Invalid rank branch specified."));
             return;
         }
 
@@ -45,7 +51,7 @@ public class CommandSetrank extends Command implements TabExecutor {
         try {
             id = Integer.parseInt(args[2]);
         } catch (NumberFormatException e) {
-            player.sendMessage(new TextComponent("Invalid ID specified."));
+            commandSender.sendMessage(new TextComponent("Invalid ID specified."));
             return;
         }
 
@@ -54,13 +60,13 @@ public class CommandSetrank extends Command implements TabExecutor {
 
         UUID uuid = playerDataManager.getUUIDByUsername(targetName);
         if (uuid == null) {
-            player.sendMessage(Messages.PLAYER_NOT_IN_SYSTEM.getMessage());
+            commandSender.sendMessage(Messages.PLAYER_NOT_IN_SYSTEM.getMessage());
             return;
         }
 
         PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(uuid);
         playerData.setRank(branch, id, true);
-        player.sendMessage(new TextComponent("Rank set for " + args[0] + " to " + branch.name() + "-" + id));
+        commandSender.sendMessage(new TextComponent("Rank set for " + args[0] + " to " + branch.name() + "-" + id));
     }
 
     @Override
@@ -97,17 +103,21 @@ public class CommandSetrank extends Command implements TabExecutor {
                 String partialID = args[2];
                 List<String> options = new ArrayList<>();
                 if (partialID.isEmpty()) {
-                    if (partialOption.equals("staff")) {
-                        for (int i = 0; i <= 3; i++) {
-                            options.add(String.valueOf(i));
+                    switch (partialOption) {
+                        case "staff" -> {
+                            for (int i = 0; i <= 3; i++) {
+                                options.add(String.valueOf(i));
+                            }
                         }
-                    } else if (partialOption.equals("donor")) {
-                        for (int i = 0; i <= 1; i++) {
-                            options.add(String.valueOf(i));
+                        case "donor" -> {
+                            for (int i = 0; i <= 1; i++) {
+                                options.add(String.valueOf(i));
+                            }
                         }
-                    } else if (partialOption.equals("other")) {
-                        for (int i = 0; i <= 0; i++) {
-                            options.add(String.valueOf(i));
+                        case "other" -> {
+                            for (int i = 0; i <= 0; i++) {
+                                options.add(String.valueOf(i));
+                            }
                         }
                     }
                 } else if (isNumeric(partialID)) {
