@@ -26,11 +26,20 @@ public enum RankRegistry {
     }
 
     public String getPrefix(boolean withSpace) {
-        return switch (this) {
-            case ADMIN, MOD, HELPER, DONOR -> prefix + " ";
-            default -> "";
-        };
+        if (withSpace) {
+            switch (this) {
+                case ADMIN, MOD, HELPER, DONOR -> {
+                    return prefix + " ";
+                }
+                default -> {
+                    return prefix;
+                }
+            }
+        } else {
+            return prefix;
+        }
     }
+
 
     public Branch getBranch() {
         return branch;
