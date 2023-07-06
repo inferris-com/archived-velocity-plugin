@@ -44,7 +44,6 @@ public class CommandAccount extends Command implements TabExecutor {
                     return;
                 }
 
-
                 PlayerData playerData = playerDataManager.getRedisData(uuid, targetName);
                 Registry registry = playerData.getRegistry();
                 String tag = Tags.STAFF.getName(true);
@@ -56,6 +55,9 @@ public class CommandAccount extends Command implements TabExecutor {
 
                 TextComponent username = new TextComponent(ChatColor.YELLOW + "Username: ");
                 username.addExtra(playerData.getNameColor() + registry.getUsername());
+                username.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to copy username")));
+                username.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, registry.getUsername()));
+
 
                 TextComponent prefix = new TextComponent("Ranks: " + playerData.formatRankList(playerData.getTopRanksByBranches()));
                 prefix.setColor(ChatColor.YELLOW);
@@ -68,7 +70,6 @@ public class CommandAccount extends Command implements TabExecutor {
                     vanished = new TextComponent(ChatColor.YELLOW + "Vanish state: " + reset + ChatColor.GREEN + playerData.getVanishState());
                 } else {
                     vanished = new TextComponent(ChatColor.YELLOW + "Vanish state: " + reset + ChatColor.RED + playerData.getVanishState());
-
                 }
 
                 TextComponent divider = new TextComponent("-------------------------------");
