@@ -34,7 +34,7 @@ public class CommandFriend extends Command {
                 String subCommand = args[0];
                 if (subCommand.equalsIgnoreCase("remove")) {
                     player.sendMessage(new TextComponent(ChatColor.YELLOW + "/friend remove <player>"));
-                    player.sendMessage(new TextComponent(ChatColor.GREEN + "Don't worry, we won't inform the player about the removal."));
+                    player.sendMessage(new TextComponent(ChatColor.GREEN + "Don't worry, we value privacy and we won't inform the player about the removal."));
                     return;
                 }
                 if (subCommand.equalsIgnoreCase("add")) {
@@ -47,21 +47,27 @@ public class CommandFriend extends Command {
                 }
                 if (subCommand.equalsIgnoreCase("list")) {
                     UUID playerUUID = player.getUniqueId();
-                    FriendsManager.getInstance().listFriends(playerUUID);
+                    FriendsManager.getInstance().listFriends(playerUUID, 1);
                     return;
                 }
                 player.sendMessage(new TextComponent(ChatColor.YELLOW + "Unknown command argument: " + subCommand));
             }
             if (length == 2) {
-                UUID targetUUID = PlayerDataManager.getInstance().getUUIDByUsername(args[1]);
+                FriendsManager friendsManager = FriendsManager.getInstance();
                 UUID playerUUID = player.getUniqueId();
+
+                if(args[0].equalsIgnoreCase("list")){
+                    int index = Integer.parseInt(args[1]);
+                    friendsManager.listFriends(player.getUniqueId(), index);
+                    return;
+                }
+                UUID targetUUID = PlayerDataManager.getInstance().getUUIDByUsername(args[1]);
                 if (targetUUID == null) {
                     player.sendMessage(new TextComponent(Messages.PLAYER_NOT_IN_SYSTEM.getMessage()));
                     return;
                 }
                 PlayerData targetData = PlayerDataManager.getInstance().getRedisData(targetUUID, args[1]);
                 String targetName = targetData.getRegistry().getUsername();
-                FriendsManager friendsManager = FriendsManager.getInstance();
                 Friends playerFriends = FriendsManager.getInstance().getFriendsData(playerUUID);
                 Friends targetFriends = FriendsManager.getInstance().getFriendsData(targetUUID);
 
@@ -82,7 +88,7 @@ public class CommandFriend extends Command {
                     }
                 } else if (args[0].equalsIgnoreCase("remove")) {
                     FriendsManager.getInstance().removeFriend(playerUUID, targetUUID);
-                }else if(args[0].equalsIgnoreCase("reject")){
+                }else if(args[0].equalsIgnoreCase("reject") || args[0].equalsIgnoreCase("deny")){
                     FriendsManager.getInstance().rejectFriendRequest(playerUUID, targetUUID);
                 }
             }

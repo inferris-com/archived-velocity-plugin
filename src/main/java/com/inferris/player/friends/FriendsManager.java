@@ -133,6 +133,8 @@ public class FriendsManager {
             try {
                 playerFriends.removeFriend(targetUUID);
                 targetFriends.removeFriend(playerUUID);
+                ProxyServer.getInstance().getPlayer(playerUUID).sendMessage(new TextComponent(ChatColor.GREEN + "You have removed "
+                        + targetData.getByBranch().getPrefix(true) + targetData.getByBranch().getBranch() + ChatColor.GREEN + " as a friend"));
             } catch (IllegalArgumentException e) {
                 ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerUUID);
                 if (player != null) {
@@ -176,7 +178,7 @@ public class FriendsManager {
         }
     }
 
-    public void listFriends(UUID playerUUID) {
+    public void listFriends(UUID playerUUID, int pageNumber) {
         ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerUUID);
         Friends friends = caffeineCache.getIfPresent(playerUUID);
         List<String> onlineFriends = new ArrayList<>();
@@ -186,6 +188,7 @@ public class FriendsManager {
 
         // Fetch PlayerData objects for all friends
         List<PlayerData> playerDataList = new ArrayList<>();
+
         for (UUID friendUUID : sortedList) {
             PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(friendUUID);
             if (playerData != null) {
@@ -193,10 +196,30 @@ public class FriendsManager {
             }
         }
 
-        // Sort the list based on player names
-        playerDataList.sort(Comparator.comparing(playerData -> playerData.getRegistry().getUsername()));
+        int pageSize = 2;
+        int startIndex = (pageNumber - 1) * pageSize;
+        int endIndex = Math.min(startIndex + pageSize, playerDataList.size());
 
-        for (PlayerData playerData : playerDataList) {
+        String separator = ChatColor.DARK_GRAY + " -";
+        String online = ChatColor.GREEN + " online";
+        String offline = ChatColor.RED + " offline";
+
+        // Custom comparator to prioritize online players first, then sort alphabetically
+        Comparator<PlayerData> playerComparator = Comparator.comparing((PlayerData playerData) -> {
+            if (playerData.getVanishState() == VanishState.ENABLED) {
+                return 2; // Offline players with vanish state enabled
+            } else if (ProxyServer.getInstance().getPlayer(playerData.getRegistry().getUuid()) != null) {
+                return 0; // Online players
+            } else {
+                return 1; // Offline players
+            }
+        }).thenComparing(playerData -> playerData.getRegistry().getUsername());
+
+        // Sort the playerDataList based on the custom comparator
+        playerDataList.sort(playerComparator);
+
+        for (int i = startIndex; i < endIndex; i++) {
+            PlayerData playerData = playerDataList.get(i);
             UUID friendUUID = playerData.getRegistry().getUuid();
             ProxiedPlayer friendPlayer = ProxyServer.getInstance().getPlayer(friendUUID);
 
@@ -205,26 +228,35 @@ public class FriendsManager {
             String playerStr = ChatColor.YELLOW + "Player ";
             String is = ChatColor.YELLOW + " is";
 
-            String separator = ChatColor.DARK_GRAY + " -";
-            String online = ChatColor.GREEN + " online";
-            String offline = ChatColor.RED + " offline";
-
-            if (playerData.getVanishState() == VanishState.ENABLED) {
-                offlineFriends.add(playerStr + prefix + playerName + is + offline);
+            if (friendPlayer != null) {
+                onlineFriends.add(playerStr + prefix + playerName + is + online);
             } else {
-                if (friendPlayer != null) {
-                    onlineFriends.add(playerStr + prefix + playerName + is + online);
-                } else {
-                    offlineFriends.add(playerStr + prefix + playerName + is + offline);
-                }
+                offlineFriends.add(playerStr + prefix + playerName + is + offline);
             }
         }
 
+        // Sort onlineFriends alphabetically
+        onlineFriends.sort(Comparator.comparing(friend -> ChatColor.stripColor(friend).substring(8)));
+
+        // Display the friends list
         player.sendMessage(new TextComponent(ChatColor.YELLOW + "          Friends List"));
         player.sendMessage(new TextComponent(ChatColor.GRAY + "•——————•°•✿•°•——————•"));
+
+        // Send onlineFriends first
         onlineFriends.forEach(message -> player.sendMessage(new TextComponent(message)));
+
+        // Add a separator between onlineFriends and offlineFriends
+        if (!onlineFriends.isEmpty() && !offlineFriends.isEmpty()) {
+            player.sendMessage(new TextComponent(separator));
+        }
+
+        // Send offlineFriends next
         offlineFriends.forEach(message -> player.sendMessage(new TextComponent(message)));
     }
+
+
+
+
 
     public void updateRedisData(UUID playerUUID, Friends friends) {
         try (Jedis jedis = jedisPool.getResource()) {
