@@ -31,7 +31,7 @@ public class CommandMessage extends Command implements TabExecutor {
     private final boolean JOKE_ALLOWED;
 
     {
-        JOKE_ALLOWED = Inferris.getProperties().getProperty("message.joke").equalsIgnoreCase("true");
+        JOKE_ALLOWED = Inferris.getConfiguration().getSection("command.features").getBoolean("message-joke");
     }
 
     public CommandMessage(String name) {

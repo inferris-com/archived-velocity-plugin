@@ -196,7 +196,8 @@ public class FriendsManager {
             }
         }
 
-        int pageSize = 2;
+        int pageSize = Inferris.getConfiguration().getSection("friends").getInt("page-size");
+        player.sendMessage(new TextComponent(String.valueOf(pageSize)));
         int startIndex = (pageNumber - 1) * pageSize;
         int endIndex = Math.min(startIndex + pageSize, playerDataList.size());
 
@@ -206,9 +207,8 @@ public class FriendsManager {
 
         // Custom comparator to prioritize online players first, then sort alphabetically
         Comparator<PlayerData> playerComparator = Comparator.comparing((PlayerData playerData) -> {
-            if (playerData.getVanishState() == VanishState.ENABLED) {
-                return 2; // Offline players with vanish state enabled
-            } else if (ProxyServer.getInstance().getPlayer(playerData.getRegistry().getUuid()) != null) {
+
+            if (ProxyServer.getInstance().getPlayer(playerData.getRegistry().getUuid()) != null || playerData.getVanishState() == VanishState.DISABLED) {
                 return 0; // Online players
             } else {
                 return 1; // Offline players
