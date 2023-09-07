@@ -71,7 +71,6 @@ public class Inferris extends Plugin {
 
         JedisReceive jedisReceive = new JedisReceive();
 
-
         try {
             Connection connection = DatabasePool.getConnection();
             if (connection.isClosed()) {
@@ -87,7 +86,6 @@ public class Inferris extends Plugin {
         playersConfiguration = ConfigUtils.createConfigFile(playersFile, "players");
 
         new Initializer();
-        //initializer.loadPlayerRegistry();
         jedisPool = new JedisPool("localhost", Ports.JEDIS.getPort());
         Thread subscriptionThread = new Thread(() -> Inferris.getJedisPool().getResource().subscribe(jedisReceive,
                 JedisChannels.SPIGOT_TO_PROXY_PLAYERDATA_CACHE_UPDATE.getChannelName(),
@@ -100,6 +98,13 @@ public class Inferris extends Plugin {
             getLogger().warning("============================");
             getLogger().warning("Debug is enabled!");
             getLogger().warning("============================");
+
+            getLogger().severe(String.valueOf(getConfiguration().getBoolean("test.value")));
+            getLogger().severe(String.valueOf(getConfiguration().getBoolean("command.features.message-joke")));
+
+            getLogger().severe(String.valueOf(Inferris.getConfiguration().getSection("friends").getInt("page.size"))); //returns 0
+            getLogger().severe(Inferris.getProperties().getProperty("debug.mode")); //returns true
+            getLogger().severe(Inferris.getConfiguration().getString("database.user")); // returns true
         }else{
             ServerStateManager.setCurrentState(ServerState.NORMAL);
         }
