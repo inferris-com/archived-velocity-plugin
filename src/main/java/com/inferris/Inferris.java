@@ -22,7 +22,6 @@ import java.util.logging.Level;
 
 public class Inferris extends Plugin {
     private static Inferris instance;
-    private Path dataDirectory;
     private static Properties properties;
     private static File propertiesFile;
     private static File configFile;
