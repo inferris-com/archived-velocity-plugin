@@ -9,6 +9,8 @@ import com.inferris.player.registry.RegistryManager;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.util.CacheSerializationUtils;
 import com.inferris.util.ConfigUtils;
+import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.config.Configuration;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
