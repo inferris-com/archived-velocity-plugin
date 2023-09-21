@@ -26,6 +26,7 @@ public class Initializer {
         registryManager = RegistryManager.getInstance();
     }
 
+    @Deprecated
     public void loadPlayerRegistry() {
         try (Connection connection = DatabasePool.getConnection();
              PreparedStatement query = connection.prepareStatement("SELECT * FROM players")) {
