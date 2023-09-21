@@ -1,8 +1,6 @@
 package com.inferris;
 
 import com.inferris.commands.*;
-import com.inferris.database.Database;
-import com.inferris.database.DatabaseConfigLoader;
 import com.inferris.database.DatabasePool;
 import com.inferris.events.*;
 import com.inferris.server.*;

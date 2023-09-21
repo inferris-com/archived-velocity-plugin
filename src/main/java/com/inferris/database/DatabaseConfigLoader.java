@@ -4,7 +4,6 @@ import com.inferris.Inferris;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.Properties;
 
 public class DatabaseConfigLoader {
@@ -33,6 +32,7 @@ public class DatabaseConfigLoader {
     private void generateDefaultProperties() {
         InputStream defaultConfig = Inferris.class.getResourceAsStream("/" + "database.properties");
         try {
+            assert defaultConfig != null;
             Files.copy(defaultConfig, propertiesFile.toPath());
         } catch (IOException e) {
             e.printStackTrace();
