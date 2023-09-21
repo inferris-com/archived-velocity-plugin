@@ -7,6 +7,7 @@ import com.inferris.Inferris;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.server.*;
+import com.inferris.util.CacheSerializationUtils;
 import com.inferris.util.ServerUtil;
 import com.inferris.util.Tags;
 import net.md_5.bungee.api.ChatColor;
@@ -23,17 +24,17 @@ public class JedisReceive extends JedisPubSub {
     ObjectMapper objectMapper = new ObjectMapper();
     @Override
     public void onMessage(String channel, String message) {
-        Inferris.getInstance().getLogger().severe("Triggered JedisPlayerDataEvent");
+        Inferris.getInstance().getLogger().severe("Triggered EventReceive");
+
         if (channel.equalsIgnoreCase(JedisChannels.SPIGOT_TO_PROXY_PLAYERDATA_CACHE_UPDATE.getChannelName())) {
             Inferris.getInstance().getLogger().severe("Yup");
 
-            try{
-                ReportPayload reportPayload = objectMapper.readValue(message, ReportPayload.class);
-
-                //handleReportPayload(reportPayload);
-
-            }catch(JsonProcessingException e){
-                e.printStackTrace();
+            try {
+                PlayerData playerData = CacheSerializationUtils.deserializePlayerData(message);
+                ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerData.getRegistry().getUuid());
+                PlayerDataManager.getInstance().updateAllData(player, playerData);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
             }
         }
 

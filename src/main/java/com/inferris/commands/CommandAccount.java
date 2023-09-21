@@ -1,9 +1,11 @@
 package com.inferris.commands;
 
+import com.inferris.database.DatabasePool;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.registry.Registry;
 import com.inferris.player.vanish.VanishState;
+import com.inferris.util.DatabaseUtils;
 import com.inferris.util.MessageUtil;
 import com.inferris.util.Tags;
 import net.md_5.bungee.api.ChatColor;
@@ -15,6 +17,8 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -44,7 +48,6 @@ public class CommandAccount extends Command implements TabExecutor {
                     return;
                 }
 
-
                 PlayerData playerData = playerDataManager.getRedisData(uuid, targetName);
                 Registry registry = playerData.getRegistry();
                 String tag = Tags.STAFF.getName(true);
@@ -56,11 +59,25 @@ public class CommandAccount extends Command implements TabExecutor {
 
                 TextComponent username = new TextComponent(ChatColor.YELLOW + "Username: ");
                 username.addExtra(playerData.getNameColor() + registry.getUsername());
+                username.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to copy username")));
+                username.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, registry.getUsername()));
+
 
                 TextComponent prefix = new TextComponent("Ranks: " + playerData.formatRankList(playerData.getTopRanksByBranches()));
                 prefix.setColor(ChatColor.YELLOW);
 
                 TextComponent registration_date = new TextComponent(ChatColor.YELLOW + "Registration date: " + reset + playerData.getProfile().getRegistrationDate());
+
+                TextComponent verified = new TextComponent(ChatColor.YELLOW + "Forum account: " + ChatColor.RESET + "ID " + playerData.getProfile().getXenforoId());
+                String[] verifiedParams = {};
+                try(ResultSet resultSet = DatabaseUtils.executeQuery("SELECT * FROM `verification` WHERE `uuid` = ?", player.getUniqueId().toString())){
+                    if(resultSet.next()){
+
+                    }
+                }catch(SQLException e){
+                    e.printStackTrace();
+                }
+
                 TextComponent channel = new TextComponent(ChatColor.YELLOW + "Current channel: " + reset + playerData.getChannel().getMessage());
 
                 TextComponent vanished;
@@ -68,7 +85,6 @@ public class CommandAccount extends Command implements TabExecutor {
                     vanished = new TextComponent(ChatColor.YELLOW + "Vanish state: " + reset + ChatColor.GREEN + playerData.getVanishState());
                 } else {
                     vanished = new TextComponent(ChatColor.YELLOW + "Vanish state: " + reset + ChatColor.RED + playerData.getVanishState());
-
                 }
 
                 TextComponent divider = new TextComponent("-------------------------------");
@@ -97,6 +113,9 @@ public class CommandAccount extends Command implements TabExecutor {
                 MessageUtil.sendMessage(player, uuidText);
                 MessageUtil.sendMessage(player, registration_date);
                 MessageUtil.sendMessage(player, coins);
+                if(playerData.getProfile().getXenforoId() > 0){
+                    MessageUtil.sendMessage(player, verified);
+                }
                 MessageUtil.sendMessage(player, channel);
                 MessageUtil.sendMessage(player, vanished);
                 MessageUtil.sendMessage(player, staff);

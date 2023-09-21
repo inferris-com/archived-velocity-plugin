@@ -98,7 +98,6 @@ public class CommandBungeeTest extends Command {
 
                     } else if (args[1].equalsIgnoreCase("reload")) {
                         RegistryManager.getInstance().deleteRegistry();
-                        new Initializer().loadPlayerRegistry();
                         player.sendMessage(new TextComponent(ChatColor.GREEN + "Reloaded registry"));
                     }
                 }

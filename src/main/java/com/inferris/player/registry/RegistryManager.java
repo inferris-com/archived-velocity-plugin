@@ -23,6 +23,7 @@ import java.util.UUID;
 
 
 public class RegistryManager {
+    //todo Look over class
     private static RegistryManager instance;
     private final JedisPool jedisPool;
     private final ObjectMapper objectMapper;

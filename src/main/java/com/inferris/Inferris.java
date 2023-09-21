@@ -22,7 +22,6 @@ import java.util.logging.Level;
 
 public class Inferris extends Plugin {
     private static Inferris instance;
-    private Path dataDirectory;
     private static Properties properties;
     private static File propertiesFile;
     private static File configFile;
@@ -71,7 +70,6 @@ public class Inferris extends Plugin {
 
         JedisReceive jedisReceive = new JedisReceive();
 
-
         try {
             Connection connection = DatabasePool.getConnection();
             if (connection.isClosed()) {
@@ -87,7 +85,6 @@ public class Inferris extends Plugin {
         playersConfiguration = ConfigUtils.createConfigFile(playersFile, "players");
 
         new Initializer();
-        //initializer.loadPlayerRegistry();
         jedisPool = new JedisPool("localhost", Ports.JEDIS.getPort());
         Thread subscriptionThread = new Thread(() -> Inferris.getJedisPool().getResource().subscribe(jedisReceive,
                 JedisChannels.SPIGOT_TO_PROXY_PLAYERDATA_CACHE_UPDATE.getChannelName(),
@@ -100,6 +97,13 @@ public class Inferris extends Plugin {
             getLogger().warning("============================");
             getLogger().warning("Debug is enabled!");
             getLogger().warning("============================");
+
+            getLogger().severe(String.valueOf(getConfiguration().getBoolean("test.value")));
+            getLogger().severe(String.valueOf(getConfiguration().getBoolean("command.features.message-joke")));
+
+            getLogger().severe(String.valueOf(Inferris.getConfiguration().getSection("friends").getInt("page.size"))); //returns 0
+            getLogger().severe(Inferris.getProperties().getProperty("debug.mode")); //returns true
+            getLogger().severe(Inferris.getConfiguration().getString("database.user")); // returns true
         }else{
             ServerStateManager.setCurrentState(ServerState.NORMAL);
         }
@@ -194,7 +198,6 @@ public class Inferris extends Plugin {
 
     public void createProperties() {
         File pluginFolder = new File("plugins/Inferris");
-
         propertiesFile = new File(pluginFolder, "inferris.properties");
 
         if (!propertiesFile.exists()) {
@@ -208,12 +211,19 @@ public class Inferris extends Plugin {
 
         properties = new Properties();
 
-        try (InputStream inputStream = new FileInputStream((propertiesFile))) {
+        try (InputStream inputStream = new FileInputStream(propertiesFile)) {
             properties.load(inputStream);
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        try (OutputStream outputStream = new FileOutputStream(propertiesFile)) {
+            properties.store(outputStream, null);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
+
 
     public static File getPropertiesFile() {
         return propertiesFile;
@@ -221,6 +231,10 @@ public class Inferris extends Plugin {
 
     public static Properties getProperties() {
         return properties;
+    }
+
+    public static void setProperties(Properties properties) {
+        Inferris.properties = properties;
     }
 
     public static Configuration getPermissionsConfiguration() {

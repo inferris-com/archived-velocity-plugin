@@ -1,6 +1,24 @@
+# config.yml
+
+#######################################################
+#                                                     #
+#             Inferris Configuration                  #
+#                                                     #
+#######################################################
+
 database:
   address: localhost
   port: 3306
   database: inferris
-  user: mcmaster
-  password: 123
+  user: null
+  password: null
+
+command:
+  features:
+    message-joke: true
+
+friends:
+  page-size: 20
+
+test:
+  value: true

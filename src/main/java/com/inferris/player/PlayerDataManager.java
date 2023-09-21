@@ -101,6 +101,9 @@ public class PlayerDataManager {
             if (json != null) {
                 return CacheSerializationUtils.deserializePlayerData(json);
             } else {
+                /*
+                TODO: Need to check the datbase for the correct values. If data
+                 */
                 return createEmpty(player); // Create an empty Registry object instead of returning null
             }
         } catch (JsonProcessingException e) {
@@ -292,7 +295,8 @@ public class PlayerDataManager {
                 Rank rank = RanksManager.getInstance().getRank(player);
                 Registry registry = RegistryManager.getInstance().getRegistry(player, rank);
 
-                PlayerData playerData = new PlayerData(registry, rank, new Profile(null, null, LocalDate.now()), new Coins(36), Channels.NONE, VanishState.DISABLED, Server.LOBBY);
+                // todo: default values, change to database values
+                PlayerData playerData = new PlayerData(registry, rank, new Profile(null, null, LocalDate.now(), 0), new Coins(PlayerDefaults.COIN_BALANCE.getValue()), Channels.NONE, VanishState.DISABLED, Server.LOBBY);
                 String playerDataJson = CacheSerializationUtils.serializePlayerData(playerData);
                 jedis.hset("playerdata", playerUUID.toString(), playerDataJson);
 
@@ -334,7 +338,7 @@ public class PlayerDataManager {
                 PlayerData redisData = getRedisData(player);
 
                 Registry registry = new Registry(player.getUniqueId(), player.getName());
-                Profile profile = new Profile(redisData.getProfile().getBio(), redisData.getProfile().getPronouns(), redisData.getProfile().getRegistrationDate());
+                Profile profile = new Profile(redisData.getProfile().getBio(), redisData.getProfile().getPronouns(), redisData.getProfile().getRegistrationDate(), redisData.getProfile().getXenforoId());
                 PlayerData playerData = new PlayerData(registry, redisData.getRank(), profile, redisData.getCoins(), redisData.getChannel(), redisData.getVanishState(), redisData.getCurrentServer());
                 jedis.hset("playerdata", player.getUniqueId().toString(), CacheSerializationUtils.serializePlayerData(playerData));
                 caffeineCache.put(player.getUniqueId(), playerData);
@@ -351,7 +355,7 @@ public class PlayerDataManager {
         // Create and return an empty Registry object with default values
         return new PlayerData(new Registry(player.getUniqueId(), player.getName()),
                 new Rank(0, 0, 0),
-                new Profile(null, null, null),
+                new Profile(null, null, null, 0),
                 new Coins(36), Channels.NONE, VanishState.DISABLED, Server.LOBBY);
     }
 
@@ -359,7 +363,7 @@ public class PlayerDataManager {
         // Create and return an empty Registry object with default values
         return new PlayerData(new Registry(uuid, username),
                 new Rank(0, 0, 0),
-                new Profile(null, null, null),
+                new Profile(null, null, null, 0),
                 new Coins(36), Channels.NONE, VanishState.DISABLED, Server.LOBBY);
     }
 
