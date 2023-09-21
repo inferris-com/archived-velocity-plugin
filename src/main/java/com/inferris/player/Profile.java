@@ -6,10 +6,12 @@ public class Profile {
     private String bio;
     private String pronouns;
     private LocalDate registrationDate;
-    public Profile(String bio, String pronouns, LocalDate registrationDate){
+    private int xenforoId;
+    public Profile(String bio, String pronouns, LocalDate registrationDate, int xenforoId){
         this.bio = bio;
         this.pronouns = pronouns;
         this.registrationDate = registrationDate;
+        this.xenforoId = xenforoId;
     }
 
     public Profile(){
@@ -37,5 +39,13 @@ public class Profile {
 
     public void setRegistrationDate(LocalDate registrationDate) {
         this.registrationDate = registrationDate;
+    }
+
+    public int getXenforoId() {
+        return xenforoId;
+    }
+
+    public void setXenforoId(int xenforoId) {
+        this.xenforoId = xenforoId;
     }
 }
