@@ -7,49 +7,70 @@ import com.zaxxer.hikari.HikariPoolMXBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
 public class DatabasePool {
     private static HikariConfig config = new HikariConfig();
     private static HikariDataSource dataSource;
-    private static final Logger logger = LoggerFactory.getLogger(DatabasePool.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DatabasePool.class);
+    private static DatabaseConfigLoader configLoader;
 
     static {
-        String address = Inferris.getConfiguration().getString("database.address");
-        String database = Inferris.getConfiguration().getString("database.database");
-        config.setJdbcUrl("jdbc:mysql://" + address + "/" + database + "?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8");
-        config.setUsername(Inferris.getConfiguration().getString("database.user"));
-        config.setPassword(Inferris.getConfiguration().getString("database.password"));
-        config.setMaximumPoolSize(5); // set maximum number of connections
+        try{
+            configLoader = new DatabaseConfigLoader();
+        }catch(IOException e){
+            e.printStackTrace();
+        }
         config.addDataSourceProperty("dataSource.unreturnedConnectionTimeout", "30");
         config.addDataSourceProperty( "cachePrepStmts" , "true" );
         config.addDataSourceProperty( "prepStmtCacheSize" , "250" );
         config.addDataSourceProperty( "prepStmtCacheSqlLimit" , "2048" );
         config.addDataSourceProperty("leakDetectionThreshold","true");
-        dataSource = new HikariDataSource(config);
-        logger.info("Database pool initialized with maximum pool size {}", config.getMaximumPoolSize());
+        LOGGER.info("Database pool initialized with maximum pool size {}", config.getMaximumPoolSize());
     }
 
     private DatabasePool() {}
     public static Connection getConnection() throws SQLException {
+        // By default, connect to the "inferris" database
+        config.setJdbcUrl(configLoader.getJdbcUrl(Database.INFERRIS.getType()));
+        config.setUsername(configLoader.getUsername(Database.INFERRIS.getType()));
+        config.setPassword(configLoader.getPassword(Database.INFERRIS.getType()));
+        config.setMaximumPoolSize(configLoader.getMaxPoolSize(Database.INFERRIS.getType()));
+        dataSource = new HikariDataSource(config);
+        return dataSource.getConnection();
+    }
+
+    public static Connection getConnection(Database database) throws SQLException {
+        //HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(configLoader.getJdbcUrl(database.getType()));
+        config.setUsername(configLoader.getUsername(database.getType()));
+        config.setPassword(configLoader.getPassword(database.getType()));
+        config.setMaximumPoolSize(configLoader.getMaxPoolSize(database.getType()));
+        // ... Other configuration properties
+
+        dataSource = new HikariDataSource(config);
+
+        LOGGER.info("Database pool initialized with maximum pool size {}", config.getMaximumPoolSize());
+
         return dataSource.getConnection();
     }
 
     public static void closeConnection(Connection connection) {
         try {
             connection.close();
-            logger.debug("Connection {} closed", connection);
+            LOGGER.debug("Connection {} closed", connection);
         } catch (SQLException e) {
-            logger.error("Error closing connection", e);
+            LOGGER.error("Error closing connection", e);
         }
     }
 
     public static void listConnections() {
         HikariPoolMXBean poolMXBean = dataSource.getHikariPoolMXBean();
-        logger.info("Connections in use: {}", poolMXBean.getActiveConnections());
-        logger.info("Idle connections: {}", poolMXBean.getIdleConnections());
-        logger.info("Total connections: {}", poolMXBean.getTotalConnections());
+        LOGGER.info("Connections in use: {}", poolMXBean.getActiveConnections());
+        LOGGER.info("Idle connections: {}", poolMXBean.getIdleConnections());
+        LOGGER.info("Total connections: {}", poolMXBean.getTotalConnections());
     }
 
     public static int connections() {
@@ -64,4 +85,5 @@ public class DatabasePool {
     public static int getNumInUseConnections() {
         return dataSource.getHikariPoolMXBean().getActiveConnections();
     }
+
 }
