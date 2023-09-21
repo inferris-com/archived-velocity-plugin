@@ -33,8 +33,6 @@ public class JedisReceive extends JedisPubSub {
                 PlayerData playerData = CacheSerializationUtils.deserializePlayerData(message);
                 ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerData.getRegistry().getUuid());
                 PlayerDataManager.getInstance().updateAllData(player, playerData);
-
-                player.sendMessage(new TextComponent(String.valueOf(PlayerDataManager.getInstance().getPlayerData(player).getProfile().getXenforoId())));
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
