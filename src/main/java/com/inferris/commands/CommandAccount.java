@@ -1,5 +1,6 @@
 package com.inferris.commands;
 
+import com.inferris.database.Database;
 import com.inferris.database.DatabasePool;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
@@ -17,6 +18,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -70,11 +72,14 @@ public class CommandAccount extends Command implements TabExecutor {
 
                 TextComponent verified = new TextComponent(ChatColor.YELLOW + "Forum account: " + ChatColor.RESET + "ID " + playerData.getProfile().getXenforoId());
                 String[] verifiedParams = {};
-                try(ResultSet resultSet = DatabaseUtils.executeQuery("SELECT * FROM `verification` WHERE `uuid` = ?", player.getUniqueId().toString())){
-                    if(resultSet.next()){
+                String xenforoUsername = null;
+                try (Connection connection = DatabasePool.getConnection(Database.XENFORO);
+                     ResultSet resultSet = DatabaseUtils.executeQuery(connection, "xf_user", new String[]{"username"}, "`user_id` = ?", playerData.getProfile().getXenforoId())) {
 
+                    if (resultSet.next()) {
+                        xenforoUsername = resultSet.getString(1);
                     }
-                }catch(SQLException e){
+                } catch (SQLException e) {
                     e.printStackTrace();
                 }
 
@@ -114,7 +119,9 @@ public class CommandAccount extends Command implements TabExecutor {
                 MessageUtil.sendMessage(player, registration_date);
                 MessageUtil.sendMessage(player, coins);
                 if(playerData.getProfile().getXenforoId() > 0){
+                    MessageUtil.sendMessage(player, xenforoUsername);
                     MessageUtil.sendMessage(player, verified);
+
                 }
                 MessageUtil.sendMessage(player, channel);
                 MessageUtil.sendMessage(player, vanished);
