@@ -70,18 +70,19 @@ public class CommandAccount extends Command implements TabExecutor {
 
                 TextComponent registration_date = new TextComponent(ChatColor.YELLOW + "Registration date: " + reset + playerData.getProfile().getRegistrationDate());
 
-                TextComponent verified = new TextComponent(ChatColor.YELLOW + "Forum account: " + ChatColor.RESET + "ID " + playerData.getProfile().getXenforoId());
-                String[] verifiedParams = {};
-                String xenforoUsername = null;
+                String xenforoUsername = ChatColor.YELLOW + "XenForo username: " + ChatColor.RESET;
                 try (Connection connection = DatabasePool.getConnection(Database.XENFORO);
                      ResultSet resultSet = DatabaseUtils.executeQuery(connection, "xf_user", new String[]{"username"}, "`user_id` = ?", playerData.getProfile().getXenforoId())) {
 
                     if (resultSet.next()) {
-                        xenforoUsername = resultSet.getString(1);
+                        xenforoUsername = xenforoUsername + resultSet.getString(1);
                     }
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
+
+                TextComponent verified = new TextComponent(ChatColor.YELLOW + "XenForo ID: " + ChatColor.RESET + playerData.getProfile().getXenforoId());
+
 
                 TextComponent channel = new TextComponent(ChatColor.YELLOW + "Current channel: " + reset + playerData.getChannel().getMessage());
 

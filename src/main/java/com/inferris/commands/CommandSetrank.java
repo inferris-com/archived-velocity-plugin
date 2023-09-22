@@ -90,7 +90,7 @@ public class CommandSetrank extends Command implements TabExecutor {
                 String partialOption = args[1].toLowerCase();
                 List<String> options = new ArrayList<>();
 
-                List<String> availableOptions = Arrays.asList("staff", "donor", "other");
+                List<String> availableOptions = Arrays.asList("staff", "builder", "donor", "other");
 
                 for (String option : availableOptions) {
                     if (option.toLowerCase().startsWith(partialOption)) {
@@ -105,10 +105,9 @@ public class CommandSetrank extends Command implements TabExecutor {
                 List<String> options = new ArrayList<>();
                 if (partialID.isEmpty()) {
                     switch (partialOption) {
-                        case "staff" -> {
+                        case "staff", "builder" -> {
                             for (int i = 0; i <= 3; i++) {
                                 options.add(String.valueOf(i));
-
                             }
                         }
                         case "donor" -> {

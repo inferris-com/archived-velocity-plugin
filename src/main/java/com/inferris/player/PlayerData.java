@@ -76,15 +76,10 @@ public class PlayerData implements PlayerDataService, Serializable {
         return currentServer;
     }
 
-    @Override
+    @JsonIgnore
     public ChatColor getNameColor() {
-        return switch (getByBranch()) {
-            case ADMIN -> RankRegistry.ADMIN.getColor();
-            case MOD -> RankRegistry.MOD.getColor();
-            case HELPER -> RankRegistry.HELPER.getColor();
-            case DONOR -> RankRegistry.DONOR.getColor();
-            default -> ChatColor.RESET;
-        };
+        RankRegistry highestRank = getByBranch();
+        return highestRank != RankRegistry.NONE ? highestRank.getColor() : ChatColor.RESET;
     }
 
     @Override
@@ -145,18 +140,24 @@ public class PlayerData implements PlayerDataService, Serializable {
     @JsonIgnore
     public List<RankRegistry> getByBranches() {
         List<RankRegistry> ranks = new ArrayList<>();
-        if (rank.getStaff() == 3) {
+        int staff = rank.getStaff();
+        int builder = rank.getBuilder();
+        int donor = rank.getDonor();
+
+        if (staff >= 3) {
             ranks.add(RankRegistry.ADMIN);
-        }
-        if (rank.getStaff() >= 2) {
+        } else if (staff == 2) {
             ranks.add(RankRegistry.MOD);
-        }
-        if (rank.getStaff() >= 1) {
+        } else if (staff == 1) {
             ranks.add(RankRegistry.HELPER);
         }
-        if (rank.getDonor() >= 1) {
+        if (builder == 1) {
+            ranks.add(RankRegistry.BUILDER);
+        }
+        if (donor == 1) {
             ranks.add(RankRegistry.DONOR);
         }
+
         return ranks;
     }
 
@@ -170,18 +171,22 @@ public class PlayerData implements PlayerDataService, Serializable {
     @JsonIgnore
     public List<RankRegistry> getTopRanksByBranches() {
         List<RankRegistry> ranks = new ArrayList<>();
+        int staff = rank.getStaff();
 
-        if (rank.getStaff() >= 3) {
-            ranks.add(RankRegistry.ADMIN);
-        } else if (rank.getStaff() >= 2) {
-            ranks.add(RankRegistry.MOD);
-        } else if (rank.getStaff() >= 1) {
-            ranks.add(RankRegistry.HELPER);
+        switch (staff) {
+            case 4,3 -> ranks.add(RankRegistry.ADMIN);
+            case 2 -> ranks.add(RankRegistry.MOD);
+            case 1 -> ranks.add(RankRegistry.HELPER);
         }
 
-        if (rank.getDonor() >= 1) {
+        if (rank.getBuilder() == 1) {
+            ranks.add(RankRegistry.BUILDER);
+        }
+
+        if (rank.getDonor() == 1) {
             ranks.add(RankRegistry.DONOR);
         }
+
         return ranks;
     }
 
@@ -210,15 +215,17 @@ public class PlayerData implements PlayerDataService, Serializable {
     @JsonIgnore
     public RankRegistry getByBranch() {
         int staff = getBranchValue(Branch.STAFF);
+        int builder = getBranchValue(Branch.BUILDER);
         int donor = getBranchValue(Branch.DONOR);
-        int other = getBranchValue(Branch.OTHER);
 
-        if (staff == 3) {
+        if (staff >=3) {
             return RankRegistry.ADMIN;
         } else if (staff == 2) {
             return RankRegistry.MOD;
         } else if (staff == 1) {
             return RankRegistry.HELPER;
+        } else if (builder == 1) {
+            return RankRegistry.BUILDER;
         } else if (donor == 1) {
             return RankRegistry.DONOR;
         } else {

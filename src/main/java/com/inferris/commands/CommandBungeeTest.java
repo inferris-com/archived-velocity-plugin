@@ -11,6 +11,8 @@ import com.inferris.SerializationModule;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.registry.RegistryManager;
+import com.inferris.rank.Branch;
+import com.inferris.rank.Rank;
 import com.inferris.server.BungeeChannel;
 import com.inferris.server.Initializer;
 import com.inferris.server.Ports;
@@ -41,7 +43,14 @@ public class CommandBungeeTest extends Command {
             int length = args.length;
 
             if (length == 1) {
-                if (args[0].equalsIgnoreCase("registry")) {
+                if (args[0].equalsIgnoreCase("ranks")) {
+                    PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
+                    Rank rank = playerData.getRank();
+                    player.sendMessage(new TextComponent(String.valueOf(rank.getBranchID(Branch.BUILDER))));
+                    player.sendMessage(new TextComponent(String.valueOf(playerData.getBranchValue(Branch.BUILDER))));
+                    player.sendMessage(new TextComponent(String.valueOf(playerData.getRank())));
+                }
+                    if (args[0].equalsIgnoreCase("registry")) {
                     JedisPool pool = Inferris.getJedisPool();
 
                     ObjectMapper objectMapper = new ObjectMapper();

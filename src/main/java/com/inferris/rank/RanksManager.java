@@ -41,27 +41,29 @@ public class RanksManager {
     public Rank loadRanks(ProxiedPlayer player) {
         Inferris.getInstance().getLogger().warning("Loading ranks");
         try (Connection connection = DatabasePool.getConnection();
-             PreparedStatement statement = connection.prepareStatement("SELECT staff, donor, other FROM ranks WHERE `uuid` = ?");
-             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO ranks (uuid, staff, donor, other) VALUES (?,?,?,?)")) {
+             PreparedStatement statement = connection.prepareStatement("SELECT staff, builder, donor, other FROM ranks WHERE `uuid` = ?");
+             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO ranks (uuid, staff, builder, donor, other) VALUES (?,?,?,?,?)")) {
             statement.setString(1, String.valueOf(player.getUniqueId()));
             ResultSet rs = statement.executeQuery();
 
             if (rs.next()) {
                 int staff = rs.getInt("staff");
+                int builder = rs.getInt("builder");
                 int donor = rs.getInt("donor");
                 int other = rs.getInt("other");
-                return new Rank(staff, donor, other);
+                return new Rank(staff, builder, donor, other);
             } else {
                 insertStatement.setString(1, String.valueOf(player.getUniqueId()));
                 insertStatement.setInt(2, 0); // Default value for staff rank
-                insertStatement.setInt(3, 0); // Default value for donor rank
-                insertStatement.setInt(4, 0); // Default value for other rank
+                insertStatement.setInt(3, 0); // Default value for builder rank
+                insertStatement.setInt(4, 0); // Default value for donor rank
+                insertStatement.setInt(5, 0); // Default value for other rank
                 insertStatement.execute();
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return new Rank(0, 0, 0);
+        return new Rank(0, 0, 0, 0);
     }
 
     public void setRank(UUID uuid, Branch branch, int id) {
@@ -70,8 +72,8 @@ public class RanksManager {
 
         try (Connection connection = DatabasePool.getConnection();
              PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM ranks WHERE uuid = ?");
-             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO ranks (uuid, staff, donor, other) VALUES (?, ?, ?, ?)");
-             PreparedStatement updateStatement = connection.prepareStatement("UPDATE ranks SET staff = ?, donor = ?, other = ? WHERE uuid = ?")) {
+             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO ranks (uuid, staff, builder, donor, other) VALUES (?, ?, ?, ?, ?)");
+             PreparedStatement updateStatement = connection.prepareStatement("UPDATE ranks SET staff = ?, builder = ?, donor = ?, other = ? WHERE uuid = ?")) {
 
             // Check if player exists in ranks table
             queryStatement.setString(1, uuid.toString());
@@ -80,14 +82,16 @@ public class RanksManager {
             if (resultSet.next()) {
                 // Player exists, update their rank
                 int currentStaff = resultSet.getInt("staff");
+                int currentBuilder = resultSet.getInt("builder");
                 int currentDonor = resultSet.getInt("donor");
                 int currentOther = resultSet.getInt("other");
 
                 // Set the values for the update statement
                 updateStatement.setInt(1, branch == Branch.STAFF ? id : currentStaff);
-                updateStatement.setInt(2, branch == Branch.DONOR ? id : currentDonor);
-                updateStatement.setInt(3, branch == Branch.OTHER ? id : currentOther);
-                updateStatement.setString(4, uuid.toString());
+                updateStatement.setInt(2, branch == Branch.BUILDER ? id : currentBuilder);
+                updateStatement.setInt(3, branch == Branch.DONOR ? id : currentDonor);
+                updateStatement.setInt(4, branch == Branch.OTHER ? id : currentOther);
+                updateStatement.setString(5, uuid.toString());
                 updateStatement.executeUpdate();
             } else {
                 // Player does not exist, insert their rank
@@ -95,6 +99,7 @@ public class RanksManager {
                 insertStatement.setInt(2, 0);
                 insertStatement.setInt(3, 0);
                 insertStatement.setInt(4, 0);
+                insertStatement.setInt(5, 0);
                 insertStatement.executeUpdate();
             }
 
@@ -105,6 +110,10 @@ public class RanksManager {
             switch (branch) {
                 case STAFF -> {
                     rank.setStaff(id);
+                    break;
+                }
+                case BUILDER -> {
+                    rank.setBuilder(id);
                     break;
                 }
                 case DONOR -> {
@@ -145,7 +154,7 @@ public class RanksManager {
 
     private Rank createEmpty(ProxiedPlayer player) {
         // Create and return an empty Registry object with default values
-        return new Rank(0, 0, 0);
+        return new Rank(0, 0, 0, 0);
     }
 
     public void invalidateEntry() {

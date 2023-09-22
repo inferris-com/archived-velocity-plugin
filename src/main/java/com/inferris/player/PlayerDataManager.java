@@ -354,7 +354,7 @@ public class PlayerDataManager {
     private PlayerData createEmpty(ProxiedPlayer player) {
         // Create and return an empty Registry object with default values
         return new PlayerData(new Registry(player.getUniqueId(), player.getName()),
-                new Rank(0, 0, 0),
+                new Rank(0, 0, 0, 0),
                 new Profile(null, null, null, 0),
                 new Coins(36), Channels.NONE, VanishState.DISABLED, Server.LOBBY);
     }
@@ -362,7 +362,7 @@ public class PlayerDataManager {
     private PlayerData createEmpty(UUID uuid, String username) {
         // Create and return an empty Registry object with default values
         return new PlayerData(new Registry(uuid, username),
-                new Rank(0, 0, 0),
+                new Rank(0, 0, 0, 0),
                 new Profile(null, null, null, 0),
                 new Coins(36), Channels.NONE, VanishState.DISABLED, Server.LOBBY);
     }

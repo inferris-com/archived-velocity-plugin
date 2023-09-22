@@ -6,6 +6,7 @@ public enum RankRegistry {
     ADMIN(ChatColor.RED + "[Admin]", Branch.STAFF, 3, ChatColor.RED),
     MOD(ChatColor.DARK_GREEN + "[Mod]", Branch.STAFF, 2, ChatColor.DARK_GREEN),
     HELPER(ChatColor.BLUE + "[Helper]", Branch.STAFF, 1, ChatColor.BLUE),
+    BUILDER(ChatColor.GOLD + "[Builder]", Branch.BUILDER, 1, ChatColor.GOLD),
     DONOR(ChatColor.AQUA + "[Backer]", Branch.DONOR, 1, ChatColor.AQUA),
     NONE(String.valueOf(ChatColor.RESET), null, 0, ChatColor.RESET);
 
@@ -28,7 +29,7 @@ public enum RankRegistry {
     public String getPrefix(boolean withSpace) {
         if (withSpace) {
             switch (this) {
-                case ADMIN, MOD, HELPER, DONOR -> {
+                case ADMIN, MOD, HELPER, BUILDER, DONOR -> {
                     return prefix + " ";
                 }
                 default -> {
