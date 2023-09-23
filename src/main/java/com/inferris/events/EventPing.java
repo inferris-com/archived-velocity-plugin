@@ -1,12 +1,7 @@
 package com.inferris.events;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.inferris.Inferris;
-import com.inferris.player.PlayerData;
-import com.inferris.player.registry.Registry;
 import com.inferris.player.registry.RegistryManager;
-import com.inferris.player.vanish.VanishState;
-import com.inferris.util.CacheSerializationUtils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.ServerPing;
@@ -15,8 +10,6 @@ import net.md_5.bungee.api.event.ProxyPingEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import redis.clients.jedis.Jedis;
-
-import java.util.Map;
 
 public class EventPing implements Listener {
 
