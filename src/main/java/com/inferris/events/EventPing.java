@@ -33,10 +33,6 @@ public class EventPing implements Listener {
     // TODO: Vanish count
     private int getTotalVanishedPlayers() {
         int count = 0;
-
-        try (Jedis jedis = RegistryManager.getInstance().getJedisPool().getResource()) {
-
-        }
         return 0;
     }
 }
