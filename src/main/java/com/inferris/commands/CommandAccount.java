@@ -4,7 +4,6 @@ import com.inferris.database.Database;
 import com.inferris.database.DatabasePool;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
-import com.inferris.player.registry.Registry;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.util.DatabaseUtils;
 import com.inferris.util.MessageUtil;
@@ -51,7 +50,6 @@ public class CommandAccount extends Command implements TabExecutor {
                 }
 
                 PlayerData playerData = playerDataManager.getRedisData(uuid, targetName);
-                Registry registry = playerData.getRegistry();
                 String tag = Tags.STAFF.getName(true);
                 ChatColor reset = ChatColor.RESET;
 
@@ -60,12 +58,12 @@ public class CommandAccount extends Command implements TabExecutor {
                 header.setBold(true);
 
                 TextComponent username = new TextComponent(ChatColor.YELLOW + "Username: ");
-                username.addExtra(playerData.getNameColor() + registry.getUsername());
+                username.addExtra(playerData.getNameColor() + playerData.getUsername());
                 username.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to copy username")));
-                username.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, registry.getUsername()));
+                username.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, playerData.getUsername()));
 
 
-                TextComponent prefix = new TextComponent("Ranks: " + playerData.formatRankList(playerData.getTopRanksByBranches()));
+                TextComponent prefix = new TextComponent("Ranks: " + playerData.formatRankList(playerData.getApplicableRanks()));
                 prefix.setColor(ChatColor.YELLOW);
 
                 TextComponent registration_date = new TextComponent(ChatColor.YELLOW + "Registration date: " + reset + playerData.getProfile().getRegistrationDate());
@@ -122,7 +120,6 @@ public class CommandAccount extends Command implements TabExecutor {
                 if(playerData.getProfile().getXenforoId() > 0){
                     MessageUtil.sendMessage(player, xenforoUsername);
                     MessageUtil.sendMessage(player, verified);
-
                 }
                 MessageUtil.sendMessage(player, channel);
                 MessageUtil.sendMessage(player, vanished);
