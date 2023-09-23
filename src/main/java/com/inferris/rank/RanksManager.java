@@ -70,9 +70,9 @@ public class RanksManager {
         boolean isNull = player == null;
 
         try (Connection connection = DatabasePool.getConnection();
-             PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM rank WHERE uuid = ?");
-             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO rank (uuid, staff, builder, donor, other) VALUES (?, ?, ?, ?, ?)");
-             PreparedStatement updateStatement = connection.prepareStatement("UPDATE rank SET staff = ?, builder = ?, donor = ?, other = ? WHERE uuid = ?")) {
+             PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM `rank` WHERE uuid = ?");
+             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO `rank` (uuid, staff, builder, donor, other) VALUES (?, ?, ?, ?, ?)");
+             PreparedStatement updateStatement = connection.prepareStatement("UPDATE `rank` SET staff = ?, builder = ?, donor = ?, other = ? WHERE uuid = ?")) {
 
             // Check if player exists in ranks table
             queryStatement.setString(1, uuid.toString());
@@ -147,7 +147,7 @@ public class RanksManager {
             }
 
         } catch (SQLException e) {
-            return;
+            e.printStackTrace();
         }
     }
 

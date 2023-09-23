@@ -195,7 +195,8 @@ public class PlayerDataManager {
                         // Match found, return the UUID
                         return UUID.fromString(uuid);
                     }
-                } catch (Exception ignored) {
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
             // No match found for the username
