@@ -31,7 +31,7 @@ public class JedisReceive extends JedisPubSub {
 
             try {
                 PlayerData playerData = CacheSerializationUtils.deserializePlayerData(message);
-                ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerData.getRegistry().getUuid());
+                ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerData.getUuid());
                 PlayerDataManager.getInstance().updateAllData(player, playerData);
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
@@ -45,7 +45,7 @@ public class JedisReceive extends JedisPubSub {
             String json = message.substring(parts[0].length() + 1);
 
             PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(uuid);
-            ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerData.getRegistry().getUuid());
+            ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerData.getUuid());
 
 
 

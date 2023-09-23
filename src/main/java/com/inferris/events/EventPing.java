@@ -1,7 +1,6 @@
 package com.inferris.events;
 
 import com.inferris.Inferris;
-import com.inferris.player.registry.RegistryManager;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.ServerPing;

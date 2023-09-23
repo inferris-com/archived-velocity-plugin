@@ -11,7 +11,6 @@ import com.inferris.SerializationModule;
 import com.inferris.database.DatabasePool;
 import com.inferris.database.Tables;
 import com.inferris.player.coins.Coins;
-import com.inferris.player.registry.RegistryManager;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
