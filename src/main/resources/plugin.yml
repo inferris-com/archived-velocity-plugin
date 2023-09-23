@@ -40,3 +40,5 @@ commands:
     description: Locate a player
   friend:
     description: Friends
+  resync:
+    description: Admin command
