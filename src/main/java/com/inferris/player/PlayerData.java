@@ -3,7 +3,6 @@ package com.inferris.player;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.inferris.player.coins.Coins;
 import com.inferris.player.coins.CoinsManager;
-import com.inferris.player.registry.Registry;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
@@ -18,6 +17,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Represents the data associated with a player, including their {@link Registry} information, {@link Rank}, and {@link Coins}.
@@ -25,8 +25,9 @@ import java.util.List;
  * @since 1.0
  */
 public class PlayerData implements PlayerDataService, Serializable {
+    private UUID uuid;
+    private String username;
 
-    private Registry registry;
     private Rank rank;
     private Profile profile;
     private Coins coins;
@@ -34,8 +35,9 @@ public class PlayerData implements PlayerDataService, Serializable {
     private VanishState vanishState;
     private Server currentServer;
 
-    public PlayerData(Registry registry, Rank rank, Profile profile, Coins coins, Channels channel, VanishState vanishState, Server currentServer) {
-        this.registry = registry;
+    public PlayerData(UUID uuid, String username, Rank rank, Profile profile, Coins coins, Channels channel, VanishState vanishState, Server currentServer) {
+        this.uuid = uuid;
+        this.username = username;
         this.rank = rank;
         this.profile = profile;
         this.coins = coins;
@@ -48,8 +50,12 @@ public class PlayerData implements PlayerDataService, Serializable {
 
     }
 
-    public Registry getRegistry() {
-        return registry;
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    public String getUsername() {
+        return username;
     }
 
     public Rank getRank() {
@@ -88,7 +94,7 @@ public class PlayerData implements PlayerDataService, Serializable {
     }
 
     public void setCoins(int amount) {
-        CoinsManager.setCoins(registry.getUuid(), amount);
+        CoinsManager.setCoins(getUuid(), amount);
     }
 
     /**
@@ -100,14 +106,14 @@ public class PlayerData implements PlayerDataService, Serializable {
      */
 
     public void setRank(Branch branch, int level) {
-        RanksManager.getInstance().setRank(registry.getUuid(), branch, level);
+        RanksManager.getInstance().setRank(getUuid(), branch, level);
     }
 
     public void setRank(Branch branch, int level, boolean hasMessage) {
-        RanksManager.getInstance().setRank(registry.getUuid(), branch, level);
-        if (ProxyServer.getInstance().getPlayer(registry.getUuid()) != null) {
-            if (ProxyServer.getInstance().getPlayer(registry.getUuid()).isConnected()) {
-                ProxiedPlayer player = ProxyServer.getInstance().getPlayer(registry.getUuid());
+        RanksManager.getInstance().setRank(uuid, branch, level);
+        if (ProxyServer.getInstance().getPlayer(uuid) != null) {
+            if (ProxyServer.getInstance().getPlayer(getUuid()).isConnected()) {
+                ProxiedPlayer player = ProxyServer.getInstance().getPlayer(getUuid());
                 if (hasMessage) player.sendMessage(new TextComponent(ChatColor.GREEN + "Your rank has been set"));
             }
         }
@@ -129,67 +135,6 @@ public class PlayerData implements PlayerDataService, Serializable {
         return rank.getBranchID(branch);
     }
 
-    /**
-     * Returns a list of {@link RankRegistry} objects based on the branches of the player's rank.
-     * The returned list includes all applicable branches based on the player's rank.
-     *
-     * @return A list of RankRegistry objects representing the branches of the player's rank.
-     * @since 1.0
-     */
-
-    @JsonIgnore
-    public List<RankRegistry> getByBranches() {
-        List<RankRegistry> ranks = new ArrayList<>();
-        int staff = rank.getStaff();
-        int builder = rank.getBuilder();
-        int donor = rank.getDonor();
-
-        if (staff >= 3) {
-            ranks.add(RankRegistry.ADMIN);
-        } else if (staff == 2) {
-            ranks.add(RankRegistry.MOD);
-        } else if (staff == 1) {
-            ranks.add(RankRegistry.HELPER);
-        }
-        if (builder == 1) {
-            ranks.add(RankRegistry.BUILDER);
-        }
-        if (donor == 1) {
-            ranks.add(RankRegistry.DONOR);
-        }
-
-        return ranks;
-    }
-
-    /**
-     * Retrieves the top ranks from each branch (staff and donor) for the player.
-     * Only the highest rank from each branch will be included in the list.
-     *
-     * @return A list of the top ranks from each branch.
-     */
-
-    @JsonIgnore
-    public List<RankRegistry> getTopRanksByBranches() {
-        List<RankRegistry> ranks = new ArrayList<>();
-        int staff = rank.getStaff();
-
-        switch (staff) {
-            case 4,3 -> ranks.add(RankRegistry.ADMIN);
-            case 2 -> ranks.add(RankRegistry.MOD);
-            case 1 -> ranks.add(RankRegistry.HELPER);
-        }
-
-        if (rank.getBuilder() == 1) {
-            ranks.add(RankRegistry.BUILDER);
-        }
-
-        if (rank.getDonor() == 1) {
-            ranks.add(RankRegistry.DONOR);
-        }
-
-        return ranks;
-    }
-
     @JsonIgnore
     public String formatRankList(List<RankRegistry> ranks) {
         StringBuilder sb = new StringBuilder();
@@ -203,6 +148,38 @@ public class PlayerData implements PlayerDataService, Serializable {
         return sb.toString();
     }
 
+
+
+    /**
+     * Retrieves the top ranks from each branch (staff and donor) for the player.
+     * Only the highest rank from each branch will be included in the list.
+     *
+     * @return A list of the top ranks from each branch.
+     */
+
+    @JsonIgnore
+    public List<RankRegistry> getApplicableRanks() {
+        List<RankRegistry> ranks = new ArrayList<>();
+        int staff = rank.getStaff();
+        int builder = rank.getBuilder();
+        int donor = rank.getDonor();
+
+        switch (staff) {
+            case 4,3 -> ranks.add(RankRegistry.ADMIN);
+            case 2 -> ranks.add(RankRegistry.MOD);
+            case 1 -> ranks.add(RankRegistry.HELPER);
+        }
+
+        if (builder == 1) {
+            ranks.add(RankRegistry.BUILDER);
+        }
+
+        if (donor == 1) {
+            ranks.add(RankRegistry.DONOR);
+        }
+
+        return ranks;
+    }
 
     /**
      * Returns the {@link RankRegistry} associated with the highest branch of the player's rank.
