@@ -87,16 +87,16 @@ public class CommandReport extends Command implements TabExecutor {
 
                 PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(player.getUniqueId());
                 PlayerData targetPlayerData = PlayerDataManager.getInstance().getRedisDataOrNull(uuid);
-                String username = targetPlayerData.getRegistry().getUsername();
+                String username = targetPlayerData.getUsername();
 
                 ReportPayload reportPayload = new ReportPayload(
                         playerData.getByBranch().getPrefix(true) + playerData.getNameColor() + player.getName(),
-                        targetPlayerData.getRegistry().getUsername(), stringBuilder,
+                        targetPlayerData.getUsername(), stringBuilder,
                         player.getServer().getInfo().getName());
 
                 TextComponent reportedPlayer = createClickableTextComponent(
                         ChatColor.GRAY + "Reported: " + ChatColor.YELLOW + reportPayload.getReported(),
-                        "Click to copy username", targetPlayerData.getRegistry().getUsername(), ClickEvent.Action.COPY_TO_CLIPBOARD);
+                        "Click to copy username", targetPlayerData.getUsername(), ClickEvent.Action.COPY_TO_CLIPBOARD);
 
                 TextComponent info = createClickableTextComponent(
                         ChatColor.GREEN + "[Infractions]", ChatColor.GREEN + "Click to view info",
@@ -114,7 +114,7 @@ public class CommandReport extends Command implements TabExecutor {
                         ChatColor.AQUA + "Click to join server", "/server " + reportPayload.getServer(), ClickEvent.Action.RUN_COMMAND);
 
                 TextComponent senderPlayer = createClickableTextComponent(
-                        ChatColor.GRAY + "Reported by: " + ChatColor.RESET + reportPayload.getSender(), "Click to copy username", playerData.getRegistry().getUsername(), ClickEvent.Action.COPY_TO_CLIPBOARD);
+                        ChatColor.GRAY + "Reported by: " + ChatColor.RESET + reportPayload.getSender(), "Click to copy username", playerData.getUsername(), ClickEvent.Action.COPY_TO_CLIPBOARD);
 
                 TextComponent logs = createClickableTextComponent(
                         ChatColor.GRAY + "Use " + ChatColor.AQUA + "/viewlogs " + reportPayload.getServer()

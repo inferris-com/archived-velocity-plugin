@@ -48,7 +48,7 @@ public class CommandLocate extends Command implements TabExecutor {
 
         player.sendMessage(new TextComponent(ChatColor.GRAY + "Player " +
                 targetData.getNameColor() +
-                targetData.getByBranch().getPrefix(true) + targetData.getRegistry().getUsername() + ChatColor.GRAY +
+                targetData.getByBranch().getPrefix(true) + targetData.getUsername() + ChatColor.GRAY +
                 " is " + ChatColor.GREEN + "online"));
         player.sendMessage(new TextComponent(ChatColor.GRAY + "Server: " + ChatColor.GOLD + targetData.getCurrentServer().converted()));
     }

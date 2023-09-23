@@ -92,7 +92,7 @@ public class FriendsManager {
                 if (targetPlayer != null) {
                     PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(playerUUID);
                     targetPlayer.sendMessage(new TextComponent(ChatColor.GREEN + "You received a friend request from " +
-                            playerData.getByBranch().getPrefix(true) + playerData.getRegistry().getUsername()));
+                            playerData.getByBranch().getPrefix(true) + playerData.getUsername()));
                 }
             } catch (IllegalArgumentException e) {
                 ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerUUID);
@@ -134,7 +134,7 @@ public class FriendsManager {
                 playerFriends.removeFriend(targetUUID);
                 targetFriends.removeFriend(playerUUID);
                 ProxyServer.getInstance().getPlayer(playerUUID).sendMessage(new TextComponent(ChatColor.GREEN + "You have removed "
-                        + targetData.getByBranch().getPrefix(true) + targetData.getRegistry().getUsername() + ChatColor.GREEN + " as a friend"));
+                        + targetData.getByBranch().getPrefix(true) + targetData.getUsername() + ChatColor.GREEN + " as a friend"));
             } catch (IllegalArgumentException e) {
                 ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerUUID);
                 if (player != null) {
@@ -164,7 +164,7 @@ public class FriendsManager {
                 ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerUUID);
 
                 targetFriends.removePendingFriendRequest(playerUUID);
-                player.sendMessage(new TextComponent(ChatColor.GREEN + "Rejected " + targetData.getRegistry().getUsername() + "'s friend request"));
+                player.sendMessage(new TextComponent(ChatColor.GREEN + "Rejected " + targetData.getUsername() + "'s friend request"));
                 jedis.hset("friends", targetUUID.toString(), CacheSerializationUtils.serializeFriends(targetFriends));
                 updateCache(targetUUID, targetFriends);
 
@@ -208,22 +208,22 @@ public class FriendsManager {
         // Custom comparator to prioritize online players first, then sort alphabetically
         Comparator<PlayerData> playerComparator = Comparator.comparing((PlayerData playerData) -> {
 
-            if (ProxyServer.getInstance().getPlayer(playerData.getRegistry().getUuid()) != null || playerData.getVanishState() == VanishState.DISABLED) {
+            if (ProxyServer.getInstance().getPlayer(playerData.getUuid()) != null || playerData.getVanishState() == VanishState.DISABLED) {
                 return 0; // Online players
             } else {
                 return 1; // Offline players
             }
-        }).thenComparing(playerData -> playerData.getRegistry().getUsername());
+        }).thenComparing(playerData -> playerData.getUsername());
 
         // Sort the playerDataList based on the custom comparator
         playerDataList.sort(playerComparator);
 
         for (int i = startIndex; i < endIndex; i++) {
             PlayerData playerData = playerDataList.get(i);
-            UUID friendUUID = playerData.getRegistry().getUuid();
+            UUID friendUUID = playerData.getUuid();
             ProxiedPlayer friendPlayer = ProxyServer.getInstance().getPlayer(friendUUID);
 
-            String playerName = playerData.getRegistry().getUsername();
+            String playerName = playerData.getUsername();
             String prefix = playerData.getByBranch().getPrefix(true);
             String playerStr = ChatColor.YELLOW + "Player ";
             String is = ChatColor.YELLOW + " is";
