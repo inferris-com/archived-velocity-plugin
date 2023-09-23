@@ -51,7 +51,7 @@ public class CommandVanish extends Command implements TabExecutor {
     }
 
     private void updateDatabase(ProxiedPlayer player, int isVanished) {
-        String sql = "UPDATE players SET vanished = ? WHERE uuid = ?";
+        String sql = "UPDATE player_data SET vanished = ? WHERE uuid = ?";
         Object vanished = isVanished;
         Object uuid = player.getUniqueId().toString();
 

@@ -1,6 +1,5 @@
 package com.inferris.commands;
 
-import com.inferris.Inferris;
 import com.inferris.Messages;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;

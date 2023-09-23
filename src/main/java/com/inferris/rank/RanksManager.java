@@ -40,8 +40,8 @@ public class RanksManager {
     public Rank loadRanks(ProxiedPlayer player) {
         Inferris.getInstance().getLogger().warning("Loading ranks");
         try (Connection connection = DatabasePool.getConnection();
-             PreparedStatement statement = connection.prepareStatement("SELECT staff, builder, donor, other FROM rank WHERE `uuid` = ?");
-             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO rank (uuid, staff, builder, donor, other) VALUES (?,?,?,?,?)")) {
+             PreparedStatement statement = connection.prepareStatement("SELECT staff, builder, donor, other FROM `rank` WHERE `uuid` = ?");
+             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO `rank` (uuid, staff, builder, donor, other) VALUES (?,?,?,?,?)")) {
             statement.setString(1, String.valueOf(player.getUniqueId()));
             ResultSet rs = statement.executeQuery();
 

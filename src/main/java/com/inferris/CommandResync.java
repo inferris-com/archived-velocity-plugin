@@ -41,7 +41,7 @@ public class CommandResync extends Command {
 
             try {
                 connection = DatabasePool.getConnection();
-                ResultSet resultSet = DatabaseUtils.executeQuery(connection, "ranks", columnNames, "uuid = ?", player.getUniqueId());
+                ResultSet resultSet = DatabaseUtils.executeQuery(connection, "rank", columnNames, "uuid = ?", player.getUniqueId());
 
                 while (resultSet.next()) {
                     staffRank = resultSet.getInt("staff");
@@ -64,7 +64,7 @@ public class CommandResync extends Command {
         int otherRank = 0;
 
         try (Connection connection = DatabasePool.getConnection();
-             ResultSet resultSet = DatabaseUtils.executeQuery(connection, "ranks", columnNames, "uuid = ?", player.getUniqueId())) {
+             ResultSet resultSet = DatabaseUtils.executeQuery(connection, "rank", columnNames, "uuid = ?", player.getUniqueId())) {
             while (resultSet.next()) {
                 staffRank = resultSet.getInt("staff");
                 builderRank = resultSet.getInt("builder");
@@ -82,7 +82,7 @@ public class CommandResync extends Command {
         Map<String, Object> playerData = new HashMap<>();
 
         try (Connection connection = DatabasePool.getConnection();
-             ResultSet resultSet = DatabaseUtils.executeQuery(connection, "players", columnNames, "uuid = ?", player.getUniqueId())) {
+             ResultSet resultSet = DatabaseUtils.executeQuery(connection, "player_data", columnNames, "uuid = ?", player.getUniqueId())) {
             while (resultSet.next()) {
                 playerData.put("coins", resultSet.getInt(1));
                 playerData.put("channel", Channels.valueOf(resultSet.getString(2)));

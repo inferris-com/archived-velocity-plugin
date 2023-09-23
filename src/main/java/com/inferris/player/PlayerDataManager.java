@@ -177,6 +177,7 @@ public class PlayerDataManager {
      * @return The UUID corresponding to the provided username, or null if no match is found.
      */
 
+    // TODO: Make this better. Use getRedisOrNull, or something.
     public UUID getUUIDByUsername(String username) {
         try (Jedis jedis = jedisPool.getResource()) {
             Map<String, String> playerDataEntries = jedis.hgetAll("playerdata");
@@ -188,7 +189,7 @@ public class PlayerDataManager {
                 // Parse the value as JSON to access the username field
                 try {
                     JsonElement jsonElement = gson.fromJson(entry.getValue(), JsonElement.class);
-                    String entryUsername = jsonElement.getAsJsonObject().getAsJsonObject("registry").get("username").getAsString();
+                    String entryUsername = jsonElement.getAsJsonObject().get("username").getAsString();
 
                     if (entryUsername.equalsIgnoreCase(username)) {
                         // Match found, return the UUID
@@ -318,12 +319,12 @@ public class PlayerDataManager {
                 insertPlayersStatement.setInt(3, 36);
                 insertPlayersStatement.setString(4, String.valueOf(Channels.NONE));
                 insertPlayersStatement.setInt(5, 0);
-                insertPlayersStatement.setObject(6, LocalDate.now());
                 insertPlayersStatement.execute();
 
                 insertProfileStatement.setString(1, player.getUniqueId().toString());
-                insertProfileStatement.setString(2, null);
+                insertProfileStatement.setString(2, String.valueOf(LocalDate.now()));
                 insertProfileStatement.setString(3, null);
+                insertProfileStatement.setString(4, null);
                 insertProfileStatement.execute();
 
                 Inferris.getInstance().getLogger().severe("Added player to table");

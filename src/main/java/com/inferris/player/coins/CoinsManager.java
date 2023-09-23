@@ -21,7 +21,7 @@ public class CoinsManager {
         ProxiedPlayer player = ProxyServer.getInstance().getPlayer(uuid);
         boolean isNull = player == null;
         try (Connection connection = DatabasePool.getConnection();
-             PreparedStatement updateStatement = connection.prepareStatement("UPDATE players SET coins = ? WHERE uuid = ?")){
+             PreparedStatement updateStatement = connection.prepareStatement("UPDATE player_data SET coins = ? WHERE uuid = ?")){
             updateStatement.setInt(1, amount);
             updateStatement.setString(2, uuid.toString());
             updateStatement.executeUpdate();

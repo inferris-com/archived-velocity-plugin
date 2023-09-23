@@ -19,7 +19,7 @@ public class Initializer {
     @Deprecated
     public void loadPlayerRegistry() {
         try (Connection connection = DatabasePool.getConnection();
-             PreparedStatement query = connection.prepareStatement("SELECT * FROM players")) {
+             PreparedStatement query = connection.prepareStatement("SELECT * FROM player_data")) {
 
             ResultSet resultSet = query.executeQuery();
 
