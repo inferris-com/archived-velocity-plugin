@@ -1,15 +1,17 @@
 package com.inferris.player;
 
 import com.inferris.player.coins.Coins;
-import com.inferris.player.registry.Registry;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
 import net.md_5.bungee.api.ChatColor;
 
+import java.util.UUID;
+
 public interface PlayerDataService {
 
-    Registry getRegistry();
+    UUID getUuid();
+    String getUsername();
     Rank getRank();
     Profile getProfile();
     Coins getCoins();

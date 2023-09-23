@@ -157,12 +157,6 @@ public class RanksManager {
         return new Rank(0, 0, 0, 0);
     }
 
-    public void invalidateEntry() {
-        try (Jedis jedis = RegistryManager.getInstance().getJedisPool().getResource()) {
-            jedis.del("playerdata");
-        }
-    }
-
     public JedisPool getJedisPool() {
         return jedisPool;
     }

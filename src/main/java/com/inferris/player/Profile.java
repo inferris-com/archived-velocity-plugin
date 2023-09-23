@@ -3,30 +3,29 @@ package com.inferris.player;
 import java.time.LocalDate;
 
 public class Profile {
+    private LocalDate registrationDate;
     private String bio;
     private String pronouns;
-    private LocalDate registrationDate;
     private int xenforoId;
-    public Profile(String bio, String pronouns, LocalDate registrationDate, int xenforoId){
+    public Profile(LocalDate registrationDate, String bio, String pronouns, int xenforoId){
+        this.registrationDate = registrationDate;
         this.bio = bio;
         this.pronouns = pronouns;
-        this.registrationDate = registrationDate;
         this.xenforoId = xenforoId;
     }
 
     public Profile(){
     }
 
+    public LocalDate getRegistrationDate() {
+        return registrationDate;
+    }
     public String getBio() {
         return bio;
     }
 
     public String getPronouns() {
         return pronouns;
-    }
-
-    public LocalDate getRegistrationDate() {
-        return registrationDate;
     }
 
     public void setBio(String bio) {

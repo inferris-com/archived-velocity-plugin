@@ -12,7 +12,6 @@ import com.inferris.player.Profile;
 import com.inferris.player.coins.Coins;
 import com.inferris.player.PlayerData;
 import com.inferris.player.friends.Friends;
-import com.inferris.player.registry.Registry;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Rank;
 import com.inferris.server.Server;
@@ -24,11 +23,11 @@ import java.util.UUID;
 public class SerializationModule extends SimpleModule {
 
     public SerializationModule() {
-        addDeserializer(Registry.class, new RegistryDeserializer());
+        //addDeserializer(Registry.class, new RegistryDeserializer());
         addDeserializer(PlayerData.class, new PlayerDataDeserializer());
         addDeserializer(Friends.class, new FriendsDeserializer());
 
-        addSerializer(Registry.class, new RegistrySerializer());
+        //addSerializer(Registry.class, new RegistrySerializer());
         addSerializer(PlayerData.class, new PlayerDataSerializer());
         addSerializer(Friends.class, new FriendsSerializer());
     }
@@ -77,7 +76,8 @@ public class SerializationModule extends SimpleModule {
             objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY).disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 
             jsonGenerator.writeStartObject();
-            jsonGenerator.writeObjectField("registry", playerData.getRegistry());
+            jsonGenerator.writeStringField("uuid", playerData.getUuid().toString());
+            jsonGenerator.writeStringField("username", playerData.getUsername());
             jsonGenerator.writeObjectField("rank", playerData.getRank());
             jsonGenerator.writeObjectField("profile", playerData.getProfile());
             jsonGenerator.writeObjectField("coins", playerData.getCoins());
@@ -98,7 +98,8 @@ public class SerializationModule extends SimpleModule {
             ObjectMapper objectMapper = (ObjectMapper) jsonParser.getCodec();
             JsonNode registryNode = objectMapper.readTree(jsonParser);
 
-            Registry registry = objectMapper.treeToValue(registryNode.get("registry"), Registry.class);
+            UUID uuid = UUID.fromString(registryNode.get("uuid").asText());
+            String username = registryNode.get("username").asText();
             Rank rank = objectMapper.treeToValue(registryNode.get("rank"), Rank.class);
             Profile profile = objectMapper.treeToValue(registryNode.get("profile"), Profile.class);
             Coins coins = objectMapper.treeToValue(registryNode.get("coins"), Coins.class);
@@ -107,34 +108,34 @@ public class SerializationModule extends SimpleModule {
             Server currentServer = objectMapper.treeToValue(registryNode.get("currentServer"), Server.class);
 
 
-            return new PlayerData(registry, rank, profile, coins, channel, vanishState, currentServer);
+            return new PlayerData(uuid, username, rank, profile, coins, channel, vanishState, currentServer);
         }
     }
 
-    public static class RegistrySerializer extends JsonSerializer<Registry> {
-        private final ObjectMapper objectMapper = new ObjectMapper();
-
-        @Override
-        public void serialize(Registry registry, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
-            // Serialize the cache contents or any other relevant information
-            objectMapper.configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, false);
-
-            String serializedCache = objectMapper.writeValueAsString(registry);
-            //jsonGenerator.writeString(serializedCache);
-            jsonGenerator.writeRawValue(serializedCache);
-        }
-    }
-
-    public static class RegistryDeserializer extends JsonDeserializer<Registry> {
-        @Override
-        public Registry deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
-            ObjectMapper objectMapper = (ObjectMapper) jsonParser.getCodec();
-            JsonNode registryNode = objectMapper.readTree(jsonParser);
-
-            UUID uuid = UUID.fromString(registryNode.get("uuid").asText());
-            String username = registryNode.get("username").asText();
-
-            return new Registry(uuid, username);
-        }
-    }
+//    public static class RegistrySerializer extends JsonSerializer<Registry> {
+//        private final ObjectMapper objectMapper = new ObjectMapper();
+//
+//        @Override
+//        public void serialize(Registry registry, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+//            // Serialize the cache contents or any other relevant information
+//            objectMapper.configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, false);
+//
+//            String serializedCache = objectMapper.writeValueAsString(registry);
+//            //jsonGenerator.writeString(serializedCache);
+//            jsonGenerator.writeRawValue(serializedCache);
+//        }
+//    }
+//
+//    public static class RegistryDeserializer extends JsonDeserializer<Registry> {
+//        @Override
+//        public Registry deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
+//            ObjectMapper objectMapper = (ObjectMapper) jsonParser.getCodec();
+//            JsonNode registryNode = objectMapper.readTree(jsonParser);
+//
+//            UUID uuid = UUID.fromString(registryNode.get("uuid").asText());
+//            String username = registryNode.get("username").asText();
+//
+//            return new Registry(uuid, username);
+//        }
+//    }
 }

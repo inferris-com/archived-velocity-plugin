@@ -8,13 +8,14 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.inferris.Inferris;
 import com.inferris.SerializationModule;
+import com.inferris.database.DatabasePool;
+import com.inferris.database.Tables;
 import com.inferris.player.coins.Coins;
-import com.inferris.player.registry.Registry;
 import com.inferris.player.registry.RegistryManager;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
-import com.inferris.rank.RanksManager;;
+import com.inferris.rank.RanksManager;
 import com.inferris.server.Server;
 import com.inferris.server.ServerState;
 import com.inferris.server.ServerStateManager;
@@ -25,6 +26,10 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.UUID;
@@ -147,6 +152,7 @@ public class PlayerDataManager {
     /**
      * Retrieves the Redis data associated with the given player.
      * If no data is found, it returns null.
+     *
      * @param uuid The unique identifier
      * @return Either the {@link PlayerData} object, or null, if no data is found
      * @since 1.0
@@ -166,9 +172,10 @@ public class PlayerDataManager {
     }
 
     /**
-     Retrieves the UUID associated with a given username from player data stored in Redis.
-     @param username The username to search for.
-     @return The UUID corresponding to the provided username, or null if no match is found.
+     * Retrieves the UUID associated with a given username from player data stored in Redis.
+     *
+     * @param username The username to search for.
+     * @return The UUID corresponding to the provided username, or null if no match is found.
      */
 
     public UUID getUUIDByUsername(String username) {
@@ -197,9 +204,10 @@ public class PlayerDataManager {
     }
 
     /**
-     Checks if a given username has a corresponding UUID in the player data stored in Redis.
-     @param username The username to check.
-     @return {@code true} if a match is found for the username, {@code false} otherwise.
+     * Checks if a given username has a corresponding UUID in the player data stored in Redis.
+     *
+     * @param username The username to check.
+     * @return {@code true} if a match is found for the username, {@code false} otherwise.
      */
 
     public boolean hasUUIDByUsername(String username) {
@@ -293,10 +301,9 @@ public class PlayerDataManager {
                 ServerUtil.log("Not in registry, caching", Level.WARNING, ServerState.DEBUG);
 
                 Rank rank = RanksManager.getInstance().getRank(player);
-                Registry registry = RegistryManager.getInstance().getRegistry(player, rank);
 
                 // todo: default values, change to database values
-                PlayerData playerData = new PlayerData(registry, rank, new Profile(null, null, LocalDate.now(), 0), new Coins(PlayerDefaults.COIN_BALANCE.getValue()), Channels.NONE, VanishState.DISABLED, Server.LOBBY);
+                PlayerData playerData = new PlayerData(player.getUniqueId(), player.getName(), rank, new Profile(LocalDate.now(), null, null, 0), new Coins(PlayerDefaults.COIN_BALANCE.getValue()), Channels.NONE, VanishState.DISABLED, Server.LOBBY);
                 String playerDataJson = CacheSerializationUtils.serializePlayerData(playerData);
                 jedis.hset("playerdata", playerUUID.toString(), playerDataJson);
 
@@ -323,7 +330,6 @@ public class PlayerDataManager {
             Inferris.getInstance().getLogger().severe(String.valueOf(playerData.getRank().getBranchID(Branch.STAFF)));
             Inferris.getInstance().getLogger().severe(String.valueOf(playerData.getVanishState()));
             Inferris.getInstance().getLogger().severe(String.valueOf(playerData.getChannel()));
-            Inferris.getInstance().getLogger().severe(playerData.getRegistry().getUsername());
             Inferris.getInstance().getLogger().severe(String.valueOf(playerData.getCoins().getBalance()));
         }
     }
@@ -332,28 +338,77 @@ public class PlayerDataManager {
         try (Jedis jedis = jedisPool.getResource()) {
             PlayerData deserializedPlayerData = CacheSerializationUtils.deserializePlayerData(jedis.hget("playerdata", player.getUniqueId().toString()));
 
-            if (!deserializedPlayerData.getRegistry().getUsername().equals(player.getName())) {
+            if (!deserializedPlayerData.getUsername().equals(player.getName())) {
                 logger.info("Username is different");
 
                 PlayerData redisData = getRedisData(player);
 
-                Registry registry = new Registry(player.getUniqueId(), player.getName());
-                Profile profile = new Profile(redisData.getProfile().getBio(), redisData.getProfile().getPronouns(), redisData.getProfile().getRegistrationDate(), redisData.getProfile().getXenforoId());
-                PlayerData playerData = new PlayerData(registry, redisData.getRank(), profile, redisData.getCoins(), redisData.getChannel(), redisData.getVanishState(), redisData.getCurrentServer());
+                Profile profile = new Profile(redisData.getProfile().getRegistrationDate(), redisData.getProfile().getBio(), redisData.getProfile().getPronouns(), redisData.getProfile().getXenforoId());
+                PlayerData playerData = new PlayerData(player.getUniqueId(), player.getName(), redisData.getRank(), profile, redisData.getCoins(), redisData.getChannel(), redisData.getVanishState(), redisData.getCurrentServer());
                 jedis.hset("playerdata", player.getUniqueId().toString(), CacheSerializationUtils.serializePlayerData(playerData));
                 caffeineCache.put(player.getUniqueId(), playerData);
 
                 Inferris.getInstance().getLogger().warning("Updated username!");
-                player.sendMessage(new TextComponent(caffeineCache.getIfPresent(player.getUniqueId()).getRegistry().getUsername()));
+                player.sendMessage(new TextComponent(caffeineCache.getIfPresent(player.getUniqueId()).getUsername()));
             }
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
     }
 
+    public void updatePlayerDataAndProfile(ProxiedPlayer player, Rank rank) {
+        try (Connection connection = DatabasePool.getConnection();
+             PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM " + Tables.PLAYER_DATA.getName() + " WHERE uuid = ?");
+             PreparedStatement insertPlayersStatement = connection.prepareStatement("INSERT INTO " + Tables.PLAYER_DATA.getName() + " (uuid, username, coins, channel, vanished) VALUES (?, ?, ?, ?, ?)");
+             PreparedStatement insertProfileStatement = connection.prepareStatement("INSERT INTO " + Tables.PROFILE.getName() + " (uuid, join_date, bio, pronouns) VALUES (?, ?, ?, ?)");
+             PreparedStatement updateStatement = connection.prepareStatement("UPDATE " + Tables.PLAYER_DATA.getName() + " SET username = ? WHERE uuid = ?")) {
+
+            queryStatement.setString(1, player.getUniqueId().toString());
+            ResultSet resultSet = queryStatement.executeQuery();
+
+            /* If they are in the database */
+
+            if (resultSet.next()) {
+                String storedUsername = resultSet.getString("username");
+                int vanished = resultSet.getInt("vanished");
+                VanishState vanishState = VanishState.DISABLED;
+
+                if (vanished == 1 || rank.getBranchID(Branch.STAFF) >= 3) {
+                    vanishState = VanishState.ENABLED;
+                }
+                Inferris.getInstance().getLogger().info("Properly in table");
+
+                if (!storedUsername.equals(player.getName())) {
+                    updateStatement.setString(1, player.getName());
+                    updateStatement.setString(2, player.getUniqueId().toString());
+                    updateStatement.executeUpdate();
+                    Inferris.getInstance().getLogger().warning("Updated username (getRegistry)");
+                }
+            } else {
+                Inferris.getInstance().getLogger().warning("Inserting into table.");
+                insertPlayersStatement.setString(1, player.getUniqueId().toString());
+                insertPlayersStatement.setString(2, player.getName());
+                insertPlayersStatement.setInt(3, 36);
+                insertPlayersStatement.setString(4, String.valueOf(Channels.NONE));
+                insertPlayersStatement.setInt(5, 0);
+                insertPlayersStatement.setObject(6, LocalDate.now());
+                insertPlayersStatement.execute();
+
+                insertProfileStatement.setString(1, player.getUniqueId().toString());
+                insertProfileStatement.setString(2, null);
+                insertProfileStatement.setString(3, null);
+                insertProfileStatement.execute();
+
+                Inferris.getInstance().getLogger().severe("Added player to table");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     private PlayerData createEmpty(ProxiedPlayer player) {
         // Create and return an empty Registry object with default values
-        return new PlayerData(new Registry(player.getUniqueId(), player.getName()),
+        return new PlayerData(player.getUniqueId(), player.getName(),
                 new Rank(0, 0, 0, 0),
                 new Profile(null, null, null, 0),
                 new Coins(36), Channels.NONE, VanishState.DISABLED, Server.LOBBY);
@@ -361,7 +416,7 @@ public class PlayerDataManager {
 
     private PlayerData createEmpty(UUID uuid, String username) {
         // Create and return an empty Registry object with default values
-        return new PlayerData(new Registry(uuid, username),
+        return new PlayerData(uuid, username,
                 new Rank(0, 0, 0, 0),
                 new Profile(null, null, null, 0),
                 new Coins(36), Channels.NONE, VanishState.DISABLED, Server.LOBBY);

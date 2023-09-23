@@ -8,22 +8,10 @@ import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.google.common.io.ByteArrayDataOutput;
-import com.google.common.io.ByteStreams;
 import com.inferris.SerializationModule;
 import com.inferris.player.PlayerData;
 import com.inferris.player.friends.Friends;
-import com.inferris.player.registry.Registry;
-import com.inferris.player.registry.RegistryManager;
 import com.inferris.rank.Rank;
-import com.inferris.server.BungeeChannel;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.md_5.bungee.api.event.PluginMessageEvent;
-import redis.clients.jedis.Jedis;
-
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
 
 public class CacheSerializationUtils {
 
