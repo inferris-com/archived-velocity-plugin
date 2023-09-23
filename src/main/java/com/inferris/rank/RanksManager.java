@@ -40,8 +40,8 @@ public class RanksManager {
     public Rank loadRanks(ProxiedPlayer player) {
         Inferris.getInstance().getLogger().warning("Loading ranks");
         try (Connection connection = DatabasePool.getConnection();
-             PreparedStatement statement = connection.prepareStatement("SELECT staff, builder, donor, other FROM ranks WHERE `uuid` = ?");
-             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO ranks (uuid, staff, builder, donor, other) VALUES (?,?,?,?,?)")) {
+             PreparedStatement statement = connection.prepareStatement("SELECT staff, builder, donor, other FROM rank WHERE `uuid` = ?");
+             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO rank (uuid, staff, builder, donor, other) VALUES (?,?,?,?,?)")) {
             statement.setString(1, String.valueOf(player.getUniqueId()));
             ResultSet rs = statement.executeQuery();
 
@@ -70,9 +70,9 @@ public class RanksManager {
         boolean isNull = player == null;
 
         try (Connection connection = DatabasePool.getConnection();
-             PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM ranks WHERE uuid = ?");
-             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO ranks (uuid, staff, builder, donor, other) VALUES (?, ?, ?, ?, ?)");
-             PreparedStatement updateStatement = connection.prepareStatement("UPDATE ranks SET staff = ?, builder = ?, donor = ?, other = ? WHERE uuid = ?")) {
+             PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM rank WHERE uuid = ?");
+             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO rank (uuid, staff, builder, donor, other) VALUES (?, ?, ?, ?, ?)");
+             PreparedStatement updateStatement = connection.prepareStatement("UPDATE rank SET staff = ?, builder = ?, donor = ?, other = ? WHERE uuid = ?")) {
 
             // Check if player exists in ranks table
             queryStatement.setString(1, uuid.toString());
