@@ -1,6 +1,9 @@
 package com.inferris.rank;
 
 public enum Permission {
+    // TODO: Make inheritance
+    RESYNC("inferris.admin.resync", RankRegistry.ADMIN),
+    SHOUT("inferris.admin.shout", RankRegistry.ADMIN),
     TEST("inf.test", RankRegistry.ADMIN),
     LITEBANS_BAN("litebans.ban", RankRegistry.ADMIN),
     LITEBANS_IPBAN("litebans.ipban", RankRegistry.ADMIN),

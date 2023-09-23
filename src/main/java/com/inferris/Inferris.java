@@ -63,6 +63,7 @@ public class Inferris extends Plugin {
         pluginManager.registerCommand(this, new CommandLocate("locate"));
         pluginManager.registerCommand(this, new CommandFriend("friend"));
         pluginManager.registerCommand(this, new CommandResync("resync", "inferris.admin.resync"));
+        pluginManager.registerCommand(this, new CommandShout("shout"));
 
         getProxy().registerChannel(BungeeChannel.STAFFCHAT.getName());
         getProxy().registerChannel(BungeeChannel.PLAYER_REGISTRY.getName());

@@ -42,3 +42,5 @@ commands:
     description: Friends
   resync:
     description: Admin command
+  shout:
+    description: Alert, but without the prefix
