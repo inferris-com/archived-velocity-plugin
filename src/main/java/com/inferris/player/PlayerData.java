@@ -93,6 +93,10 @@ public class PlayerData implements PlayerDataService, Serializable {
         return getByBranch().getBranch() == Branch.STAFF;
     }
 
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
     public void setCoins(int amount) {
         CoinsManager.setCoins(getUuid(), amount);
     }

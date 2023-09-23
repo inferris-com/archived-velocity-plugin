@@ -96,21 +96,20 @@ public class CommandResync extends Command {
         return playerData;
     }
 
-    private Profile retrieveProfileData(ProxiedPlayer player){
-        String[] columnNames = {"bio", "pronouns"};
-        String bio = null;
-        String pronouns = null;
-        try (Connection connection = DatabasePool.getConnection();
-             ResultSet resultSet = DatabaseUtils.executeQuery(connection, "profile", columnNames, "uuid = ?", player.getUniqueId())) {
-            while (resultSet.next()) {
-                bio = resultSet.getString(1);
-                pronouns = resultSet.getString(2);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return new Profile()
-    }
+//    private Profile retrieveProfileData(ProxiedPlayer player){
+//        String[] columnNames = {"bio", "pronouns"};
+//        String bio = null;
+//        String pronouns = null;
+//        try (Connection connection = DatabasePool.getConnection();
+//             ResultSet resultSet = DatabaseUtils.executeQuery(connection, "profile", columnNames, "uuid = ?", player.getUniqueId())) {
+//            while (resultSet.next()) {
+//                bio = resultSet.getString(1);
+//                pronouns = resultSet.getString(2);
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     @Override
     protected void setPermissionMessage(String permissionMessage) {

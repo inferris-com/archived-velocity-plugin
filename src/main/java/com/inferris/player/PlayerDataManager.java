@@ -287,7 +287,6 @@ public class PlayerDataManager {
 
             if (jedis.hexists("playerdata", playerUUID.toString())) {
                 ServerUtil.log("Exists", Level.WARNING, ServerState.DEBUG);
-                hasDifferentUsername(player);
 
                 if (caffeineCache.getIfPresent(playerUUID) == null) {
                     String playerDataJson = jedis.hget("playerdata", playerUUID.toString());
@@ -297,9 +296,10 @@ public class PlayerDataManager {
                     logPlayerData(playerData);
                 }
             } else {
-                ServerUtil.log("Not in registry, caching", Level.WARNING, ServerState.DEBUG);
+                ServerUtil.log("Not in Redis, caching", Level.WARNING, ServerState.DEBUG);
 
                 Rank rank = RanksManager.getInstance().getRank(player);
+                updatePlayerDataAndProfile(player, rank);
 
                 // todo: default values, change to database values
                 PlayerData playerData = new PlayerData(player.getUniqueId(), player.getName(), rank, new Profile(LocalDate.now(), null, null, 0), new Coins(PlayerDefaults.COIN_BALANCE.getValue()), Channels.NONE, VanishState.DISABLED, Server.LOBBY);
@@ -333,6 +333,7 @@ public class PlayerDataManager {
         }
     }
 
+    @Deprecated
     private void hasDifferentUsername(ProxiedPlayer player) {
         try (Jedis jedis = jedisPool.getResource()) {
             PlayerData deserializedPlayerData = CacheSerializationUtils.deserializePlayerData(jedis.hget("playerdata", player.getUniqueId().toString()));
@@ -378,9 +379,13 @@ public class PlayerDataManager {
                 Inferris.getInstance().getLogger().info("Properly in table");
 
                 if (!storedUsername.equals(player.getName())) {
+                    PlayerData playerData = this.getPlayerData(player);
+                    playerData.setUsername(player.getName());
                     updateStatement.setString(1, player.getName());
                     updateStatement.setString(2, player.getUniqueId().toString());
                     updateStatement.executeUpdate();
+                    updateAllData(player, playerData);
+
                     Inferris.getInstance().getLogger().warning("Updated username (getRegistry)");
                 }
             } else {
