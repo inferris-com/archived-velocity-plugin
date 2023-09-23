@@ -11,29 +11,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.inferris.SerializationModule;
 import com.inferris.player.PlayerData;
 import com.inferris.player.friends.Friends;
-import com.inferris.rank.Rank;
 
 public class CacheSerializationUtils {
-
-//    public void handlePlayerRegistryRequest(PluginMessageEvent event, ProxiedPlayer player) throws IOException {
-//        DataInputStream in = new DataInputStream(new ByteArrayInputStream(event.getData()));
-//        String message = in.readUTF();
-//
-//        if (message.equalsIgnoreCase("request")) {
-//
-//            String cacheJson = serializeRegistry(RegistryManager.getInstance().getRegistry(player));
-//
-//            ByteArrayDataOutput out = ByteStreams.newDataOutput();
-//            out.writeUTF(BungeeChannel.PLAYER_REGISTRY.getName());
-//            out.writeUTF("response");
-//            out.writeUTF(cacheJson);
-//
-//            if(event.getReceiver() instanceof ProxiedPlayer) {
-//                player.getServer().sendData(BungeeChannel.PLAYER_REGISTRY.getName(), out.toByteArray());
-//
-//            }
-//        }
-//    } todo
 
     public static String serializeFriends(Friends friends) throws JsonProcessingException {
         ObjectMapper objectMapper = createObjectMapper(new SerializationModule());
@@ -51,26 +30,10 @@ public class CacheSerializationUtils {
         return objectMapper.writeValueAsString(playerData);
     }
 
-    public static String serializeRank(Rank rank) throws JsonProcessingException {
-        ObjectMapper objectMapper = createObjectMapper(new SerializationModule());
-        return objectMapper.writeValueAsString(rank);
-    }
-
-    public static String serializeRegistry(Registry registry) throws JsonProcessingException {
-        ObjectMapper objectMapper = createObjectMapper(new SerializationModule());
-        return objectMapper.writeValueAsString(registry);
-    }
-
     public static PlayerData deserializePlayerData(String json) throws JsonProcessingException {
         ObjectMapper objectMapper = createObjectMapper(new SerializationModule());
 
         return objectMapper.readValue(json, PlayerData.class);
-    }
-
-    public static Registry deserializeRegistry(String json) throws JsonProcessingException {
-        ObjectMapper objectMapper = createObjectMapper(new SerializationModule());
-
-        return objectMapper.readValue(json, Registry.class);
     }
 
     public static ObjectMapper createObjectMapper(Module module) {
