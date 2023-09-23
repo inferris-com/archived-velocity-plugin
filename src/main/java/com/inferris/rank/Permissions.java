@@ -16,7 +16,7 @@ public class Permissions {
 
     public static void attachPermissions(ProxiedPlayer player) {
         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
-        List<RankRegistry> ranks = playerData.getByBranches();
+        List<RankRegistry> ranks = playerData.getApplicableRanks();
 
         Configuration permissionsConfig = Inferris.getPermissionsConfiguration();
         Configuration ranksSection = permissionsConfig.getSection("ranks");
