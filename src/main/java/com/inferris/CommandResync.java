@@ -4,7 +4,6 @@ import com.inferris.database.DatabasePool;
 import com.inferris.player.Channels;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
-import com.inferris.player.Profile;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Rank;
 import com.inferris.util.DatabaseUtils;

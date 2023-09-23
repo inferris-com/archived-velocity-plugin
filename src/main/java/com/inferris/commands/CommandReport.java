@@ -149,31 +149,29 @@ public class CommandReport extends Command implements TabExecutor {
     @Override
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
         int length = args.length;
-        if (sender instanceof ProxiedPlayer player) {
-            if (length == 1) {
-                String partialPlayerName = args[0];
-                List<String> playerNames = new ArrayList<>();
-                for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                    if (!(PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getVanishState() == VanishState.ENABLED)) {
-                        String playerName = proxiedPlayers.getName();
-                        if (playerName.toLowerCase().startsWith(partialPlayerName.toLowerCase())) {
-                            playerNames.add(playerName);
-                        }
+        if (length == 1) {
+            String partialPlayerName = args[0];
+            List<String> playerNames = new ArrayList<>();
+            for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
+                if (!(PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getVanishState() == VanishState.ENABLED)) {
+                    String playerName = proxiedPlayers.getName();
+                    if (playerName.toLowerCase().startsWith(partialPlayerName.toLowerCase())) {
+                        playerNames.add(playerName);
                     }
                 }
-                return playerNames;
             }
-            if (length == 2) {
-                String partialOption = args[1].toLowerCase();
-                List<String> options = new ArrayList<>();
+            return playerNames;
+        }
+        if (length == 2) {
+            String partialOption = args[1].toLowerCase();
+            List<String> options = new ArrayList<>();
 
-                for (String option : possibleReasons) {
-                    if (option.toLowerCase().startsWith(partialOption)) {
-                        options.add(option);
-                    }
+            for (String option : possibleReasons) {
+                if (option.toLowerCase().startsWith(partialOption)) {
+                    options.add(option);
                 }
-                return options;
             }
+            return options;
         }
         return Collections.emptyList();
     }

@@ -71,8 +71,8 @@ public class FriendsManager {
      * This is a vital method for the caffeine cache. If not updated, and a player is in Redis,
      * then no changes will be made.
      *
-     * @param playerUUID
-     * @param friends
+     * @param playerUUID Player's UUI D
+     * @param friends {@link Friends} class
      */
     public void updateCache(UUID playerUUID, Friends friends) {
         caffeineCache.put(playerUUID, friends);

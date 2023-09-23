@@ -32,6 +32,7 @@ public class CommandCoins extends Command implements TabExecutor {
             if (length == 3 && playerData.getBranchValue(Branch.STAFF) >= 3) {
                 if (args[0].equalsIgnoreCase("set")) {
 
+                    // TODO: Target
                     ProxiedPlayer target = ProxyServer.getInstance().getPlayer(args[1]);
                     UUID uuid = PlayerDataManager.getInstance().getUUIDByUsername(args[1]);
                     if (uuid == null) {
@@ -46,7 +47,7 @@ public class CommandCoins extends Command implements TabExecutor {
                     }
 
                     targetData.setCoins(Integer.parseInt(args[2]));
-                    player.sendMessage(new TextComponent("Coins set for " + targetData.getUsername()+ " to " + ChatColor.AQUA + args[2]));
+                    player.sendMessage(new TextComponent("Coins set for " + targetData.getUsername() + " to " + ChatColor.AQUA + args[2]));
                 }
             }
         }
@@ -54,31 +55,30 @@ public class CommandCoins extends Command implements TabExecutor {
 
     @Override
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
-        if (sender instanceof ProxiedPlayer player) {
-            if (args.length == 1) {
-                String partialOption = args[0].toLowerCase();
-                List<String> options = new ArrayList<>();
 
-                List<String> availableOptions = List.of("set");
+        if (args.length == 1) {
+            String partialOption = args[0].toLowerCase();
+            List<String> options = new ArrayList<>();
 
-                for (String option : availableOptions) {
-                    if (option.toLowerCase().startsWith(partialOption)) {
-                        options.add(option);
-                    }
+            List<String> availableOptions = List.of("set");
+
+            for (String option : availableOptions) {
+                if (option.toLowerCase().startsWith(partialOption)) {
+                    options.add(option);
                 }
-                return options;
             }
-            if (args.length == 2) {
-                String partialPlayerName = args[1];
-                List<String> playerNames = new ArrayList<>();
-                for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                    String playerName = proxiedPlayers.getName();
-                    if (playerName.toLowerCase().startsWith(partialPlayerName.toLowerCase())) {
-                        playerNames.add(playerName);
-                    }
+            return options;
+        }
+        if (args.length == 2) {
+            String partialPlayerName = args[1];
+            List<String> playerNames = new ArrayList<>();
+            for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
+                String playerName = proxiedPlayers.getName();
+                if (playerName.toLowerCase().startsWith(partialPlayerName.toLowerCase())) {
+                    playerNames.add(playerName);
                 }
-                return playerNames;
             }
+            return playerNames;
         }
         return Collections.emptyList();
     }

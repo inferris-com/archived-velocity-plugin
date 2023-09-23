@@ -146,42 +146,40 @@ public class CommandProfile extends Command implements TabExecutor {
 
     @Override
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
-        if (sender instanceof ProxiedPlayer player) {
-            if (args.length == 1) {
-                String partialPlayerName = args[0];
-                List<String> completions = new ArrayList<>();
+        if (args.length == 1) {
+            String partialPlayerName = args[0];
+            List<String> completions = new ArrayList<>();
 
-                // Add "set" option to the completions list
-                if ("set".startsWith(partialPlayerName.toLowerCase())) {
-                    completions.add("set");
-                }
-                if ("unset".startsWith(partialPlayerName.toLowerCase())) {
-                    completions.add("unset");
-                }
+            // Add "set" option to the completions list
+            if ("set".startsWith(partialPlayerName.toLowerCase())) {
+                completions.add("set");
+            }
+            if ("unset".startsWith(partialPlayerName.toLowerCase())) {
+                completions.add("unset");
+            }
 
-                for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                    if (!(PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getVanishState() == VanishState.ENABLED)) {
-                        String playerName = proxiedPlayers.getName();
-                        if (playerName.toLowerCase().startsWith(partialPlayerName.toLowerCase())) {
-                            completions.add(playerName);
-                        }
+            for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
+                if (!(PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getVanishState() == VanishState.ENABLED)) {
+                    String playerName = proxiedPlayers.getName();
+                    if (playerName.toLowerCase().startsWith(partialPlayerName.toLowerCase())) {
+                        completions.add(playerName);
                     }
                 }
-                return completions;
-            } else if (args.length == 2) {
-                if (args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("unset")) {
-                    String partialOption = args[1].toLowerCase();
-                    List<String> options = new ArrayList<>();
+            }
+            return completions;
+        } else if (args.length == 2) {
+            if (args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("unset")) {
+                String partialOption = args[1].toLowerCase();
+                List<String> options = new ArrayList<>();
 
-                    List<String> availableOptions = Arrays.asList("pronouns", "bio");
+                List<String> availableOptions = Arrays.asList("pronouns", "bio");
 
-                    for (String option : availableOptions) {
-                        if (option.toLowerCase().startsWith(partialOption)) {
-                            options.add(option);
-                        }
+                for (String option : availableOptions) {
+                    if (option.toLowerCase().startsWith(partialOption)) {
+                        options.add(option);
                     }
-                    return options;
                 }
+                return options;
             }
         }
         return Collections.emptyList();

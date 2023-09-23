@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Represents the data associated with a player, including their {@link Registry} information, {@link Rank}, and {@link Coins}.
+ * Represents the data associated with a player, including their {@link Profile} information, {@link Rank}, and {@link Coins}.
  *
  * @since 1.0
  */
