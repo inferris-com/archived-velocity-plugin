@@ -10,14 +10,8 @@ import com.inferris.*;
 import com.inferris.SerializationModule;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
-import com.inferris.player.registry.RegistryManager;
-import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
-import com.inferris.server.BungeeChannel;
-import com.inferris.server.Initializer;
 import com.inferris.server.Ports;
-import com.inferris.server.Subchannel;
-import com.inferris.util.BungeeUtils;
 import com.inferris.util.CacheSerializationUtils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -46,11 +40,9 @@ public class CommandBungeeTest extends Command {
                 if (args[0].equalsIgnoreCase("ranks")) {
                     PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
                     Rank rank = playerData.getRank();
-                    player.sendMessage(new TextComponent(String.valueOf(rank.getBranchID(Branch.BUILDER))));
-                    player.sendMessage(new TextComponent(String.valueOf(playerData.getBranchValue(Branch.BUILDER))));
-                    player.sendMessage(new TextComponent(String.valueOf(playerData.getRank())));
+                    player.sendMessage(new TextComponent("By branches - " + playerData.getApplicableRanks()));
                 }
-                    if (args[0].equalsIgnoreCase("registry")) {
+                if (args[0].equalsIgnoreCase("registry")) {
                     JedisPool pool = Inferris.getJedisPool();
 
                     ObjectMapper objectMapper = new ObjectMapper();
@@ -62,8 +54,7 @@ public class CommandBungeeTest extends Command {
 
                     try (Jedis jedis = pool.getResource()) {
                         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
-                        player.sendMessage(playerData.getRegistry().getUsername());
-                        player.sendMessage(playerData.getRegistry().toString());
+                        player.sendMessage(playerData.getUsername());
                         player.sendMessage(playerData.getVanishState().toString());
                         player.sendMessage(playerData.getChannel().getMessage());
 
@@ -78,8 +69,8 @@ public class CommandBungeeTest extends Command {
                     Configuration configuration = Inferris.getPlayersConfiguration().getSection("players");
                     player.sendMessage(new TextComponent(configuration.get(player.getUniqueId() + ".channel").toString()));
                 }
-                if(args[0].equalsIgnoreCase("redis")){
-                    try(Jedis jedis = Inferris.getJedisPool().getResource()){
+                if (args[0].equalsIgnoreCase("redis")) {
+                    try (Jedis jedis = Inferris.getJedisPool().getResource()) {
                         jedis.publish("playerdata_update", CacheSerializationUtils.serializePlayerData(PlayerDataManager.getInstance().getPlayerData(player)));
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException(e);
@@ -93,51 +84,6 @@ public class CommandBungeeTest extends Command {
                     player.sendMessage(new TextComponent(Inferris.getProperties().getProperty("verbose.debug.mode")));
                 }
             }
-
-            if (length == 2) {
-                if (args[0].equalsIgnoreCase("perms")) {
-                    List<String> adminPermissions = Inferris.getPermissionsConfiguration().getStringList("ranks." + args[1]);
-                    player.sendMessage(new TextComponent(adminPermissions.toString()));
-
-                } else if (args[0].equalsIgnoreCase("registry")) {
-                    if (args[1].equalsIgnoreCase("invalidate")) {
-                        RegistryManager.getInstance().deleteRegistry();
-
-                        player.sendMessage(new TextComponent(ChatColor.GREEN + "Invalidated registry"));
-
-                    } else if (args[1].equalsIgnoreCase("reload")) {
-                        RegistryManager.getInstance().deleteRegistry();
-                        player.sendMessage(new TextComponent(ChatColor.GREEN + "Reloaded registry"));
-                    }
-                }
-            }
-
-            if (length == 3) {
-                if (args[0].equalsIgnoreCase("registry") && args[1].equalsIgnoreCase("remove")) {
-                    UUID uuid = UUID.fromString(args[2]);
-                    RegistryManager.getInstance().invalidateEntry(UUID.fromString(args[2]));
-                    player.sendMessage(new TextComponent(ChatColor.GREEN + "Removed " + uuid + " from registry"));
-                }
-            }
-
-
-            if (length == 4) {
-                if (args[0].equalsIgnoreCase("registry")) {
-                    //debug 1.registry 2.add 3.uuid 4.username
-                    if (args[1].equalsIgnoreCase("add")) {
-                        UUID uuid = UUID.fromString(args[2]);
-                        String username = args[3];
-                        if (player.getUniqueId().equals(uuid)) {
-                            RegistryManager.getInstance().invalidateEntry(player.getUniqueId());
-                        }
-                       // RegistryManager.getInstance().addToRegistryDefault(ProxyServer.getInstance().getPlayer(args[3]));
-                        player.sendMessage(new TextComponent(ChatColor.GREEN + "Added " + username + " to registry"));
-                    }
-                }
-            }
-        }else{
-            JedisPool jedisPool = new JedisPool("localhost", Ports.JEDIS.getPort()); // Set Redis server details
-
         }
     }
 }
