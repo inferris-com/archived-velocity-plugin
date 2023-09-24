@@ -13,8 +13,11 @@ import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.Rank;
 import com.inferris.server.Ports;
 import com.inferris.util.CacheSerializationUtils;
+import com.inferris.util.ChatUtil;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
@@ -37,6 +40,9 @@ public class CommandBungeeTest extends Command {
             int length = args.length;
 
             if (length == 1) {
+                if(args[0].equalsIgnoreCase("colors")){
+                    player.sendMessage(TextComponent.fromLegacyText(ChatUtil.translateToHex("#FF0000 Hey dudes!")));
+                }
                 if (args[0].equalsIgnoreCase("ranks")) {
                     PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
                     Rank rank = playerData.getRank();

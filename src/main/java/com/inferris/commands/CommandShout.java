@@ -3,6 +3,7 @@ package com.inferris.commands;
 import com.inferris.Inferris;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.Branch;
+import com.inferris.util.ChatUtil;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -23,9 +24,11 @@ public class CommandShout extends Command {
             for (String word : args) {
                 message.append(word).append(" "); // Add a space between words
             }
+
             Inferris.getInstance().getLogger().info("Shout: " + message);
+
             for (ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
-                player.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&', message.toString())));
+                player.sendMessage(ChatUtil.translateToHex(message.toString()));
             }
         }else{
             sender.sendMessage(new TextComponent(ChatColor.RED + "Usage error: You must provide text for the command"));
