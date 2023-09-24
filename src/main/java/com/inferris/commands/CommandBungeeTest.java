@@ -11,22 +11,16 @@ import com.inferris.SerializationModule;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.Rank;
-import com.inferris.server.Ports;
 import com.inferris.util.CacheSerializationUtils;
 import com.inferris.util.ChatUtil;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.config.Configuration;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-
-import java.util.List;
-import java.util.UUID;
 
 public class CommandBungeeTest extends Command {
 

@@ -10,7 +10,6 @@ import com.inferris.player.friends.FriendsManager;
 import com.inferris.rank.*;
 import com.inferris.server.JedisChannels;
 import com.inferris.util.CacheSerializationUtils;
-import com.inferris.util.ConfigUtils;
 import com.inferris.util.ServerUtil;
 import com.inferris.util.Tags;
 import net.md_5.bungee.api.ChatColor;
