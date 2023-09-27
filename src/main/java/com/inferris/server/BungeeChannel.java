@@ -7,7 +7,8 @@ public enum BungeeChannel {
     PLAYER_DATA("inferris:player_data"),
     DIRECT_MESSAGE("inferris:direct_message"),
     REPORT("inferris:report"),
-    TEST("inferris:test");
+    TEST("inferris:test"),
+    BUYCRAFT("inferris:buycraft");
 
     private final String name;
     BungeeChannel(String name){
