@@ -13,10 +13,8 @@ import static net.md_5.bungee.api.ChatColor.COLOR_CHAR;
 
 public class ChatUtil {
 
-    private static final Pattern pattern = Pattern.compile("(?<!\\\\)(#[a-fA-F0-9]{6})");
-
-
     public static String translateToHex(String message) {
+        final Pattern pattern = Pattern.compile("(?<!\\\\)(#[a-fA-F0-9]{6})");
         Matcher matcher = pattern.matcher(message);
         while (matcher.find()) {
             String hexCode = message.substring(matcher.start(), matcher.end());
