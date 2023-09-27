@@ -13,6 +13,8 @@ import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.Rank;
 import com.inferris.util.CacheSerializationUtils;
 import com.inferris.util.ChatUtil;
+import io.tebex.BuycraftApi;
+import io.tebex.exception.BuycraftException;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -34,8 +36,22 @@ public class CommandBungeeTest extends Command {
             int length = args.length;
 
             if (length == 1) {
+                if(args[0].equalsIgnoreCase("buycraft")){
+                    try {
+                        BuycraftApi api = new BuycraftApi("707b2c9774328e8b857424a3a3811d874f77e482");
+                    } catch (BuycraftException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
                 if(args[0].equalsIgnoreCase("colors")){
-                    player.sendMessage(TextComponent.fromLegacyText(ChatUtil.translateToHex("#FF0000 Hey dudes!")));
+                    player.sendMessage(TextComponent.fromLegacyText(ChatUtil.translateToHex("&8[" + "#FF5733" + "Admin" + "&8]")));
+                    player.sendMessage(TextComponent.fromLegacyText(ChatUtil.translateToHex("&8[" + "#007BFF" + "Admin" + "&8]")));
+                    player.sendMessage(TextComponent.fromLegacyText(ChatUtil.translateToHex("&8[" + "#FFD700" + "Admin" + "&8]")));
+                    player.sendMessage(TextComponent.fromLegacyText(ChatUtil.translateToHex("&8[" + "#4CAF50" + "Admin" + "&8]")));
+                    player.sendMessage(TextComponent.fromLegacyText(ChatUtil.translateToHex("&8[" + "#8B008B" + "Admin" + "&8]")));
+                    player.sendMessage(TextComponent.fromLegacyText(ChatUtil.translateToHex("&8[" + "#1E90FF" + "Admin" + "&8]")));
+                    player.sendMessage(TextComponent.fromLegacyText(ChatUtil.translateToHex("&8[" + "#FF1493" + "Admin" + "&8]")));
+                    player.sendMessage(TextComponent.fromLegacyText(ChatUtil.translateToHex("&8[" + "#800000" + "Admin" + "&8]")));
                 }
                 if (args[0].equalsIgnoreCase("ranks")) {
                     PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
