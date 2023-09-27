@@ -44,3 +44,5 @@ commands:
     description: Admin command
   shout:
     description: Alert, but without the prefix
+  buy:
+    description: Buy
