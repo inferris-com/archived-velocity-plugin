@@ -56,7 +56,7 @@ public class CommandBungeeTest extends Command {
                 if (args[0].equalsIgnoreCase("ranks")) {
                     PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
                     Rank rank = playerData.getRank();
-                    player.sendMessage(new TextComponent("By branches - " + playerData.getApplicableRanks()));
+                    player.sendMessage(TextComponent.fromLegacyText("By branches - " + playerData.formatRankList(playerData.getApplicableRanks())));
                 }
                 if (args[0].equalsIgnoreCase("registry")) {
                     JedisPool pool = Inferris.getJedisPool();

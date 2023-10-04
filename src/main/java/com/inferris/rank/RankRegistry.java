@@ -1,9 +1,10 @@
 package com.inferris.rank;
 
+import com.inferris.util.ChatUtil;
 import net.md_5.bungee.api.ChatColor;
 
 public enum RankRegistry {
-    ADMIN(ChatColor.RED + "[Admin]", Branch.STAFF, 3, ChatColor.RED),
+    ADMIN(ChatUtil.translateToHex("&8⎰" + "#FF5733Admin" + "&8⎱"), Branch.STAFF, 3, ChatColor.RESET),
     MOD(ChatColor.DARK_GREEN + "[Mod]", Branch.STAFF, 2, ChatColor.DARK_GREEN),
     HELPER(ChatColor.BLUE + "[Helper]", Branch.STAFF, 1, ChatColor.BLUE),
     BUILDER(ChatColor.GOLD + "[Builder]", Branch.BUILDER, 1, ChatColor.GOLD),

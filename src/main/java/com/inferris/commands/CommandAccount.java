@@ -63,7 +63,7 @@ public class CommandAccount extends Command implements TabExecutor {
                 username.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, playerData.getUsername()));
 
 
-                TextComponent prefix = new TextComponent("Ranks: " + playerData.formatRankList(playerData.getApplicableRanks()));
+                TextComponent prefix = new TextComponent(TextComponent.fromLegacyText("Ranks: " + playerData.formatRankList(playerData.getApplicableRanks())));
                 prefix.setColor(ChatColor.YELLOW);
 
                 TextComponent registration_date = new TextComponent(ChatColor.YELLOW + "Registration date: " + reset + playerData.getProfile().getRegistrationDate());

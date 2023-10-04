@@ -193,7 +193,7 @@ public class CommandProfile extends Command implements TabExecutor {
 
         player.sendMessage(new TextComponent(ChatColor.YELLOW + "Profile of " + playerData.getNameColor() + playerData.getUsername()));
         player.sendMessage(new TextComponent(""));
-        player.sendMessage(new TextComponent(ChatColor.GRAY + "Rank: " + playerData.getByBranch().getPrefix()));
+        player.sendMessage(TextComponent.fromLegacyText(ChatColor.GRAY + "Rank: " + playerData.getByBranch().getPrefix()));
         if (profile.getPronouns() != null)
             player.sendMessage(new TextComponent(ChatColor.GRAY + "Pronouns: " + reset + profile.getPronouns()));
         player.sendMessage(new TextComponent(ChatColor.GRAY + "Registration date: " + reset + getFormattedRegistrationDate(profile.getRegistrationDate())));
