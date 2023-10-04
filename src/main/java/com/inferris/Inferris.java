@@ -42,35 +42,7 @@ public class Inferris extends Plugin {
         createProperties();
         //PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
 
-        PluginManager pluginManager = getProxy().getPluginManager();
-        pluginManager.registerListener(this, new EventJoin());
-        pluginManager.registerListener(this, new EventQuit());
-        pluginManager.registerListener(this, new EventReceive());
-        pluginManager.registerListener(this, new EventPing());
-        pluginManager.registerCommand(this, new CommandBungeeTest("bungeetest"));
-        pluginManager.registerCommand(this, new CommandConfig("config"));
-        pluginManager.registerCommand(this, new CommandMessage("message"));
-        pluginManager.registerCommand(this, new CommandReply("reply"));
-        pluginManager.registerCommand(this, new CommandChannel("channel"));
-        pluginManager.registerCommand(this, new CommandVanish("vanish"));
-        pluginManager.registerCommand(this, new CommandSetrank("rank"));
-        pluginManager.registerCommand(this, new CommandCoins("coins"));
-        pluginManager.registerCommand(this, new CommandProfile("profile"));
-        pluginManager.registerCommand(this, new CommandAccount("account"));
-        pluginManager.registerCommand(this, new CommandServerState("serverstate"));
-        pluginManager.registerCommand(this, new CommandViewlogs("viewlogs"));
-        pluginManager.registerCommand(this, new CommandReport("report"));
-        pluginManager.registerCommand(this, new CommandLocate("locate"));
-        pluginManager.registerCommand(this, new CommandFriend("friend"));
-        pluginManager.registerCommand(this, new CommandResync("resync", "inferris.admin.resync"));
-        pluginManager.registerCommand(this, new CommandShout("shout"));
-        pluginManager.registerCommand(this, new CommandBuy("buy"));
-
-        getProxy().registerChannel(BungeeChannel.STAFFCHAT.getName());
-        getProxy().registerChannel(BungeeChannel.PLAYER_REGISTRY.getName());
-        getProxy().registerChannel(BungeeChannel.REPORT.getName());
-        getProxy().registerChannel(BungeeChannel.TEST.getName());
-        getProxy().registerChannel(BungeeChannel.BUYCRAFT.getName());
+        Initializer.initialize(this);
 
         JedisReceive jedisReceive = new JedisReceive();
 
@@ -88,7 +60,6 @@ public class Inferris extends Plugin {
         playersFile = new File(getDataFolder(), "players.yml");
         playersConfiguration = ConfigUtils.createConfigFile(playersFile, "players");
 
-        new Initializer();
         jedisPool = new JedisPool("localhost", Ports.JEDIS.getPort());
         Thread subscriptionThread = new Thread(() -> Inferris.getJedisPool().getResource().subscribe(jedisReceive,
                 JedisChannels.SPIGOT_TO_PROXY_PLAYERDATA_CACHE_UPDATE.getChannelName(),
