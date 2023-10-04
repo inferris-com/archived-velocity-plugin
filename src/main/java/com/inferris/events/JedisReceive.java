@@ -7,6 +7,7 @@ import com.inferris.Inferris;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.server.*;
+import com.inferris.server.jedis.JedisChannels;
 import com.inferris.util.CacheSerializationUtils;
 import com.inferris.util.ServerUtil;
 import com.inferris.util.Tags;
@@ -27,7 +28,7 @@ public class JedisReceive extends JedisPubSub {
         Inferris.getInstance().getLogger().severe("Triggered EventReceive");
 
         if (channel.equalsIgnoreCase(JedisChannels.SPIGOT_TO_PROXY_PLAYERDATA_CACHE_UPDATE.getChannelName())) {
-            Inferris.getInstance().getLogger().severe("Yup");
+            Inferris.getInstance().getLogger().severe("Spigot updated Proxy cache");
 
             try {
                 PlayerData playerData = CacheSerializationUtils.deserializePlayerData(message);
@@ -46,8 +47,6 @@ public class JedisReceive extends JedisPubSub {
 
             PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(uuid);
             ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerData.getUuid());
-
-
 
             ObjectMapper objectMapper = new ObjectMapper();
             try {

@@ -7,8 +7,9 @@ import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.friends.Friends;
 import com.inferris.player.friends.FriendsManager;
+import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.*;
-import com.inferris.server.JedisChannels;
+import com.inferris.server.jedis.JedisChannels;
 import com.inferris.util.CacheSerializationUtils;
 import com.inferris.util.ServerUtil;
 import com.inferris.util.Tags;
@@ -28,7 +29,7 @@ public class EventJoin implements Listener {
     /**
      * This is responsible for any server switch events
      *
-     * @param event
+     * @param event Server switch event
      */
 
     @EventHandler
@@ -36,24 +37,19 @@ public class EventJoin implements Listener {
         ProxiedPlayer player = event.getPlayer();
         sendHeader(player);
 
-        RanksManager ranksManager = RanksManager.getInstance();
         PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
         FriendsManager friendsManager = FriendsManager.getInstance();
         Friends friends = friendsManager.getFriendsData(player.getUniqueId());
         friendsManager.updateCache(player.getUniqueId(), friends);
 
-
-        playerDataManager.checkJoinedBefore(player); // Important implementation
+        // Important implementation
+        playerDataManager.checkJoinedBefore(player);
         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player); // Grabs the Redis cache
-        Rank rank = playerData.getRank();
-        RankRegistry rankRegistry = playerDataManager.getPlayerData(player).getByBranch();
-
         Permissions.attachPermissions(player);
 
         try (Jedis jedis = Inferris.getJedisPool().getResource()) {
 
             playerData.setCurrentServer(ServerUtil.getServerType(player));
-            //playerData.setCurrentServer(ServerUtil.getServerType(player));
 
             String json = CacheSerializationUtils.serializePlayerData(playerData);
             jedis.hset("playerdata", player.getUniqueId().toString(), json);
@@ -61,7 +57,11 @@ public class EventJoin implements Listener {
             player.sendMessage(new TextComponent("Bungee " + json));
             Inferris.getInstance().getLogger().info(json);
 
-            jedis.publish(JedisChannels.PLAYERDATA_JOIN.getChannelName(), json);
+            jedis.publish(JedisChannels.PLAYERDATA_EVENT_JOIN.getChannelName(), json);
+
+            if (playerData.getVanishState() == VanishState.ENABLED) {
+                jedis.publish(JedisChannels.PLAYERDATA_VANISH.getChannelName(), "");
+            }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -70,7 +70,7 @@ public class EventJoin implements Listener {
     /**
      * Responsible for single proxy connections
      *
-     * @param event
+     * @param event Post login event
      */
 
     @EventHandler

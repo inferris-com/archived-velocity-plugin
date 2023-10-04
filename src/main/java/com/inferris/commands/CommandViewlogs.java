@@ -2,6 +2,7 @@ package com.inferris.commands;
 
 import com.inferris.Inferris;
 import com.inferris.server.*;
+import com.inferris.server.jedis.JedisChannels;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;

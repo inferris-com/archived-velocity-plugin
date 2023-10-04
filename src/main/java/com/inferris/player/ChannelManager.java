@@ -2,7 +2,7 @@ package com.inferris.player;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.inferris.Inferris;
-import com.inferris.server.JedisChannels;
+import com.inferris.server.jedis.JedisChannels;
 import com.inferris.util.CacheSerializationUtils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.TextComponent;

@@ -3,6 +3,7 @@ package com.inferris;
 import com.inferris.database.DatabasePool;
 import com.inferris.events.*;
 import com.inferris.server.*;
+import com.inferris.server.jedis.JedisChannels;
 import com.inferris.util.ConfigUtils;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;

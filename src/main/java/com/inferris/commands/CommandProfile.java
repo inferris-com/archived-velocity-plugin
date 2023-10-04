@@ -6,7 +6,7 @@ import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.Profile;
 import com.inferris.player.vanish.VanishState;
-import com.inferris.server.JedisChannels;
+import com.inferris.server.jedis.JedisChannels;
 import com.inferris.util.CacheSerializationUtils;
 import com.inferris.util.DatabaseUtils;
 import net.md_5.bungee.api.ChatColor;
