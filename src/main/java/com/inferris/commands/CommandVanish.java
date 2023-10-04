@@ -70,6 +70,7 @@ public class CommandVanish extends Command implements TabExecutor {
         String json;
         try {
             json = CacheSerializationUtils.serializePlayerData(playerData);
+            Inferris.getInstance().getLogger().warning("Bungee json: " + json);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -78,7 +79,6 @@ public class CommandVanish extends Command implements TabExecutor {
         and update their caches accordingly */
         Inferris.getInstance().getLogger().info(".....");
         try(Jedis jedis = Inferris.getJedisPool().getResource()){
-            String serverName = player.getServer().getInfo().getName();
             jedis.publish(JedisChannels.PLAYERDATA_VANISH.getChannelName(), json);
         }
     }

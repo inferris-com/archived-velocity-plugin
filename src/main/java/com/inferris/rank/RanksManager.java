@@ -140,7 +140,7 @@ public class RanksManager {
                 if (!isNull) {
                     PlayerDataManager.getInstance().updateAllData(player, playerData);
                     String payload = playerData.getCurrentServer().name() + ":" + json;
-                    jedis.publish(JedisChannels.PLAYERDATA_RANK_UPDATE.getChannelName(), payload);
+                    jedis.publish(JedisChannels.PLAYERDATA_RANK_UPDATE.getChannelName(), json);
                 }
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);

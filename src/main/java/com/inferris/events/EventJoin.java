@@ -58,10 +58,6 @@ public class EventJoin implements Listener {
             Inferris.getInstance().getLogger().info(json);
 
             jedis.publish(JedisChannels.PLAYERDATA_EVENT_JOIN.getChannelName(), json);
-
-            if (playerData.getVanishState() == VanishState.ENABLED) {
-                jedis.publish(JedisChannels.PLAYERDATA_VANISH.getChannelName(), "");
-            }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
