@@ -1,12 +1,10 @@
 package com.inferris;
 
-import com.inferris.commands.*;
 import com.inferris.database.DatabasePool;
 import com.inferris.events.*;
 import com.inferris.server.*;
 import com.inferris.util.ConfigUtils;
 import net.md_5.bungee.api.plugin.Plugin;
-import net.md_5.bungee.api.plugin.PluginManager;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
@@ -14,7 +12,6 @@ import redis.clients.jedis.JedisPool;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Properties;
@@ -40,10 +37,8 @@ public class Inferris extends Plugin {
         createPermissionsConfig();
         createPlayersConfig();
         createProperties();
-        //PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
 
         Initializer.initialize(this);
-
         JedisReceive jedisReceive = new JedisReceive();
 
         try {
@@ -54,7 +49,7 @@ public class Inferris extends Plugin {
                 getLogger().log(Level.WARNING, "Connected to database!");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            getLogger().log(Level.WARNING, e.getMessage());
         }
 
         playersFile = new File(getDataFolder(), "players.yml");
