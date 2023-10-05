@@ -241,7 +241,7 @@ public class PlayerDataManager {
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.hset("playerdata", player.getUniqueId().toString(), CacheSerializationUtils.serializePlayerData(playerData));
             updateCaffeineCache(player, playerData);
-            Inferris.getInstance().getLogger().info("Updated Redis information via Jedis. Caches updated!");
+            Inferris.getInstance().getLogger().info("Updated all data and Redis information via Jedis. Caches updated!");
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -256,7 +256,7 @@ public class PlayerDataManager {
         }
     }
 
-    private void updateCaffeineCache(ProxiedPlayer player, PlayerData playerData) {
+    public void updateCaffeineCache(ProxiedPlayer player, PlayerData playerData) {
         caffeineCache.put(player.getUniqueId(), playerData);
         Inferris.getInstance().getLogger().info("Updated Caffeine cache for player: " + player.getName());
     }
