@@ -58,7 +58,7 @@ public class CommandReply extends Command implements TabExecutor {
             CommandMessage.sendMessage(player, target, message);
             CommandMessage.getCacheReplyHandler().invalidate(targetUUID);
             CommandMessageCache targetCache = CommandMessage.getCacheReplyHandler().asMap().computeIfAbsent(targetUUID,
-                    uuid -> new CommandMessageCache(target, player, 5L, TimeUnit.SECONDS));
+                    uuid -> new CommandMessageCache(target, player, 5L, TimeUnit.MINUTES));
             targetCache.add();
         }
     }

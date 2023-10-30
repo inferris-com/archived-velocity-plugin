@@ -78,7 +78,7 @@ public class CommandMessage extends Command implements TabExecutor {
             // Update the reply cache
             cacheReplyHandler.invalidate(receiver.getUniqueId());
             CommandMessageCache cache = cacheReplyHandler.asMap().computeIfAbsent(receiver.getUniqueId(),
-                    uuid -> new CommandMessageCache(receiver, player, 5L, TimeUnit.SECONDS));
+                    uuid -> new CommandMessageCache(receiver, player, 5L, TimeUnit.MINUTES));
             cache.add();
         }
     }
@@ -87,8 +87,8 @@ public class CommandMessage extends Command implements TabExecutor {
         RankRegistry playerRank = PlayerDataManager.getInstance().getPlayerData(sender).getByBranch();
         RankRegistry receiverRank = PlayerDataManager.getInstance().getPlayerData(receiver).getByBranch();
         sender.sendMessage(new TextComponent(ChatColor.GREEN + "Message sent!"));
-        sender.sendMessage(new TextComponent(ChatColor.GRAY + "To " + receiverRank.getPrefix(true) + receiver.getName() + ChatColor.RESET + ": " + message));
-        receiver.sendMessage(new TextComponent(ChatColor.GRAY + "From " + playerRank.getPrefix(true) + sender.getName() + ChatColor.RESET + ": " + message));
+        sender.sendMessage(TextComponent.fromLegacyText(ChatColor.GRAY + "To " + receiverRank.getPrefix(true) + receiver.getName() + ChatColor.RESET + ": " + message));
+        receiver.sendMessage(TextComponent.fromLegacyText(ChatColor.GRAY + "From " + playerRank.getPrefix(true) + sender.getName() + ChatColor.RESET + ": " + message));
     }
 
     @Override
