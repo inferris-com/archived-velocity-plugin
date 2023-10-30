@@ -251,7 +251,7 @@ public class FriendsManager {
         }
 
         // Send offlineFriends next
-        offlineFriends.forEach(message -> player.sendMessage(new TextComponent(message)));
+        offlineFriends.forEach(message -> player.sendMessage(TextComponent.fromLegacyText(message)));
     }
 
     public void updateRedisData(UUID playerUUID, Friends friends) {
