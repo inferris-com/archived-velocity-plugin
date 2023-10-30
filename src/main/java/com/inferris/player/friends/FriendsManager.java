@@ -243,7 +243,7 @@ public class FriendsManager {
         player.sendMessage(new TextComponent(ChatColor.GRAY + "•——————•°•✿•°•——————•"));
 
         // Send onlineFriends first
-        onlineFriends.forEach(message -> player.sendMessage(new TextComponent(message)));
+        onlineFriends.forEach(message -> player.sendMessage(TextComponent.fromLegacyText(message)));
 
         // Add a separator between onlineFriends and offlineFriends
         if (!onlineFriends.isEmpty() && !offlineFriends.isEmpty()) {
