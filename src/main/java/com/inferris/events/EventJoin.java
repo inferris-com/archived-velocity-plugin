@@ -7,7 +7,6 @@ import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.friends.Friends;
 import com.inferris.player.friends.FriendsManager;
-import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.*;
 import com.inferris.server.jedis.JedisChannels;
 import com.inferris.util.CacheSerializationUtils;

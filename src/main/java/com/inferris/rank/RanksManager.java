@@ -3,7 +3,6 @@ package com.inferris.rank;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.inferris.Inferris;
 import com.inferris.database.DatabasePool;
-import com.inferris.database.Tables;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.server.jedis.JedisChannels;
