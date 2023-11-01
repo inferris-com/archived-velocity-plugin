@@ -12,6 +12,7 @@ import com.inferris.util.DatabaseUtils;
 import com.inferris.util.RestClientManager;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
@@ -32,7 +33,6 @@ public class CommandVerify extends Command implements TabExecutor {
     String API_KEY = Inferris.getProperties().getProperty("api.key");
     private static final String TITLE = "Verification request";
     private static final int EXPIRATION_TIME = 15; // minutes
-    private final OkHttpClient client = new OkHttpClient();
     private String recommendationName = null;
     private String code = null;
     private String recipient_id = null;
@@ -50,7 +50,7 @@ public class CommandVerify extends Command implements TabExecutor {
 
             } else if (args.length == 2 && args[0].equalsIgnoreCase("key")) {
                 String verificationCode = args[1];
-                String storedCode = null; // Initialize the variable outside the block
+                String storedCode; // Initialize the variable outside the block
 
                 try (Connection connection = DatabasePool.getConnection();
                      ResultSet resultSet = DatabaseUtils.queryData(connection, "verification_sessions", new String[]{"verification_key", "expiration_time"}, "uuid = '" + player.getUniqueId() + "'")) {
@@ -67,17 +67,17 @@ public class CommandVerify extends Command implements TabExecutor {
                                 verify(player);
                             } else {
                                 DatabaseUtils.removeData(connection, "verification_sessions", whereClause);
-                                player.sendMessage(ChatColor.YELLOW + "The verification code has " + ChatColor.RED +
-                                        "expired" + ChatColor.YELLOW + ". Generate a new key by re-verifying yourself.");
+                                player.sendMessage(new TextComponent(ChatColor.YELLOW + "The verification code has " + ChatColor.RED +
+                                        "expired" + ChatColor.YELLOW + ". Generate a new key by re-verifying yourself."));
                             }
                         } else {
-                            player.sendMessage(ChatColor.RED + "The verification code you entered is invalid.");
+                            player.sendMessage(new TextComponent(ChatColor.RED + "The verification code you entered is invalid."));
                         }
                     } else {
-                        player.sendMessage(ChatColor.RED + "You are not currently in the verification process.");
+                        player.sendMessage(new TextComponent(ChatColor.RED + "You are not currently in the verification process."));
                     }
                 } catch (SQLException e) {
-                    e.printStackTrace();
+                    Inferris.getInstance().getLogger().severe(e.getMessage());
                 }
 
                     /*
@@ -90,7 +90,7 @@ public class CommandVerify extends Command implements TabExecutor {
 
                 if (forumData != null) {
                     if (recommendationName != null) {
-                        player.sendMessage(ChatColor.YELLOW + "Did you mean " + recommendationName + "?");
+                        player.sendMessage(new TextComponent(ChatColor.YELLOW + "Did you mean " + recommendationName + "?"));
                         recommendationName = null;
                     } else {
                         boolean isVerified = false;
@@ -108,14 +108,14 @@ public class CommandVerify extends Command implements TabExecutor {
                                 isSessionVerified = true;
                             }
                         } catch (SQLException e) {
-                            e.printStackTrace();
+                            Inferris.getInstance().getLogger().severe(e.getMessage());
                         }
 
                         if (!isVerified) {
 
                             if (!isSessionVerified) {
-                                player.sendMessage(ChatColor.GREEN + "Verification message sent to forum account: " + forumData);
-                                player.sendMessage(ChatColor.GRAY + "Please check your forum inbox for further instructions. This verification request will expire in " + EXPIRATION_TIME + " minutes.");
+                                player.sendMessage(new TextComponent(ChatColor.GREEN + "Verification message sent to forum account: " + forumData));
+                                player.sendMessage(new TextComponent(ChatColor.GRAY + "Please check your forum inbox for further instructions. This verification request will expire in " + EXPIRATION_TIME + " minutes."));
                                 String[] columnNames = {"uuid", "mc_username", "verification_key", "expiration_time", "recipient_id"};
                                 code = CodeGenerator.generateCode(10);
                                 sendMessage();
@@ -127,27 +127,26 @@ public class CommandVerify extends Command implements TabExecutor {
                                     throw new RuntimeException(e);
                                 }
                             } else {
-                                player.sendMessage(ChatColor.RED + "You already have a verification session in progress. Requests expire in 15 minutes from the time of use.");
+                                player.sendMessage(new TextComponent(ChatColor.RED + "You already have a verification session in progress. Requests expire in 15 minutes from the time of use."));
                             }
                         } else {
-                            player.sendMessage(ChatColor.RED + "You are already verified! If you want to unlink, use " + ChatColor.YELLOW + "/unlink");
+                            player.sendMessage(new TextComponent(ChatColor.RED + "You are already verified! If you want to unlink, use " + ChatColor.YELLOW + "/unlink"));
                         }
                     }
                 } else {
-                    player.sendMessage(ChatColor.RED + "The username you provided doesn't exist in our database.");
+                    player.sendMessage(new TextComponent(ChatColor.RED + "The username you provided doesn't exist in our database."));
                 }
             }
         }
-        return;
     }
 
     private void sendInstructions(ProxiedPlayer player) {
-        player.sendMessage(ChatColor.GOLD + "===============");
-        player.sendMessage(ChatColor.GREEN + "Verify forum account");
-        player.sendMessage("");
-        player.sendMessage(ChatColor.YELLOW + "Please head to https://inferris.com/community." +
-                " If you aren't registered, please register. If you are registered, use: /verify <your-forum-username>");
-        player.sendMessage(ChatColor.GOLD + "===============");
+        player.sendMessage(new TextComponent(ChatColor.GOLD + "==============="));
+        player.sendMessage(new TextComponent(ChatColor.GREEN + "Verify forum account"));
+        player.sendMessage(new TextComponent(""));
+        player.sendMessage(new TextComponent(ChatColor.YELLOW + "Please head to https://inferris.com/community." +
+                " If you aren't registered, please register. If you are registered, use: /verify <your-forum-username>"));
+        player.sendMessage(new TextComponent(ChatColor.GOLD + "==============="));
     }
 
     private String getForumData(String username, String field) {
@@ -171,14 +170,14 @@ public class CommandVerify extends Command implements TabExecutor {
                 return exactMap.get(field).toString();
             } else if (recommendationsObj instanceof List) {
                 List<Map<String, Object>> recommendationsList = (List<Map<String, Object>>) recommendationsObj;
-                if (recommendationsList.size() > 0) {
+                if (!recommendationsList.isEmpty()) {
                     Map<String, Object> firstRecommendationMap = recommendationsList.get(0);
                     recommendationName = firstRecommendationMap.get(field).toString();
                     return "Did you mean " + recommendationName + "?";
                 }
             }
         }catch(Exception e){
-            e.printStackTrace();
+            Inferris.getInstance().getLogger().severe(e.getMessage());
         }
         return null;
     }
@@ -200,9 +199,9 @@ public class CommandVerify extends Command implements TabExecutor {
     private void verify(ProxiedPlayer player) {
         String usernameMC = null;
         int recipient_id = 0;
-        player.sendMessage(ChatColor.GREEN + "Verification successful!");
-        player.sendMessage("");
-        player.sendMessage(ChatColor.YELLOW + "Your accounts have been successfully linked.");
+        player.sendMessage(new TextComponent(ChatColor.GREEN + "Verification successful!"));
+        player.sendMessage(new TextComponent(""));
+        player.sendMessage(new TextComponent(ChatColor.YELLOW + "Your accounts have been successfully linked."));
 
         try (Connection connection = DatabasePool.getConnection();
 
@@ -222,7 +221,7 @@ public class CommandVerify extends Command implements TabExecutor {
             DatabaseUtils.insertData(connection, tableName, columnNames, values);
             }//*
         } catch (SQLException e) {
-            e.printStackTrace();
+            Inferris.getInstance().getLogger().severe(e.getMessage());
         }
 
         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
@@ -235,7 +234,7 @@ public class CommandVerify extends Command implements TabExecutor {
             restClientManager.sendRequest(API_BASE_URL + "users/" + recipient_id + "/?=&custom_fields[uuid]=" + player.getUniqueId(),
                     RestClientManager.Method.POST, API_KEY, MediaType.parse(ContentTypes.PLAIN.getType()), "");
         }catch(Exception e){
-            e.printStackTrace();
+            Inferris.getInstance().getLogger().severe(e.getMessage());
         }
     }
 
