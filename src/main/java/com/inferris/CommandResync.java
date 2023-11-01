@@ -41,71 +41,18 @@ public class CommandResync extends Command {
             player.sendMessage(new TextComponent(ChatColor.GREEN + "Re-synced!"));
             if (length == 0) {
                 PlayerData playerData = PlayerDataManager.getInstance().getPlayerDataFromDatabase(player);
-                PlayerDataManager.getInstance().updateAllData(player, playerData);
+                PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData);
                 return;
             }
-            ProxiedPlayer target = ProxyServer.getInstance().getPlayer(args[0]);
-            PlayerData playerData = PlayerDataManager.getInstance().getPlayerDataFromDatabase(target);
-            PlayerDataManager.getInstance().updateAllData(target, playerData);
-            return;
-        }
-
-    }
-
-    public Rank retrieveRankData(ProxiedPlayer player) {
-        String[] columnNames = {"staff", "builder", "donor", "other"};
-        int staffRank = 0;
-        int builderRank = 0;
-        int donorRank = 0;
-        int otherRank = 0;
-
-        try (Connection connection = DatabasePool.getConnection();
-             ResultSet resultSet = DatabaseUtils.executeQuery(connection, "rank", columnNames, "uuid = ?", player.getUniqueId())) {
-            while (resultSet.next()) {
-                staffRank = resultSet.getInt("staff");
-                builderRank = resultSet.getInt("builder");
-                donorRank = resultSet.getInt("donor");
-                otherRank = resultSet.getInt("other");
+            if (ProxyServer.getInstance().getPlayer(args[0]) != null) {
+                ProxiedPlayer target = ProxyServer.getInstance().getPlayer(args[0]);
+                PlayerData playerData = PlayerDataManager.getInstance().getPlayerDataFromDatabase(target);
+                PlayerDataManager.getInstance().updateAllDataAndPush(target, playerData);
+            } else {
+                player.sendMessage(new TextComponent(ChatColor.RED + "Player not found!"));
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
-        return new Rank(staffRank, builderRank, donorRank, otherRank);
     }
-
-    private Map<String, Object> retrievePlayersData(ProxiedPlayer player) {
-        String[] columnNames = {"coins", "channel", "vanished", "join_date"};
-        Map<String, Object> playerData = new HashMap<>();
-
-        try (Connection connection = DatabasePool.getConnection();
-             ResultSet resultSet = DatabaseUtils.executeQuery(connection, "player_data", columnNames, "uuid = ?", player.getUniqueId())) {
-            while (resultSet.next()) {
-                playerData.put("coins", resultSet.getInt(1));
-                playerData.put("channel", Channels.valueOf(resultSet.getString(2)));
-                playerData.put("vanished", VanishState.valueOf(resultSet.getString(3)));
-                playerData.put("join_date", LocalDate.parse(resultSet.getString(4)));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return playerData;
-    }
-
-//    private Profile retrieveProfileData(ProxiedPlayer player){
-//        String[] columnNames = {"bio", "pronouns"};
-//        String bio = null;
-//        String pronouns = null;
-//        try (Connection connection = DatabasePool.getConnection();
-//             ResultSet resultSet = DatabaseUtils.executeQuery(connection, "profile", columnNames, "uuid = ?", player.getUniqueId())) {
-//            while (resultSet.next()) {
-//                bio = resultSet.getString(1);
-//                pronouns = resultSet.getString(2);
-//            }
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-//    }
-
     @Override
     protected void setPermissionMessage(String permissionMessage) {
         super.setPermissionMessage(Messages.NO_PERMISSION.getMessage().toString());
