@@ -46,3 +46,9 @@ commands:
     description: Alert, but without the prefix
   buy:
     description: Buy
+  permissions:
+    description: List permissions
+  verify:
+    description: Verify your forum account
+  unlink:
+    description: Unlink forum account

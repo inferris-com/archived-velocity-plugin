@@ -39,6 +39,8 @@ public class Initializer {
         pluginManager.registerCommand(instance, new CommandReply("reply"));
         pluginManager.registerCommand(instance, new CommandChannel("channel"));
         pluginManager.registerCommand(instance, new CommandVanish("vanish"));
+        pluginManager.registerCommand(instance, new CommandVerify("verify"));
+        pluginManager.registerCommand(instance, new CommandUnlink("unlink"));
         pluginManager.registerCommand(instance, new CommandSetrank("rank"));
         pluginManager.registerCommand(instance, new CommandCoins("coins"));
         pluginManager.registerCommand(instance, new CommandProfile("profile"));
@@ -51,6 +53,7 @@ public class Initializer {
         pluginManager.registerCommand(instance, new CommandResync("resync", "inferris.admin.resync"));
         pluginManager.registerCommand(instance, new CommandShout("shout"));
         pluginManager.registerCommand(instance, new CommandBuy("buy"));
+        pluginManager.registerCommand(instance, new CommandPermissions("permissions", "inferris.admin.permissions"));
 
         plugin.getProxy().registerChannel(BungeeChannel.STAFFCHAT.getName());
         plugin.getProxy().registerChannel(BungeeChannel.PLAYER_REGISTRY.getName());
