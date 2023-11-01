@@ -62,7 +62,6 @@ public class CommandAccount extends Command implements TabExecutor {
                 username.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to copy username")));
                 username.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, playerData.getUsername()));
 
-
                 TextComponent prefix = new TextComponent(TextComponent.fromLegacyText("Ranks: " + playerData.formatRankList(playerData.getApplicableRanks())));
                 prefix.setColor(ChatColor.YELLOW);
 
