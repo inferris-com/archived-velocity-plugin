@@ -5,6 +5,8 @@ import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.server.ServerState;
 import com.inferris.util.ServerUtil;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.config.Configuration;
 
@@ -43,7 +45,6 @@ public class Permissions {
             }
         }
 
-
         RankRegistry rank = playerData.getByBranch();
         for(Permission permission : Permission.values()){
             for(RankRegistry permissionRank : permission.getRanks()){
@@ -53,6 +54,30 @@ public class Permissions {
             }
         }
     }
+
+    public static void listPermissions(ProxiedPlayer player) {
+        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
+        List<RankRegistry> ranks = playerData.getApplicableRanks();
+        Configuration permissionsConfig = Inferris.getPermissionsConfiguration();
+        Configuration ranksSection = permissionsConfig.getSection("ranks");
+
+        if (ranksSection != null) {
+            for (RankRegistry rank : ranks) {
+                String rankName = rank.toString().toLowerCase();
+                List<String> permissions = ranksSection.getStringList(rankName);
+
+                if (!permissions.isEmpty()) {
+                    player.sendMessage(new TextComponent(ChatColor.AQUA + "Permissions for " + rankName + ":"));
+                    for (String permission : permissions) {
+                        player.sendMessage(new TextComponent(permission));
+                    }
+                    // Add a new line to separate different ranks
+                    player.sendMessage(new TextComponent(""));
+                }
+            }
+        }
+    }
+
 }
 
 
