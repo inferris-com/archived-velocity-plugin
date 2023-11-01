@@ -18,6 +18,7 @@ import com.inferris.rank.RanksManager;
 import com.inferris.server.Server;
 import com.inferris.server.ServerState;
 import com.inferris.server.ServerStateManager;
+import com.inferris.server.jedis.JedisChannels;
 import com.inferris.util.CacheSerializationUtils;
 import com.inferris.util.DatabaseUtils;
 import com.inferris.util.ServerUtil;
@@ -248,6 +249,19 @@ public class PlayerDataManager {
         }
     }
 
+    public void updateAllDataAndPush(ProxiedPlayer player, PlayerData playerData) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            jedis.hset("playerdata", player.getUniqueId().toString(), CacheSerializationUtils.serializePlayerData(playerData));
+            updateCaffeineCache(player, playerData);
+            Inferris.getInstance().getLogger().info("Updated all data and Redis information via Jedis. Caches updated!");
+
+            jedis.publish(JedisChannels.PROXY_TO_SPIGOT_PLAYERDATA_CACHE_UPDATE.getChannelName(), CacheSerializationUtils.serializePlayerData(playerData));
+
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void updateRedisData(ProxiedPlayer player, PlayerData playerData) {
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.hset("playerdata", player.getUniqueId().toString(), CacheSerializationUtils.serializePlayerData(playerData));
@@ -283,7 +297,7 @@ public class PlayerDataManager {
         try (Connection connection = DatabasePool.getConnection();
              PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM " + Tables.PLAYER_DATA.getName() + " WHERE uuid = ?");
              PreparedStatement insertPlayersStatement = connection.prepareStatement("INSERT INTO " + Tables.PLAYER_DATA.getName() + " (uuid, username, coins, channel, vanished) VALUES (?, ?, ?, ?, ?)");
-             PreparedStatement insertProfileStatement = connection.prepareStatement("INSERT INTO " + Tables.PROFILE.getName() + " (uuid, join_date, bio, pronouns) VALUES (?, ?, ?, ?)")){
+             PreparedStatement insertProfileStatement = connection.prepareStatement("INSERT INTO " + Tables.PROFILE.getName() + " (uuid, join_date, bio, pronouns) VALUES (?, ?, ?, ?)")) {
             queryStatement.setString(1, player.getUniqueId().toString());
             ResultSet resultSet = queryStatement.executeQuery();
 
