@@ -7,7 +7,10 @@ import com.inferris.player.PlayerDataManager;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Rank;
 import com.inferris.util.DatabaseUtils;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
@@ -31,29 +34,22 @@ public class CommandResync extends Command {
     public void execute(CommandSender sender, String[] args) {
         int length = args.length;
         if (sender instanceof ProxiedPlayer player) {
-            PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
-            String[] columnNames = {"staff", "builder", "donor", "other"};
-            int staffRank = 0;
-            int builderRank = 0;
-            int donorRank = 0;
-            int otherRank = 0;
-            Connection connection = null;
-
-            try {
-                connection = DatabasePool.getConnection();
-                ResultSet resultSet = DatabaseUtils.executeQuery(connection, "rank", columnNames, "uuid = ?", player.getUniqueId());
-
-                while (resultSet.next()) {
-                    staffRank = resultSet.getInt("staff");
-                    builderRank = resultSet.getInt("builder");
-                    donorRank = resultSet.getInt("donor");
-                    otherRank = resultSet.getInt("other");
-                }
-
-            } catch (SQLException e) {
-                e.printStackTrace();
+            if (length > 1) {
+                player.sendMessage(new TextComponent(ChatColor.RED + "Usage: /resync OR /resync <player>"));
+                return;
             }
+            player.sendMessage(new TextComponent(ChatColor.GREEN + "Re-synced!"));
+            if (length == 0) {
+                PlayerData playerData = PlayerDataManager.getInstance().getPlayerDataFromDatabase(player);
+                PlayerDataManager.getInstance().updateAllData(player, playerData);
+                return;
+            }
+            ProxiedPlayer target = ProxyServer.getInstance().getPlayer(args[0]);
+            PlayerData playerData = PlayerDataManager.getInstance().getPlayerDataFromDatabase(target);
+            PlayerDataManager.getInstance().updateAllData(target, playerData);
+            return;
         }
+
     }
 
     public Rank retrieveRankData(ProxiedPlayer player) {

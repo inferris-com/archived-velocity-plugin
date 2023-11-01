@@ -229,9 +229,9 @@ public class FriendsManager {
             String is = ChatColor.YELLOW + " is";
 
             if (friendPlayer != null) {
-                onlineFriends.add(playerStr + prefix + playerName + is + online);
+                onlineFriends.add(playerStr + prefix + ChatColor.RESET + playerName + is + online);
             } else {
-                offlineFriends.add(playerStr + prefix + playerName + is + offline);
+                offlineFriends.add(playerStr + prefix + ChatColor.RESET + playerName + is + offline);
             }
         }
 

@@ -66,7 +66,7 @@ public class CommandMessage extends Command implements TabExecutor {
 
             // Check if the receiver is in a vanished state
             if (PlayerDataManager.getInstance().getPlayerData(receiver).getVanishState() == VanishState.ENABLED) {
-                if (RanksManager.getInstance().getRank(player).getBranchID(Branch.STAFF) < 3) {
+                if (PlayerDataManager.getInstance().getPlayerData(player).getBranchValue(Branch.STAFF) < 3) {
                     player.sendMessage(new TextComponent(ChatColor.RED + "Error: Couldn't find that player!"));
                     return;
                 }

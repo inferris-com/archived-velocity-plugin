@@ -3,10 +3,12 @@ package com.inferris.rank;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.inferris.Inferris;
 import com.inferris.database.DatabasePool;
+import com.inferris.database.Tables;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.server.jedis.JedisChannels;
 import com.inferris.util.CacheSerializationUtils;
+import com.inferris.util.DatabaseUtils;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import redis.clients.jedis.Jedis;
@@ -33,15 +35,9 @@ public class RanksManager {
         return instance;
     }
 
-    public Rank getRank(ProxiedPlayer player) {
-        return loadRanks(player);
-    }
-
-    public Rank loadRanks(ProxiedPlayer player) {
+    public Rank loadRanks(ProxiedPlayer player, Connection connection) {
         Inferris.getInstance().getLogger().warning("Loading ranks");
-        try (Connection connection = DatabasePool.getConnection();
-             PreparedStatement statement = connection.prepareStatement("SELECT staff, builder, donor, other FROM `rank` WHERE `uuid` = ?");
-             PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO `rank` (uuid, staff, builder, donor, other) VALUES (?,?,?,?,?)")) {
+        try (PreparedStatement statement = connection.prepareStatement("SELECT staff, builder, donor, other FROM `rank` WHERE `uuid` = ?")) {
             statement.setString(1, String.valueOf(player.getUniqueId()));
             ResultSet rs = statement.executeQuery();
 
@@ -51,19 +47,22 @@ public class RanksManager {
                 int donor = rs.getInt("donor");
                 int other = rs.getInt("other");
                 return new Rank(staff, builder, donor, other);
-            } else {
-                insertStatement.setString(1, String.valueOf(player.getUniqueId()));
-                insertStatement.setInt(2, 0); // Default value for staff rank
-                insertStatement.setInt(3, 0); // Default value for builder rank
-                insertStatement.setInt(4, 0); // Default value for donor rank
-                insertStatement.setInt(5, 0); // Default value for other rank
-                insertStatement.execute();
+            }else{
+                String[] columnNames = {"uuid", "staff", "builder", "donor", "other"};
+                Object[] values = {player.getUniqueId().toString(), 0, 0, 0, 0};
+
+                DatabaseUtils.insertData(connection, "`rank`", columnNames, values);
+
+                Inferris.getInstance().getLogger().info("Loading ranks");
+                Inferris.getInstance().getLogger().info("Loading ranks");
+                Inferris.getInstance().getLogger().info("Loading ranks");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            Inferris.getInstance().getLogger().severe("Fatal error with loading ranks: " + e.getMessage());
         }
         return new Rank(0, 0, 0, 0);
     }
+
 
     public void setRank(UUID uuid, Branch branch, int id) {
         ProxiedPlayer player = ProxyServer.getInstance().getPlayer(uuid);
