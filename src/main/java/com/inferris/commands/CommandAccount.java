@@ -1,5 +1,6 @@
 package com.inferris.commands;
 
+import com.inferris.Inferris;
 import com.inferris.database.Database;
 import com.inferris.database.DatabasePool;
 import com.inferris.player.PlayerData;
@@ -43,13 +44,10 @@ public class CommandAccount extends Command implements TabExecutor {
                 String targetName = args[0];
                 PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
 
-                UUID uuid = playerDataManager.getUUIDByUsername(targetName);
-                if (uuid == null) {
-                    player.sendMessage(new TextComponent(ChatColor.RED + "That player is not in our system."));
-                    return;
-                }
 
-                PlayerData playerData = playerDataManager.getRedisData(uuid, targetName);
+                //PlayerData playerData = playerDataManager.getRedisData(uuid, targetName);
+                UUID uuid = playerDataManager.getUUIDByUsername(args[0]);
+                PlayerData playerData = playerDataManager.getPlayerData(uuid);
                 String tag = Tags.STAFF.getName(true);
                 ChatColor reset = ChatColor.RESET;
 
@@ -75,11 +73,10 @@ public class CommandAccount extends Command implements TabExecutor {
                         xenforoUsername = xenforoUsername + resultSet.getString(1);
                     }
                 } catch (SQLException e) {
-                    e.printStackTrace();
+                    Inferris.getInstance().getLogger().severe(e.getMessage());
                 }
 
                 TextComponent verified = new TextComponent(ChatColor.YELLOW + "XenForo ID: " + ChatColor.RESET + playerData.getProfile().getXenforoId());
-
 
                 TextComponent channel = new TextComponent(ChatColor.YELLOW + "Current channel: " + reset + playerData.getChannel().getMessage());
 
@@ -93,9 +90,9 @@ public class CommandAccount extends Command implements TabExecutor {
                 TextComponent divider = new TextComponent("-------------------------------");
                 divider.setColor(ChatColor.GOLD);
 
-                TextComponent uuidText = new TextComponent(ChatColor.YELLOW + "UUID: " + reset + uuid);
+                TextComponent uuidText = new TextComponent(ChatColor.YELLOW + "UUID: " + reset + playerData.getUuid());
                 uuidText.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to copy UUID")));
-                uuidText.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, uuid.toString()));
+                uuidText.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, playerData.getUuid().toString()));
 
                 TextComponent coins = new TextComponent(ChatColor.YELLOW + "Coins: " + reset + playerData.getCoins().getBalance());
                 TextComponent staff;

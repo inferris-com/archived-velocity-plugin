@@ -40,13 +40,13 @@ public class CommandResync extends Command {
             }
             player.sendMessage(new TextComponent(ChatColor.GREEN + "Re-synced!"));
             if (length == 0) {
-                PlayerData playerData = PlayerDataManager.getInstance().getPlayerDataFromDatabase(player);
+                PlayerData playerData = PlayerDataManager.getInstance().getPlayerDataFromDatabase(player.getUniqueId());
                 PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData);
                 return;
             }
             if (ProxyServer.getInstance().getPlayer(args[0]) != null) {
                 ProxiedPlayer target = ProxyServer.getInstance().getPlayer(args[0]);
-                PlayerData playerData = PlayerDataManager.getInstance().getPlayerDataFromDatabase(target);
+                PlayerData playerData = PlayerDataManager.getInstance().getPlayerDataFromDatabase(target.getUniqueId());
                 PlayerDataManager.getInstance().updateAllDataAndPush(target, playerData);
             } else {
                 player.sendMessage(new TextComponent(ChatColor.RED + "Player not found!"));

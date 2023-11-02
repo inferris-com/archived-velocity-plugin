@@ -43,6 +43,7 @@ public class EventJoin implements Listener {
 
         // Important implementation
         playerDataManager.checkJoinedBefore(player);
+
         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player); // Grabs the Redis cache
         Permissions.attachPermissions(player);
 
@@ -56,7 +57,7 @@ public class EventJoin implements Listener {
             player.sendMessage(new TextComponent("Bungee " + json));
             Inferris.getInstance().getLogger().info(json);
 
-            jedis.publish(JedisChannels.PLAYERDATA_EVENT_JOIN.getChannelName(), json);
+            jedis.publish(JedisChannels.PLAYERDATA_EVENT_JOIN.getChannelName(), json); // todo
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

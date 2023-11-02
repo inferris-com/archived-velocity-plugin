@@ -62,6 +62,33 @@ public class RanksManager {
         return new Rank(0, 0, 0, 0);
     }
 
+    public Rank loadRanks(UUID uuid, Connection connection) {
+        Inferris.getInstance().getLogger().warning("Loading ranks");
+        try (PreparedStatement statement = connection.prepareStatement("SELECT staff, builder, donor, other FROM `rank` WHERE `uuid` = ?")) {
+            statement.setString(1, String.valueOf(uuid));
+            ResultSet rs = statement.executeQuery();
+
+            if (rs.next()) {
+                int staff = rs.getInt("staff");
+                int builder = rs.getInt("builder");
+                int donor = rs.getInt("donor");
+                int other = rs.getInt("other");
+                return new Rank(staff, builder, donor, other);
+            }else{
+                String[] columnNames = {"uuid", "staff", "builder", "donor", "other"};
+                Object[] values = {uuid, 0, 0, 0, 0};
+
+                DatabaseUtils.insertData(connection, "`rank`", columnNames, values);
+
+                Inferris.getInstance().getLogger().info("Loading ranks");
+                Inferris.getInstance().getLogger().info("Loading ranks");
+                Inferris.getInstance().getLogger().info("Loading ranks");
+            }
+        } catch (SQLException e) {
+            Inferris.getInstance().getLogger().severe("Fatal error with loading ranks: " + e.getMessage());
+        }
+        return new Rank(0, 0, 0, 0);
+    }
 
     public void setRank(UUID uuid, Branch branch, int id) {
         ProxiedPlayer player = ProxyServer.getInstance().getPlayer(uuid);

@@ -69,7 +69,7 @@ public class CommandFriend extends Command implements TabExecutor {
                     player.sendMessage(new TextComponent(Messages.PLAYER_NOT_IN_SYSTEM.getMessage()));
                     return;
                 }
-                PlayerData targetData = PlayerDataManager.getInstance().getRedisData(targetUUID, args[1]);
+                PlayerData targetData = PlayerDataManager.getInstance().getRedisData(targetUUID);
                 String targetName = targetData.getUsername();
                 Friends playerFriends = FriendsManager.getInstance().getFriendsData(playerUUID);
                 Friends targetFriends = FriendsManager.getInstance().getFriendsData(targetUUID);
