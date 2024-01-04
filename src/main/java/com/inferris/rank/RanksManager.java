@@ -65,7 +65,8 @@ public class RanksManager {
     public Rank loadRanks(UUID uuid, Connection connection) {
         Inferris.getInstance().getLogger().warning("Loading ranks");
         try (PreparedStatement statement = connection.prepareStatement("SELECT staff, builder, donor, other FROM `rank` WHERE `uuid` = ?")) {
-            statement.setString(1, String.valueOf(uuid));
+            ProxyServer.getInstance().getLogger().severe(uuid.toString());
+            statement.setString(1, uuid.toString());
             ResultSet rs = statement.executeQuery();
 
             if (rs.next()) {
@@ -76,7 +77,7 @@ public class RanksManager {
                 return new Rank(staff, builder, donor, other);
             }else{
                 String[] columnNames = {"uuid", "staff", "builder", "donor", "other"};
-                Object[] values = {uuid, 0, 0, 0, 0};
+                Object[] values = {uuid.toString(), 0, 0, 0, 0};
 
                 DatabaseUtils.insertData(connection, "`rank`", columnNames, values);
 

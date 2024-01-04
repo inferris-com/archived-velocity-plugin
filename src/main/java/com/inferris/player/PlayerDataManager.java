@@ -284,7 +284,7 @@ public class PlayerDataManager {
     public PlayerData getPlayerDataFromDatabase(UUID uuid) {
         PlayerData playerData = null;
         Profile profile = null;
-        String username = null;
+        String username;
 
         try (Connection connection = DatabasePool.getConnection();
              PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM " + Tables.PLAYER_DATA.getName() + " WHERE uuid = ?")) {
@@ -344,6 +344,7 @@ public class PlayerDataManager {
 
     // PlayerData. It returns null if not in database
     // PlayerData playerData = getPlayerDataFromDatabase(player.getUniqueId(), player.getName(), true);
+    // todo, return type
     public PlayerData getPlayerDataFromDatabase(UUID uuid, String username, boolean insertData) {
         PlayerData playerData = null;
         Profile profile = null;
@@ -399,8 +400,10 @@ public class PlayerDataManager {
             } else {
                 if (insertData) {
                     this.insertPlayerDataToDatabase(connection, uuid, username);
+                    playerData = getPlayerData(uuid);
                 }
             }
+
         } catch (SQLException e) {
             Inferris.getInstance().getLogger().warning(e.getMessage());
         }
@@ -423,6 +426,8 @@ public class PlayerDataManager {
             insertProfileStatement.setString(3, null);
             insertProfileStatement.setString(4, null);
             insertProfileStatement.execute();
+
+            //RanksManager.getInstance().loadRanks(uuid, connection); todo remove
         } catch (SQLException e) {
             Inferris.getInstance().getLogger().warning(e.getMessage());
         }
@@ -455,8 +460,7 @@ public class PlayerDataManager {
                 }
             } else {
                 ServerUtil.log("Not in Redis, caching", Level.WARNING, ServerState.DEBUG);
-                getPlayerDataFromDatabase(player.getUniqueId(), player.getName(), true); // Checks database
-                PlayerData playerData = getPlayerData(playerUUID);
+                PlayerData playerData = getPlayerDataFromDatabase(player.getUniqueId(), player.getName(), true); // Checks database
 
                 ServerUtil.log("Gonna get the username", Level.WARNING, ServerState.DEBUG);
                 ServerUtil.log(playerData.getUsername(), Level.WARNING, ServerState.DEBUG);
