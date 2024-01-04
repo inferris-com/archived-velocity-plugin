@@ -68,8 +68,7 @@ public class EventJoin implements Listener {
      *
      * @param event Post login event
      */
-
-    @EventHandler
+// Todo, enable event
     public void onPostLogin(PostLoginEvent event) {
 
         ProxiedPlayer player = event.getPlayer();

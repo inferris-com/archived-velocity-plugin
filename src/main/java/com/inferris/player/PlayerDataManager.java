@@ -342,10 +342,11 @@ public class PlayerDataManager {
         return playerData;
     }
 
-    public PlayerData getPlayerDataFromDatabase(UUID uuid, boolean insertData) {
+    // PlayerData. It returns null if not in database
+    // PlayerData playerData = getPlayerDataFromDatabase(player.getUniqueId(), player.getName(), true);
+    public PlayerData getPlayerDataFromDatabase(UUID uuid, String username, boolean insertData) {
         PlayerData playerData = null;
         Profile profile = null;
-        String username = null;
 
         try (Connection connection = DatabasePool.getConnection();
              PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM " + Tables.PLAYER_DATA.getName() + " WHERE uuid = ?")) {
@@ -454,7 +455,12 @@ public class PlayerDataManager {
                 }
             } else {
                 ServerUtil.log("Not in Redis, caching", Level.WARNING, ServerState.DEBUG);
-                PlayerData playerData = getPlayerDataFromDatabase(player.getUniqueId(), true); // Checks database
+                getPlayerDataFromDatabase(player.getUniqueId(), player.getName(), true); // Checks database
+                PlayerData playerData = getPlayerData(playerUUID);
+
+                ServerUtil.log("Gonna get the username", Level.WARNING, ServerState.DEBUG);
+                ServerUtil.log(playerData.getUsername(), Level.WARNING, ServerState.DEBUG);
+                ServerUtil.log(String.valueOf(playerData.getRank().getStaff()), Level.WARNING, ServerState.DEBUG);
 
                 // todo: default values, change to database values
                 String playerDataJson = CacheSerializationUtils.serializePlayerData(playerData);
