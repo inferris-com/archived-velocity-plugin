@@ -62,6 +62,7 @@ public class Inferris extends Plugin {
                 JedisChannels.VIEW_LOGS_SPIGOT_TO_PROXY.getChannelName()));
         subscriptionThread.start();
 
+
         String debugMode = properties.getProperty("debug.mode");
         if(debugMode != null && debugMode.equalsIgnoreCase("true")){
             ServerStateManager.setCurrentState(ServerState.DEBUG);

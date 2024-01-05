@@ -30,7 +30,7 @@ import java.util.*;
 public class CommandVerify extends Command implements TabExecutor {
 
     private static final String API_BASE_URL = "https://inferris.com/community/api/";
-    String API_KEY = Inferris.getProperties().getProperty("api.key");
+    String API_KEY = Inferris.getProperties().getProperty("xf.api.key");
     private static final String TITLE = "Verification request";
     private static final int EXPIRATION_TIME = 15; // minutes
     private String recommendationName = null;

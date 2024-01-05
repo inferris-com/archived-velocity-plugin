@@ -24,7 +24,7 @@ import java.util.List;
 
 public class CommandUnlink extends Command implements TabExecutor {
     private static final String API_BASE_URL = "https://inferris.com/community/api/";
-    String API_KEY = Inferris.getProperties().getProperty("api.key");
+    String API_KEY = Inferris.getProperties().getProperty("xf.api.key");
 
     public CommandUnlink(String name) {
         super(name);
