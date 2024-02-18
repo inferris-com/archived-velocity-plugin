@@ -52,3 +52,5 @@ commands:
     description: Verify your forum account
   unlink:
     description: Unlink forum account
+  trollkick:
+    description: Yes

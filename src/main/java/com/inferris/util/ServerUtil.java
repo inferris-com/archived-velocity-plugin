@@ -18,12 +18,13 @@ public class ServerUtil {
         }
     }
 
+    // todo please fix this if possible
     public static Server getServerType(ProxiedPlayer player) {
-        switch (player.getServer().getInfo().getName().toLowerCase()) {
-            case "lobby" -> {
+        switch (player.getServer().getAddress().getPort()) {
+            case 25566 -> {
                 return Server.LOBBY;
             }
-            case "inferris" -> {
+            case 25567 -> {
                 return Server.INFERRIS;
             }
             default -> {

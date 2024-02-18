@@ -54,6 +54,7 @@ public class Initializer {
         pluginManager.registerCommand(instance, new CommandShout("shout"));
         pluginManager.registerCommand(instance, new CommandBuy("buy"));
         pluginManager.registerCommand(instance, new CommandPermissions("permissions", "inferris.admin.permissions"));
+        pluginManager.registerCommand(instance, new CommandTrollkick("trollkick"));
 
         plugin.getProxy().registerChannel(BungeeChannel.STAFFCHAT.getName());
         plugin.getProxy().registerChannel(BungeeChannel.PLAYER_REGISTRY.getName());

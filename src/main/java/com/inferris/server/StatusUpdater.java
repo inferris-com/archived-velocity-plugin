@@ -1,25 +1,37 @@
 package com.inferris.server;
 
+import com.inferris.Inferris;
+import net.md_5.bungee.api.plugin.Plugin;
+import net.md_5.bungee.api.scheduler.ScheduledTask;
+import net.md_5.bungee.api.scheduler.TaskScheduler;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
-public class StatusUpdater implements Runnable {
+public class StatusUpdater {
     private static final String BASE_URI = "https://api.statuspage.io/v1";
     private static final String PAGE_ID = "4g90923glbvb";
     private static final String METRIC_ID = "q1y7y5t91vvp";
     private static final String API_KEY = "e1073a71c4e44664a8407aa7e20759bb";
+    private final TaskScheduler scheduler;
 
-    public StatusUpdater(){
-        Thread updaterThread = new Thread(new StatusUpdater());
-        updaterThread.start();
+    public StatusUpdater(TaskScheduler scheduler){
+        this.scheduler = scheduler;
+
+        scheduler.schedule(Inferris.getInstance(), new Runnable() {
+            @Override
+            public void run() {
+                heartbeat();
+            }
+        }, 1L, TimeUnit.SECONDS);
     }
 
-    @Override
-    public void run() {
+    public void heartbeat() {
         try {
             int totalPoints = 60 / 5 * 24;
             for (int i = 0; i < totalPoints; i++) {

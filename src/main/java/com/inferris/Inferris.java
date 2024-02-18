@@ -5,7 +5,9 @@ import com.inferris.events.*;
 import com.inferris.server.*;
 import com.inferris.server.jedis.JedisChannels;
 import com.inferris.util.ConfigUtils;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
+import net.md_5.bungee.api.scheduler.TaskScheduler;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
@@ -62,6 +64,7 @@ public class Inferris extends Plugin {
                 JedisChannels.VIEW_LOGS_SPIGOT_TO_PROXY.getChannelName()));
         subscriptionThread.start();
 
+        StatusUpdater statusUpdater = new StatusUpdater(ProxyServer.getInstance().getScheduler());
 
         String debugMode = properties.getProperty("debug.mode");
         if(debugMode != null && debugMode.equalsIgnoreCase("true")){

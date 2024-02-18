@@ -6,13 +6,6 @@
 #                                                     #
 #######################################################
 
-database:
-  address: localhost
-  port: 3306
-  database: inferris
-  user: null
-  password: null
-
 command:
   features:
     message-joke: true
