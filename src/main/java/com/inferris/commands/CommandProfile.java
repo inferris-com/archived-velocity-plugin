@@ -95,10 +95,7 @@ public class CommandProfile extends Command implements TabExecutor {
                             player.sendMessage(new TextComponent(ChatColor.GREEN + "Your bio has been successfully updated"));
                             playerData.getProfile().setBio(bio);
                             PlayerDataManager.getInstance().updateAllData(player, playerData);
-                            try (Jedis jedis = Inferris.getJedisPool().getResource()) {
-                                jedis.publish(JedisChannels.PROXY_TO_SPIGOT_PLAYERDATA_CACHE_UPDATE.getChannelName(), CacheSerializationUtils.serializePlayerData(playerData));
-                            }
-                        } catch (SQLException | JsonProcessingException e) {
+                        } catch (SQLException e) {
                             player.sendMessage(new TextComponent(ChatColor.RED + "Uh oh, something went wrong while you were setting your bio."));
                             player.sendMessage(new TextComponent(ChatColor.RED + "Here's the stacktrace: " + ChatColor.RESET + ChatColor.ITALIC + e.getMessage()));
                             e.printStackTrace();

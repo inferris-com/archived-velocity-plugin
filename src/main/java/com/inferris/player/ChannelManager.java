@@ -25,9 +25,9 @@ public class ChannelManager {
             player.sendMessage(new TextComponent(ChatColor.YELLOW + "Channel set to " + channelName));
         }
 
-        PlayerDataManager.getInstance().updateAllData(player, playerData);
+        PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData);
         try(Jedis jedis = Inferris.getJedisPool().getResource()){
-            jedis.publish(JedisChannels.PROXY_TO_SPIGOT_PLAYERDATA_CACHE_UPDATE.getChannelName(), CacheSerializationUtils.serializePlayerData(playerData));
+            jedis.publish(JedisChannels.PLAYERDATA_UPDATE.getChannelName(), CacheSerializationUtils.serializePlayerData(playerData));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

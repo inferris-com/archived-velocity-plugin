@@ -36,6 +36,15 @@ public class CommandBungeeTest extends Command {
             int length = args.length;
 
             if (length == 1) {
+                if(args[0].equalsIgnoreCase("playerdata")){
+                    PlayerData playerData  = PlayerDataManager.getInstance().getPlayerData(player);
+                    try {
+                        player.sendMessage(new TextComponent(CacheSerializationUtils.serializePlayerData(playerData)));
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                }
                 if(args[0].equalsIgnoreCase("buycraft")){
                     try {
                         BuycraftApi api = new BuycraftApi("707b2c9774328e8b857424a3a3811d874f77e482");

@@ -47,20 +47,9 @@ public class EventJoin implements Listener {
         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player); // Grabs the Redis cache
         Permissions.attachPermissions(player);
 
-        try (Jedis jedis = Inferris.getJedisPool().getResource()) {
+        playerData.setCurrentServer(ServerUtil.getServerType(player));
 
-            playerData.setCurrentServer(ServerUtil.getServerType(player));
-
-            String json = CacheSerializationUtils.serializePlayerData(playerData);
-            jedis.hset("playerdata", player.getUniqueId().toString(), json);
-
-            player.sendMessage(new TextComponent("Bungee " + json));
-            Inferris.getInstance().getLogger().info(json);
-
-            jedis.publish(JedisChannels.PLAYERDATA_EVENT_JOIN.getChannelName(), json); // todo
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        playerDataManager.updateAllData(player, playerData); //new, so that it updates the bungee cache too
     }
 
     /**

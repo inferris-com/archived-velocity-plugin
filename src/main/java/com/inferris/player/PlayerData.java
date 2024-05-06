@@ -115,6 +115,7 @@ public class PlayerData implements PlayerDataService, Serializable {
 
     public void setRank(Branch branch, int level, boolean hasMessage) {
         RanksManager.getInstance().setRank(uuid, branch, level);
+
         if (ProxyServer.getInstance().getPlayer(uuid) != null) {
             if (ProxyServer.getInstance().getPlayer(getUuid()).isConnected()) {
                 ProxiedPlayer player = ProxyServer.getInstance().getPlayer(getUuid());

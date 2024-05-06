@@ -58,13 +58,13 @@ public class Inferris extends Plugin {
         playersFile = new File(getDataFolder(), "players.yml");
         playersConfiguration = ConfigUtils.createConfigFile(playersFile, "players");
 
-        jedisPool = new JedisPool("localhost", Ports.JEDIS.getPort());
+        jedisPool = new JedisPool("198.27.83.200", Ports.JEDIS.getPort());
         Thread subscriptionThread = new Thread(() -> Inferris.getJedisPool().getResource().subscribe(jedisReceive,
                 JedisChannels.SPIGOT_TO_PROXY_PLAYERDATA_CACHE_UPDATE.getChannelName(),
                 JedisChannels.VIEW_LOGS_SPIGOT_TO_PROXY.getChannelName()));
         subscriptionThread.start();
 
-        StatusUpdater statusUpdater = new StatusUpdater(ProxyServer.getInstance().getScheduler());
+        //StatusUpdater statusUpdater = new StatusUpdater(ProxyServer.getInstance().getScheduler());
 
         String debugMode = properties.getProperty("debug.mode");
         if(debugMode != null && debugMode.equalsIgnoreCase("true")){

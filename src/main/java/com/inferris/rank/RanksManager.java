@@ -6,6 +6,7 @@ import com.inferris.database.DatabasePool;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.server.jedis.JedisChannels;
+import com.inferris.server.jedis.JedisHelper;
 import com.inferris.util.CacheSerializationUtils;
 import com.inferris.util.DatabaseUtils;
 import net.md_5.bungee.api.ProxyServer;
@@ -34,6 +35,8 @@ public class RanksManager {
         return instance;
     }
 
+    // Now deprecated - remove?
+    @Deprecated
     public Rank loadRanks(ProxiedPlayer player, Connection connection) {
         Inferris.getInstance().getLogger().warning("Loading ranks");
         try (PreparedStatement statement = connection.prepareStatement("SELECT staff, builder, donor, other FROM `rank` WHERE `uuid` = ?")) {
@@ -81,8 +84,6 @@ public class RanksManager {
 
                 DatabaseUtils.insertData(connection, "`rank`", columnNames, values);
 
-                Inferris.getInstance().getLogger().info("Loading ranks");
-                Inferris.getInstance().getLogger().info("Loading ranks");
                 Inferris.getInstance().getLogger().info("Loading ranks");
             }
         } catch (SQLException e) {
@@ -162,11 +163,17 @@ public class RanksManager {
 
             try (Jedis jedis = jedisPool.getResource()) {
                 String json = CacheSerializationUtils.serializePlayerData(playerData);
-                jedis.hset("playerdata", uuid.toString(), json);
+                JedisHelper jedisHelper = new JedisHelper(jedisPool);
+
                 if (!isNull) {
-                    PlayerDataManager.getInstance().updateAllData(player, playerData);
+                    /* In the future, we can check current Caffeine cache against new incoming
+                     Redis data to see if it warrants front-end update mechanisms! Same with vanish
+                     */
+
+                    PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData, JedisChannels.PLAYERDATA_UPDATE);
+
+                    // What the fuck is this?
                     String payload = playerData.getCurrentServer().name() + ":" + json;
-                    jedis.publish(JedisChannels.PLAYERDATA_RANK_UPDATE.getChannelName(), json);
                 }
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);

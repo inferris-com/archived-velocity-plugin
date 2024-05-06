@@ -89,7 +89,6 @@ public class PlayerDataManager {
 
     public PlayerData getPlayerData(ProxiedPlayer player) {
         if (caffeineCache.getIfPresent(player.getUniqueId()) != null) {
-
             return caffeineCache.asMap().get(player.getUniqueId());
         } else {
             Inferris.getInstance().getLogger().severe("Trying getRedisData");
@@ -245,10 +244,21 @@ public class PlayerDataManager {
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.hset("playerdata", player.getUniqueId().toString(), CacheSerializationUtils.serializePlayerData(playerData));
             updateCaffeineCache(player, playerData);
-            Inferris.getInstance().getLogger().info("Updated all data and Redis information via Jedis. Caches updated!");
+            Inferris.getInstance().getLogger().info("Updated all data and Redis information via Jedis. We let the front-end know, it has the cue!");
 
-            jedis.publish(JedisChannels.PROXY_TO_SPIGOT_PLAYERDATA_CACHE_UPDATE.getChannelName(), CacheSerializationUtils.serializePlayerData(playerData));
+            jedis.publish(JedisChannels.PLAYERDATA_UPDATE.getChannelName(), player.getUniqueId().toString());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
+    public void updateAllDataAndPush(ProxiedPlayer player, PlayerData playerData, JedisChannels jedisChannels) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            jedis.hset("playerdata", player.getUniqueId().toString(), CacheSerializationUtils.serializePlayerData(playerData));
+            updateCaffeineCache(player, playerData);
+            Inferris.getInstance().getLogger().info("Updated all data and Redis information via Jedis. We let the front-end know, it has the cue!");
+
+            jedis.publish(jedisChannels.getChannelName(), player.getUniqueId().toString());
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

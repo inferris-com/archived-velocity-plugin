@@ -66,7 +66,7 @@ public class CommandVanish extends Command implements TabExecutor {
     private void updatePlayerData(ProxiedPlayer player, VanishState vanishState) {
         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
         playerData.setVanishState(vanishState);
-        PlayerDataManager.getInstance().updateAllData(player, playerData);
+        PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData, JedisChannels.PLAYERDATA_VANISH);
         String json;
         try {
             json = CacheSerializationUtils.serializePlayerData(playerData);
@@ -77,10 +77,11 @@ public class CommandVanish extends Command implements TabExecutor {
 
         /* Publishes the player data update so that Inferris front-end can pick it up
         and update their caches accordingly */
-        Inferris.getInstance().getLogger().info(".....");
-        try(Jedis jedis = Inferris.getJedisPool().getResource()){
-            jedis.publish(JedisChannels.PLAYERDATA_VANISH.getChannelName(), json);
-        }
+
+//        Inferris.getInstance().getLogger().info(".....");
+//        try(Jedis jedis = Inferris.getJedisPool().getResource()){
+//            jedis.publish(JedisChannels.PLAYERDATA_VANISH.getChannelName(), json);
+//        }
     }
 
     @Override
