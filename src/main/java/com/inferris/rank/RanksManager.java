@@ -84,7 +84,7 @@ public class RanksManager {
 
                 DatabaseUtils.insertData(connection, "`rank`", columnNames, values);
 
-                Inferris.getInstance().getLogger().info("Loading ranks");
+                Inferris.getInstance().getLogger().info("Loading ranks, inserting");
             }
         } catch (SQLException e) {
             Inferris.getInstance().getLogger().severe("Fatal error with loading ranks: " + e.getMessage());
