@@ -26,10 +26,5 @@ public class ChannelManager {
         }
 
         PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData);
-        try(Jedis jedis = Inferris.getJedisPool().getResource()){
-            jedis.publish(JedisChannels.PLAYERDATA_UPDATE.getChannelName(), CacheSerializationUtils.serializePlayerData(playerData));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
     }
 }

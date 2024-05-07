@@ -37,13 +37,20 @@ public class CommandBungeeTest extends Command {
 
             if (length == 1) {
                 if(args[0].equalsIgnoreCase("playerdata")){
+                    PlayerData playerData  = PlayerDataManager.getInstance().getRedisData(player);
+                    try {
+                        player.sendMessage(new TextComponent(CacheSerializationUtils.serializePlayerData(playerData)));
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                if(args[0].equalsIgnoreCase("cache")){
                     PlayerData playerData  = PlayerDataManager.getInstance().getPlayerData(player);
                     try {
                         player.sendMessage(new TextComponent(CacheSerializationUtils.serializePlayerData(playerData)));
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException(e);
                     }
-
                 }
                 if(args[0].equalsIgnoreCase("buycraft")){
                     try {

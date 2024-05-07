@@ -8,6 +8,7 @@ import com.inferris.player.PlayerDataManager;
 import com.inferris.server.jedis.JedisChannels;
 import com.inferris.util.CacheSerializationUtils;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import redis.clients.jedis.Jedis;
 
@@ -17,32 +18,25 @@ import java.sql.SQLException;
 import java.util.UUID;
 
 public class CoinsManager {
-    public static void setCoins(UUID uuid, int amount){
+    public static void setCoins(UUID uuid, int amount) {
         ProxiedPlayer player = ProxyServer.getInstance().getPlayer(uuid);
         boolean isNull = player == null;
         try (Connection connection = DatabasePool.getConnection();
-             PreparedStatement updateStatement = connection.prepareStatement("UPDATE player_data SET coins = ? WHERE uuid = ?")){
+             PreparedStatement updateStatement = connection.prepareStatement("UPDATE player_data SET coins = ? WHERE uuid = ?")) {
             updateStatement.setInt(1, amount);
             updateStatement.setString(2, uuid.toString());
             updateStatement.executeUpdate();
 
-        }catch(SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
         }
 
         PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(uuid);
         playerData.getCoins().setBalance(amount);
 
-        try(Jedis jedis = Inferris.getJedisPool().getResource()){
-            String json = CacheSerializationUtils.serializePlayerData(playerData);
-            jedis.hset("playerdata", uuid.toString(), json);
-            if(!isNull) {
-                PlayerDataManager.getInstance().updateAllData(player, playerData);
-
-                jedis.publish(JedisChannels.PROXY_TO_SPIGOT_PLAYERDATA_CACHE_UPDATE.getChannelName(), json);
-            }
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+        //jedis.hset("playerdata", uuid.toString(), json);
+        if (!isNull) {
+            PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData);
         }
     }
 }

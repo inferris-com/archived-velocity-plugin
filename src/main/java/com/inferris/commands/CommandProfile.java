@@ -72,11 +72,8 @@ public class CommandProfile extends Command implements TabExecutor {
                                 playerData.getProfile().setPronouns(null);
                             }
 
-                            PlayerDataManager.getInstance().updateAllData(player, playerData);
-                            try (Jedis jedis = Inferris.getJedisPool().getResource()) {
-                                jedis.publish(JedisChannels.PROXY_TO_SPIGOT_PLAYERDATA_CACHE_UPDATE.getChannelName(), CacheSerializationUtils.serializePlayerData(playerData));
-                            }
-                        } catch (SQLException | JsonProcessingException e) {
+                            PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData);
+                        } catch (SQLException e) {
                             throw new RuntimeException(e);
                         }
                     }
@@ -94,7 +91,7 @@ public class CommandProfile extends Command implements TabExecutor {
                             DatabaseUtils.executeUpdate(sql, parameters);
                             player.sendMessage(new TextComponent(ChatColor.GREEN + "Your bio has been successfully updated"));
                             playerData.getProfile().setBio(bio);
-                            PlayerDataManager.getInstance().updateAllData(player, playerData);
+                            PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData);
                         } catch (SQLException e) {
                             player.sendMessage(new TextComponent(ChatColor.RED + "Uh oh, something went wrong while you were setting your bio."));
                             player.sendMessage(new TextComponent(ChatColor.RED + "Here's the stacktrace: " + ChatColor.RESET + ChatColor.ITALIC + e.getMessage()));
@@ -122,14 +119,12 @@ public class CommandProfile extends Command implements TabExecutor {
                                 DatabaseUtils.executeUpdate(sql, parameters);
                                 player.sendMessage(new TextComponent(ChatColor.GREEN + "Your pronouns have been successfully updated"));
                                 playerData.getProfile().setPronouns(pronouns);
-                                PlayerDataManager.getInstance().updateAllData(player, playerData);
-                                try (Jedis jedis = Inferris.getJedisPool().getResource()) {
-                                    jedis.publish(JedisChannels.PROXY_TO_SPIGOT_PLAYERDATA_CACHE_UPDATE.getChannelName(), CacheSerializationUtils.serializePlayerData(playerData));
-                                }
-                            } catch (SQLException | JsonProcessingException e) {
+                                PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData);
+                            } catch (SQLException e) {
                                 player.sendMessage(new TextComponent(ChatColor.RED + "Uh oh, something went wrong while you were setting your pronouns."));
                                 player.sendMessage(new TextComponent(ChatColor.RED + "Here's the stacktrace: " + ChatColor.RESET + ChatColor.ITALIC + e.getMessage()));
                                 e.printStackTrace();
+                                throw new RuntimeException(e);
                             }
                         } else {
                             player.sendMessage(new TextComponent(ChatColor.RED + "Invalid pronouns format. Please only use letters (a-z, A-Z) and slash (/), and keep it within 10 characters."));

@@ -247,18 +247,28 @@ public class PlayerDataManager {
             Inferris.getInstance().getLogger().info("Updated all data and Redis information via Jedis. We let the front-end know, it has the cue!");
 
             jedis.publish(JedisChannels.PLAYERDATA_UPDATE.getChannelName(), player.getUniqueId().toString());
+            Inferris.getInstance().getLogger().severe(player.getUniqueId().toString());
+
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
 
+    // todo forgot to add options for other publish parameters sigh
     public void updateAllDataAndPush(ProxiedPlayer player, PlayerData playerData, JedisChannels jedisChannels) {
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.hset("playerdata", player.getUniqueId().toString(), CacheSerializationUtils.serializePlayerData(playerData));
             updateCaffeineCache(player, playerData);
             Inferris.getInstance().getLogger().info("Updated all data and Redis information via Jedis. We let the front-end know, it has the cue!");
 
-            jedis.publish(jedisChannels.getChannelName(), player.getUniqueId().toString());
+            switch (jedisChannels){
+                case PLAYERDATA_UPDATE:
+                case PLAYERDATA_VANISH:
+                    jedis.publish(jedisChannels.getChannelName(), player.getUniqueId().toString());
+                //case PLAYERDATA_VANISH:jedis.publish(jedisChannels.getChannelName(), CacheSerializationUtils.serializePlayerData(playerData));
+
+            }
+            Inferris.getInstance().getLogger().severe(player.getUniqueId().toString());
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
