@@ -7,7 +7,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.inferris.Inferris;
-import com.inferris.SerializationModule;
+import com.inferris.serialization.SerializationModule;
 import com.inferris.database.DatabasePool;
 import com.inferris.database.Tables;
 import com.inferris.player.coins.Coins;
@@ -19,7 +19,7 @@ import com.inferris.server.Server;
 import com.inferris.server.ServerState;
 import com.inferris.server.ServerStateManager;
 import com.inferris.server.jedis.JedisChannels;
-import com.inferris.util.CacheSerializationUtils;
+import com.inferris.util.SerializationUtils;
 import com.inferris.util.DatabaseUtils;
 import com.inferris.util.ServerUtil;
 import net.md_5.bungee.api.ProxyServer;
@@ -33,7 +33,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -67,7 +66,7 @@ public class PlayerDataManager {
 
     private PlayerDataManager() {
         jedisPool = Inferris.getJedisPool(); // Set Redis server details
-        objectMapper = CacheSerializationUtils.createObjectMapper(new SerializationModule());
+        objectMapper = SerializationUtils.createObjectMapper(new SerializationModule());
         caffeineCache = Caffeine.newBuilder().build();
     }
 
@@ -96,6 +95,16 @@ public class PlayerDataManager {
         }
     }
 
+    // TODO DEBUG, REMOVE
+    public PlayerData getPlayerData(ProxiedPlayer player, String debugOnly) {
+        if (caffeineCache.getIfPresent(player.getUniqueId()) != null) {
+            return caffeineCache.asMap().get(player.getUniqueId());
+        } else {
+            Inferris.getInstance().getLogger().severe("Trying getRedisData over at " + debugOnly);
+            return getRedisData(player);
+        }
+    }
+
     public PlayerData getPlayerData(UUID uuid) {
         if (caffeineCache.getIfPresent(uuid) != null) {
             return caffeineCache.asMap().get(uuid);
@@ -115,7 +124,7 @@ public class PlayerDataManager {
         try (Jedis jedis = jedisPool.getResource()) {
             String json = jedis.hget("playerdata", player.getUniqueId().toString());
             if (json != null) {
-                return CacheSerializationUtils.deserializePlayerData(json);
+                return SerializationUtils.deserializePlayerData(json);
             } else {
                 return this.getPlayerDataFromDatabase(player.getUniqueId());
                 //return createEmpty(player); // Create an empty Registry object instead of returning null
@@ -129,7 +138,7 @@ public class PlayerDataManager {
         try (Jedis jedis = jedisPool.getResource()) {
             String json = jedis.hget("playerdata", uuid.toString());
             if (json != null) {
-                return CacheSerializationUtils.deserializePlayerData(json);
+                return SerializationUtils.deserializePlayerData(json);
             } else {
                 Inferris.getInstance().getLogger().severe("Trying getPlayerDataFromDatabase");
                 return this.getPlayerDataFromDatabase(uuid);
@@ -150,7 +159,7 @@ public class PlayerDataManager {
         try (Jedis jedis = jedisPool.getResource()) {
             String json = jedis.hget("playerdata", player.getUniqueId().toString());
             if (json != null) {
-                return CacheSerializationUtils.deserializePlayerData(json);
+                return SerializationUtils.deserializePlayerData(json);
             } else {
                 return null;
             }
@@ -172,7 +181,7 @@ public class PlayerDataManager {
         try (Jedis jedis = jedisPool.getResource()) {
             String json = jedis.hget("playerdata", uuid.toString());
             if (json != null) {
-                return CacheSerializationUtils.deserializePlayerData(json);
+                return SerializationUtils.deserializePlayerData(json);
             } else {
                 return null;
             }
@@ -232,7 +241,7 @@ public class PlayerDataManager {
 
     public void updateAllData(ProxiedPlayer player, PlayerData playerData) {
         try (Jedis jedis = jedisPool.getResource()) {
-            jedis.hset("playerdata", player.getUniqueId().toString(), CacheSerializationUtils.serializePlayerData(playerData));
+            jedis.hset("playerdata", player.getUniqueId().toString(), SerializationUtils.serializePlayerData(playerData));
             updateCaffeineCache(player, playerData);
             Inferris.getInstance().getLogger().info("Updated all data and Redis information via Jedis. Caches updated!");
         } catch (JsonProcessingException e) {
@@ -242,7 +251,7 @@ public class PlayerDataManager {
 
     public void updateAllDataAndPush(ProxiedPlayer player, PlayerData playerData) {
         try (Jedis jedis = jedisPool.getResource()) {
-            jedis.hset("playerdata", player.getUniqueId().toString(), CacheSerializationUtils.serializePlayerData(playerData));
+            jedis.hset("playerdata", player.getUniqueId().toString(), SerializationUtils.serializePlayerData(playerData));
             updateCaffeineCache(player, playerData);
             Inferris.getInstance().getLogger().info("Updated all data and Redis information via Jedis. We let the front-end know, it has the cue!");
 
@@ -257,7 +266,7 @@ public class PlayerDataManager {
     // todo forgot to add options for other publish parameters sigh
     public void updateAllDataAndPush(ProxiedPlayer player, PlayerData playerData, JedisChannels jedisChannels) {
         try (Jedis jedis = jedisPool.getResource()) {
-            jedis.hset("playerdata", player.getUniqueId().toString(), CacheSerializationUtils.serializePlayerData(playerData));
+            jedis.hset("playerdata", player.getUniqueId().toString(), SerializationUtils.serializePlayerData(playerData));
             updateCaffeineCache(player, playerData);
             Inferris.getInstance().getLogger().info("Updated all data and Redis information via Jedis. We let the front-end know, it has the cue!");
 
@@ -276,7 +285,7 @@ public class PlayerDataManager {
 
     public void updateRedisData(ProxiedPlayer player, PlayerData playerData) {
         try (Jedis jedis = jedisPool.getResource()) {
-            jedis.hset("playerdata", player.getUniqueId().toString(), CacheSerializationUtils.serializePlayerData(playerData));
+            jedis.hset("playerdata", player.getUniqueId().toString(), SerializationUtils.serializePlayerData(playerData));
             Inferris.getInstance().getLogger().info("Updated Redis information via Jedis. Caches updated!");
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
@@ -292,7 +301,7 @@ public class PlayerDataManager {
         try (Jedis jedis = jedisPool.getResource()) {
             String json = jedis.get(player.getUniqueId().toString());
             if (json != null) {
-                return CacheSerializationUtils.deserializePlayerData(json);
+                return SerializationUtils.deserializePlayerData(json);
             } else {
                 return createEmpty(player); // Create an empty Registry object instead of returning null
             }
@@ -329,7 +338,7 @@ public class PlayerDataManager {
                     ProxiedPlayer player = ProxyServer.getInstance().getPlayer(uuid);
                     if (!username.equals(player.getName())) {
                         username = player.getName();
-                        playerData = this.getPlayerData(player);
+                        playerData = this.getPlayerData(player, "#getPlayerFromDatabase");
                         playerData.setUsername(player.getName());
                         updateAllData(player, playerData);
                     }
@@ -472,7 +481,7 @@ public class PlayerDataManager {
 
                 if (caffeineCache.getIfPresent(playerUUID) == null) {
                     String playerDataJson = jedis.hget("playerdata", playerUUID.toString());
-                    PlayerData playerData = CacheSerializationUtils.deserializePlayerData(playerDataJson);
+                    PlayerData playerData = SerializationUtils.deserializePlayerData(playerDataJson);
                     updateCaffeineCache(player, playerData);
                     logPlayerData(playerData);
 
@@ -487,7 +496,7 @@ public class PlayerDataManager {
                 ServerUtil.log(String.valueOf(playerData.getRank().getStaff()), Level.WARNING, ServerState.DEBUG);
 
                 // todo: default values, change to database values
-                String playerDataJson = CacheSerializationUtils.serializePlayerData(playerData);
+                String playerDataJson = SerializationUtils.serializePlayerData(playerData);
                 this.updateAllData(player, playerData);
 
                 ServerUtil.log(">>> Inserted into Jedis: " + playerDataJson, Level.WARNING, ServerState.DEBUG);
@@ -514,7 +523,7 @@ public class PlayerDataManager {
     @Deprecated
     private void hasDifferentUsername(ProxiedPlayer player) {
         try (Jedis jedis = jedisPool.getResource()) {
-            PlayerData deserializedPlayerData = CacheSerializationUtils.deserializePlayerData(jedis.hget("playerdata", player.getUniqueId().toString()));
+            PlayerData deserializedPlayerData = SerializationUtils.deserializePlayerData(jedis.hget("playerdata", player.getUniqueId().toString()));
 
             if (!deserializedPlayerData.getUsername().equals(player.getName())) {
                 logger.info("Username is different");
@@ -523,7 +532,7 @@ public class PlayerDataManager {
 
                 Profile profile = new Profile(redisData.getProfile().getRegistrationDate(), redisData.getProfile().getBio(), redisData.getProfile().getPronouns(), redisData.getProfile().getXenforoId());
                 PlayerData playerData = new PlayerData(player.getUniqueId(), player.getName(), redisData.getRank(), profile, redisData.getCoins(), redisData.getChannel(), redisData.getVanishState(), redisData.getCurrentServer());
-                jedis.hset("playerdata", player.getUniqueId().toString(), CacheSerializationUtils.serializePlayerData(playerData));
+                jedis.hset("playerdata", player.getUniqueId().toString(), SerializationUtils.serializePlayerData(playerData));
                 caffeineCache.put(player.getUniqueId(), playerData);
 
                 Inferris.getInstance().getLogger().warning("Updated username!");
