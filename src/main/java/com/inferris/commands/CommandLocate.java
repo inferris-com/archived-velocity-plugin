@@ -12,6 +12,10 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class CommandLocate extends Command implements TabExecutor {
     public CommandLocate(String name) {
         super(name);
@@ -19,7 +23,22 @@ public class CommandLocate extends Command implements TabExecutor {
 
     @Override
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
-        return null;
+
+        if (args.length == 1 && sender instanceof ProxiedPlayer player) {
+            String partialPlayerName = args[0];
+            List<String> playerNames = new ArrayList<>();
+            PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
+            for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
+                if (PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getVanishState() == VanishState.DISABLED || playerData.getBranchValue(Branch.STAFF) >=3) {
+                    String playerName = proxiedPlayers.getName();
+                    if (playerName.toLowerCase().startsWith(partialPlayerName.toLowerCase())) {
+                        playerNames.add(playerName);
+                    }
+                }
+            }
+            return playerNames;
+        }
+        return Collections.emptyList();
     }
 
     @Override
