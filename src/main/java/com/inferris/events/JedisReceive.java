@@ -8,9 +8,9 @@ import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.server.*;
 import com.inferris.server.jedis.JedisChannels;
-import com.inferris.util.CacheSerializationUtils;
+import com.inferris.util.SerializationUtils;
 import com.inferris.util.ServerUtil;
-import com.inferris.util.Tags;
+import com.inferris.server.Tags;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -31,7 +31,7 @@ public class JedisReceive extends JedisPubSub {
             Inferris.getInstance().getLogger().severe("Spigot updated Proxy cache");
 
             try {
-                PlayerData playerData = CacheSerializationUtils.deserializePlayerData(message);
+                PlayerData playerData = SerializationUtils.deserializePlayerData(message);
                 ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerData.getUuid());
                 PlayerDataManager.getInstance().updateAllData(player, playerData);
             } catch (JsonProcessingException e) {

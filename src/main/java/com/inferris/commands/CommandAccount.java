@@ -8,7 +8,7 @@ import com.inferris.player.PlayerDataManager;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.util.DatabaseUtils;
 import com.inferris.util.MessageUtil;
-import com.inferris.util.Tags;
+import com.inferris.server.Tags;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;

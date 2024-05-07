@@ -1,25 +1,14 @@
-package com.inferris;
+package com.inferris.commands;
 
-import com.inferris.database.DatabasePool;
-import com.inferris.player.Channels;
+import com.inferris.server.Messages;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
-import com.inferris.player.vanish.VanishState;
-import com.inferris.rank.Rank;
-import com.inferris.util.DatabaseUtils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
-
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
 
 public class CommandResync extends Command {
     public CommandResync(String name) {

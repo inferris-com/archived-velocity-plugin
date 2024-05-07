@@ -7,7 +7,7 @@ import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.server.jedis.JedisChannels;
 import com.inferris.server.jedis.JedisHelper;
-import com.inferris.util.CacheSerializationUtils;
+import com.inferris.util.SerializationUtils;
 import com.inferris.util.DatabaseUtils;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -162,7 +162,7 @@ public class RanksManager {
              */
 
             try (Jedis jedis = jedisPool.getResource()) {
-                String json = CacheSerializationUtils.serializePlayerData(playerData);
+                String json = SerializationUtils.serializePlayerData(playerData);
                 JedisHelper jedisHelper = new JedisHelper(jedisPool);
 
                 if (!isNull) {

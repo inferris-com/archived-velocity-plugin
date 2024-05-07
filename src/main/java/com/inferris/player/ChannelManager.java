@@ -1,18 +1,13 @@
 package com.inferris.player;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.inferris.Inferris;
-import com.inferris.server.jedis.JedisChannels;
-import com.inferris.util.CacheSerializationUtils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
-import redis.clients.jedis.Jedis;
 
 public class ChannelManager {
 
     public void setChannel(ProxiedPlayer player, Channels channel, boolean sendMessage){
-        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
+        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player, "#setChannel, ChannelManager");
         playerData.setChannel(channel);
         String channelName = null;
 

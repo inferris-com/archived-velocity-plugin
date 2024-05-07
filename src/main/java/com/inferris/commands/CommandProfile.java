@@ -1,13 +1,9 @@
 package com.inferris.commands;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.inferris.Inferris;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.Profile;
 import com.inferris.player.vanish.VanishState;
-import com.inferris.server.jedis.JedisChannels;
-import com.inferris.util.CacheSerializationUtils;
 import com.inferris.util.DatabaseUtils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -16,7 +12,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
-import redis.clients.jedis.Jedis;
 
 import java.sql.SQLException;
 import java.time.LocalDate;

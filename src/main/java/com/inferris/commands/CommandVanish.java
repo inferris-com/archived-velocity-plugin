@@ -6,7 +6,7 @@ import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.server.jedis.JedisChannels;
-import com.inferris.util.CacheSerializationUtils;
+import com.inferris.util.SerializationUtils;
 import com.inferris.util.DatabaseUtils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -14,7 +14,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
-import redis.clients.jedis.Jedis;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -69,7 +68,7 @@ public class CommandVanish extends Command implements TabExecutor {
         PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData, JedisChannels.PLAYERDATA_VANISH);
         String json;
         try {
-            json = CacheSerializationUtils.serializePlayerData(playerData);
+            json = SerializationUtils.serializePlayerData(playerData);
             Inferris.getInstance().getLogger().warning("Bungee json: " + json);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);

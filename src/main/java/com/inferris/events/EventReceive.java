@@ -9,7 +9,7 @@ import com.inferris.rank.Branch;
 import com.inferris.rank.RankRegistry;
 import com.inferris.server.BungeeChannel;
 import com.inferris.server.Subchannel;
-import com.inferris.util.Tags;
+import com.inferris.server.Tags;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;

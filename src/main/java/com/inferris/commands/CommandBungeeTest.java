@@ -7,11 +7,11 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.inferris.*;
-import com.inferris.SerializationModule;
+import com.inferris.serialization.SerializationModule;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.Rank;
-import com.inferris.util.CacheSerializationUtils;
+import com.inferris.util.SerializationUtils;
 import com.inferris.util.ChatUtil;
 import io.tebex.BuycraftApi;
 import io.tebex.exception.BuycraftException;
@@ -39,7 +39,7 @@ public class CommandBungeeTest extends Command {
                 if(args[0].equalsIgnoreCase("playerdata")){
                     PlayerData playerData  = PlayerDataManager.getInstance().getRedisData(player);
                     try {
-                        player.sendMessage(new TextComponent(CacheSerializationUtils.serializePlayerData(playerData)));
+                        player.sendMessage(new TextComponent(SerializationUtils.serializePlayerData(playerData)));
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException(e);
                     }
@@ -47,7 +47,7 @@ public class CommandBungeeTest extends Command {
                 if(args[0].equalsIgnoreCase("cache")){
                     PlayerData playerData  = PlayerDataManager.getInstance().getPlayerData(player);
                     try {
-                        player.sendMessage(new TextComponent(CacheSerializationUtils.serializePlayerData(playerData)));
+                        player.sendMessage(new TextComponent(SerializationUtils.serializePlayerData(playerData)));
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException(e);
                     }
@@ -103,7 +103,7 @@ public class CommandBungeeTest extends Command {
                 }
                 if (args[0].equalsIgnoreCase("redis")) {
                     try (Jedis jedis = Inferris.getJedisPool().getResource()) {
-                        jedis.publish("playerdata_update", CacheSerializationUtils.serializePlayerData(PlayerDataManager.getInstance().getPlayerData(player)));
+                        jedis.publish("playerdata_update", SerializationUtils.serializePlayerData(PlayerDataManager.getInstance().getPlayerData(player)));
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException(e);
                     }

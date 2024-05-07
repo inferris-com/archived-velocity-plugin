@@ -1,16 +1,10 @@
 package com.inferris.player.coins;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.inferris.Inferris;
 import com.inferris.database.DatabasePool;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
-import com.inferris.server.jedis.JedisChannels;
-import com.inferris.util.CacheSerializationUtils;
 import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
-import redis.clients.jedis.Jedis;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

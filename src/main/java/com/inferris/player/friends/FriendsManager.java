@@ -5,11 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.inferris.Inferris;
-import com.inferris.SerializationModule;
+import com.inferris.serialization.SerializationModule;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.vanish.VanishState;
-import com.inferris.util.CacheSerializationUtils;
+import com.inferris.util.SerializationUtils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -30,7 +30,7 @@ public class FriendsManager {
 
     private FriendsManager() {
         jedisPool = Inferris.getJedisPool(); // Set Redis server details
-        objectMapper = CacheSerializationUtils.createObjectMapper(new SerializationModule());
+        objectMapper = SerializationUtils.createObjectMapper(new SerializationModule());
         caffeineCache = Caffeine.newBuilder().build();
     }
 
@@ -55,11 +55,11 @@ public class FriendsManager {
             String json = jedis.hget("friends", playerUUID.toString());
 
             if (json != null) {
-                Friends friends = CacheSerializationUtils.deserializeFriends(json);
+                Friends friends = SerializationUtils.deserializeFriends(json);
                 Inferris.getInstance().getLogger().info(json);
                 return friends;
             } else {
-                jedis.hset("friends", playerUUID.toString(), CacheSerializationUtils.serializeFriends(new Friends()));
+                jedis.hset("friends", playerUUID.toString(), SerializationUtils.serializeFriends(new Friends()));
                 return new Friends();
             }
         } catch (JsonProcessingException e) {
@@ -101,7 +101,7 @@ public class FriendsManager {
                 }
                 return;
             }
-            jedis.hset("friends", playerUUID.toString(), CacheSerializationUtils.serializeFriends(playerFriends));
+            jedis.hset("friends", playerUUID.toString(), SerializationUtils.serializeFriends(playerFriends));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -114,8 +114,8 @@ public class FriendsManager {
             Friends targetFriends = getFriendsDataFromRedis(targetUUID);
             playerFriends.acceptFriendRequest(targetUUID);
             targetFriends.acceptFriendRequest(playerUUID);
-            jedis.hset("friends", playerUUID.toString(), CacheSerializationUtils.serializeFriends(playerFriends));
-            jedis.hset("friends", targetUUID.toString(), CacheSerializationUtils.serializeFriends(targetFriends));
+            jedis.hset("friends", playerUUID.toString(), SerializationUtils.serializeFriends(playerFriends));
+            jedis.hset("friends", targetUUID.toString(), SerializationUtils.serializeFriends(targetFriends));
             updateCache(playerUUID, playerFriends);
             updateCache(targetUUID, targetFriends);
         } catch (JsonProcessingException e) {
@@ -143,8 +143,8 @@ public class FriendsManager {
                 return;
             }
 
-            jedis.hset("friends", playerUUID.toString(), CacheSerializationUtils.serializeFriends(playerFriends));
-            jedis.hset("friends", targetUUID.toString(), CacheSerializationUtils.serializeFriends(targetFriends));
+            jedis.hset("friends", playerUUID.toString(), SerializationUtils.serializeFriends(playerFriends));
+            jedis.hset("friends", targetUUID.toString(), SerializationUtils.serializeFriends(targetFriends));
 
             updateCache(playerUUID, playerFriends);
             updateCache(targetUUID, targetFriends);
@@ -165,7 +165,7 @@ public class FriendsManager {
 
                 targetFriends.removePendingFriendRequest(playerUUID);
                 player.sendMessage(new TextComponent(ChatColor.GREEN + "Rejected " + targetData.getUsername() + "'s friend request"));
-                jedis.hset("friends", targetUUID.toString(), CacheSerializationUtils.serializeFriends(targetFriends));
+                jedis.hset("friends", targetUUID.toString(), SerializationUtils.serializeFriends(targetFriends));
                 updateCache(targetUUID, targetFriends);
 
             } catch (IllegalArgumentException e) {
@@ -256,7 +256,7 @@ public class FriendsManager {
 
     public void updateRedisData(UUID playerUUID, Friends friends) {
         try (Jedis jedis = jedisPool.getResource()) {
-            jedis.hset("friends", playerUUID.toString(), CacheSerializationUtils.serializeFriends(friends));
+            jedis.hset("friends", playerUUID.toString(), SerializationUtils.serializeFriends(friends));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

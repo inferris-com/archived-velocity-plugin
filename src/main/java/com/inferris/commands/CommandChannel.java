@@ -1,6 +1,6 @@
 package com.inferris.commands;
 
-import com.inferris.Messages;
+import com.inferris.server.Messages;
 import com.inferris.player.ChannelManager;
 import com.inferris.player.Channels;
 import com.inferris.player.PlayerDataManager;

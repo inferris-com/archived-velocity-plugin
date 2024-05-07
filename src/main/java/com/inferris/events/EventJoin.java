@@ -1,17 +1,13 @@
 package com.inferris.events;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.inferris.Inferris;
-import com.inferris.Messages;
+import com.inferris.server.Messages;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.friends.Friends;
 import com.inferris.player.friends.FriendsManager;
 import com.inferris.rank.*;
-import com.inferris.server.jedis.JedisChannels;
-import com.inferris.util.CacheSerializationUtils;
 import com.inferris.util.ServerUtil;
-import com.inferris.util.Tags;
+import com.inferris.server.Tags;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -21,7 +17,6 @@ import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.event.ServerSwitchEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
-import redis.clients.jedis.Jedis;
 
 public class EventJoin implements Listener {
 
@@ -44,7 +39,7 @@ public class EventJoin implements Listener {
         // Important implementation
         playerDataManager.checkJoinedBefore(player);
 
-        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player); // Grabs the Redis cache
+        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player, "onSwitch"); // Grabs the Redis cache
         Permissions.attachPermissions(player);
 
         playerData.setCurrentServer(ServerUtil.getServerType(player));
@@ -63,15 +58,14 @@ public class EventJoin implements Listener {
 
         ProxiedPlayer player = event.getPlayer();
 
-        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
-        PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
+        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player, "onPostLogin");
 
         Rank rank = playerData.getRank();
-        RankRegistry rankRegistry = playerDataManager.getPlayerData(player).getByBranch();
+        RankRegistry rankRegistry = playerData.getByBranch();
 
         if (rank.getBranchID(Branch.STAFF) >= 1) {
             for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                if (playerDataManager.getPlayerData(proxiedPlayers).getRank().getBranchID(Branch.STAFF) >= 1) {
+                if (playerData.getRank().getBranchID(Branch.STAFF) >= 1) {
                     proxiedPlayers.sendMessage(TextComponent.fromLegacyText(Tags.STAFF.getName(true) + rankRegistry.getPrefix(true) + rankRegistry.getColor() + player.getName() + ChatColor.YELLOW + " connected"));
                 }
             }

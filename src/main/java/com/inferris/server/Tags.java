@@ -1,4 +1,4 @@
-package com.inferris.util;
+package com.inferris.server;
 
 import net.md_5.bungee.api.ChatColor;
 

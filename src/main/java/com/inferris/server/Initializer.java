@@ -1,6 +1,6 @@
 package com.inferris.server;
 
-import com.inferris.CommandResync;
+import com.inferris.commands.CommandResync;
 import com.inferris.Inferris;
 import com.inferris.commands.*;
 import com.inferris.database.DatabasePool;
