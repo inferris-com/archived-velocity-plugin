@@ -12,6 +12,7 @@ import com.inferris.server.Subchannel;
 import com.inferris.server.Tags;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PluginMessageEvent;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class EventReceive implements Listener {
+    //TODO Jedis?
 
     @EventHandler
     public void onPluginMessage(PluginMessageEvent event) throws IOException {
@@ -43,7 +45,7 @@ public class EventReceive implements Listener {
 
                         ProxyServer proxyServer = ProxyServer.getInstance();
                         RankRegistry rank = playerData.getByBranch();
-                        TextComponent textComponent = new TextComponent(Tags.STAFF.getName(true)
+                        BaseComponent[] textComponent = TextComponent.fromLegacyText(Tags.STAFF.getName(true)
                                 + rank.getPrefix(true) + player.getName() + ChatColor.RESET + ": " + message);
 
                         for (ProxiedPlayer proxiedPlayers : proxyServer.getPlayers()) {

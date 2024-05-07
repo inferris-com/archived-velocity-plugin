@@ -4,8 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.inferris.Inferris;
+import com.inferris.messaging.StaffChatMessage;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
+import com.inferris.rank.Branch;
+import com.inferris.rank.RankRegistry;
+import com.inferris.serialization.StaffChatSerializer;
 import com.inferris.server.*;
 import com.inferris.server.jedis.JedisChannels;
 import com.inferris.util.SerializationUtils;
@@ -13,6 +17,7 @@ import com.inferris.util.ServerUtil;
 import com.inferris.server.Tags;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import redis.clients.jedis.JedisPubSub;
@@ -22,10 +27,8 @@ import java.util.UUID;
 
 public class JedisReceive extends JedisPubSub {
 
-    ObjectMapper objectMapper = new ObjectMapper();
     @Override
     public void onMessage(String channel, String message) {
-        Inferris.getInstance().getLogger().severe("Triggered EventReceive");
 
         if (channel.equalsIgnoreCase(JedisChannels.SPIGOT_TO_PROXY_PLAYERDATA_CACHE_UPDATE.getChannelName())) {
             Inferris.getInstance().getLogger().severe("Spigot updated Proxy cache");
@@ -36,6 +39,26 @@ public class JedisReceive extends JedisPubSub {
                 PlayerDataManager.getInstance().updateAllData(player, playerData);
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
+            }
+        }
+
+        if(channel.equals(JedisChannels.STAFFCHAT.getChannelName())){
+            Inferris.getInstance().getLogger().severe("Triggered");
+            StaffChatMessage staffChatMessage = StaffChatSerializer.deserialize(message);
+            assert staffChatMessage != null;
+
+            PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(staffChatMessage.getPlayerUUID());
+            ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerData.getUuid());
+            ProxyServer proxyServer = ProxyServer.getInstance();
+            RankRegistry rank = playerData.getByBranch();
+
+            BaseComponent[] textComponent = TextComponent.fromLegacyText(Tags.STAFF.getName(true)
+                    + rank.getPrefix(true) + playerData.getNameColor() + player.getName() + ChatColor.RESET + ": " + staffChatMessage.getMessage());
+
+            for (ProxiedPlayer proxiedPlayers : proxyServer.getPlayers()) {
+                if (PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getBranchValue(Branch.STAFF) >= 1) {
+                    proxiedPlayers.sendMessage(textComponent);
+                }
             }
         }
 

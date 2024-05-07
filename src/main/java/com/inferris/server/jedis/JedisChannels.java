@@ -9,6 +9,8 @@ public enum JedisChannels {
     SPIGOT_TO_PROXY_PLAYERDATA_CACHE_UPDATE("playerdata:cache_update:spigot-to-proxy"),
     VIEW_LOGS_PROXY_TO_SPIGOT("view_logs:proxy-to-spigot"),
     VIEW_LOGS_SPIGOT_TO_PROXY("view_logs:spigot-to-proxy"),
+    STAFFCHAT("channel:staff"),
+
     TEST("test");
 
     private final String channelName;
