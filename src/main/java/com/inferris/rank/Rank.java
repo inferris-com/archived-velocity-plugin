@@ -57,4 +57,15 @@ public class Rank {
             default -> -1;
         };
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Rank rank = (Rank) o;
+        return staff == rank.staff &&
+                builder == rank.builder &&
+                donor == rank.donor &&
+                other == rank.other;
+    }
 }
