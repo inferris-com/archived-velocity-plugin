@@ -1,6 +1,8 @@
 package com.inferris.commands;
 
 import com.inferris.Inferris;
+import com.inferris.player.PlayerDataManager;
+import com.inferris.rank.Branch;
 import com.inferris.util.ConfigUtils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -11,6 +13,11 @@ import net.md_5.bungee.api.plugin.Command;
 public class CommandConfig extends Command {
     public CommandConfig(String name) {
         super(name);
+    }
+
+    @Override
+    public boolean hasPermission(CommandSender sender) {
+        return PlayerDataManager.getInstance().getPlayerData((ProxiedPlayer) sender).getBranchValue(Branch.STAFF) >= 3;
     }
 
     @Override

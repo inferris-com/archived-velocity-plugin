@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.inferris.*;
+import com.inferris.rank.Branch;
 import com.inferris.serialization.SerializationModule;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
@@ -28,6 +29,11 @@ public class CommandBungeeTest extends Command {
 
     public CommandBungeeTest(String name) {
         super(name);
+    }
+
+    @Override
+    public boolean hasPermission(CommandSender sender) {
+        return PlayerDataManager.getInstance().getPlayerData((ProxiedPlayer) sender).getBranchValue(Branch.STAFF) >= 3;
     }
 
     @Override

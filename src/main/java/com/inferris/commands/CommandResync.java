@@ -1,5 +1,6 @@
 package com.inferris.commands;
 
+import com.inferris.rank.Branch;
 import com.inferris.server.Messages;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
@@ -42,8 +43,9 @@ public class CommandResync extends Command {
             }
         }
     }
+
     @Override
-    protected void setPermissionMessage(String permissionMessage) {
-        super.setPermissionMessage(Messages.NO_PERMISSION.getMessage().toString());
+    public boolean hasPermission(CommandSender sender) {
+        return PlayerDataManager.getInstance().getPlayerData((ProxiedPlayer) sender).getBranchValue(Branch.STAFF) >= 3;
     }
 }

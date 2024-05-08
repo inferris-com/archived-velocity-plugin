@@ -6,6 +6,7 @@ import com.inferris.database.DatabasePool;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.vanish.VanishState;
+import com.inferris.rank.Branch;
 import com.inferris.util.DatabaseUtils;
 import com.inferris.util.MessageUtil;
 import com.inferris.server.Tags;
@@ -32,6 +33,11 @@ public class CommandAccount extends Command implements TabExecutor {
     }
 
     @Override
+    public boolean hasPermission(CommandSender sender) {
+        return PlayerDataManager.getInstance().getPlayerData((ProxiedPlayer) sender).getBranchValue(Branch.STAFF) >= 1;
+    }
+
+    @Override
     public void execute(CommandSender sender, String[] args) {
         if (sender instanceof ProxiedPlayer player) {
             int length = args.length;
@@ -44,8 +50,6 @@ public class CommandAccount extends Command implements TabExecutor {
                 String targetName = args[0];
                 PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
 
-
-                //PlayerData playerData = playerDataManager.getRedisData(uuid, targetName);
                 UUID uuid = playerDataManager.getUUIDByUsername(args[0]);
                 PlayerData playerData = playerDataManager.getPlayerData(uuid);
                 String tag = Tags.STAFF.getName(true);

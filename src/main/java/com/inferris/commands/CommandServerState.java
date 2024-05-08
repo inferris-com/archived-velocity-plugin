@@ -1,5 +1,7 @@
 package com.inferris.commands;
 
+import com.inferris.player.PlayerDataManager;
+import com.inferris.rank.Branch;
 import com.inferris.server.ServerState;
 import com.inferris.server.ServerStateManager;
 import com.inferris.util.ServerUtil;
@@ -59,6 +61,11 @@ public class CommandServerState extends Command implements TabExecutor {
             ServerUtil.broadcastMessage("");
             ServerUtil.broadcastMessage(yellow + "=========================");
         }
+    }
+
+    @Override
+    public boolean hasPermission(CommandSender sender) {
+        return PlayerDataManager.getInstance().getPlayerData((ProxiedPlayer) sender).getBranchValue(Branch.STAFF) >= 3;
     }
 
     @Override
