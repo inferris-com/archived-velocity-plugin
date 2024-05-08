@@ -1,8 +1,11 @@
 package com.inferris.commands;
 
 import com.inferris.commands.cache.CommandMessageCache;
+import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.vanish.VanishState;
+import com.inferris.rank.Branch;
+import com.inferris.server.Messages;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -34,6 +37,8 @@ public class CommandReply extends Command implements TabExecutor {
 
             UUID senderUUID = player.getUniqueId();
             CommandMessageCache cache = CommandMessage.getCacheReplyHandler().getIfPresent(senderUUID);
+            String message = String.join(" ", Arrays.copyOfRange(args, 0, length));
+
 
             if (cache == null) {
                 player.sendMessage(new TextComponent(ChatColor.RED + "Your reply cache has expired. Use /message instead."));
@@ -42,19 +47,23 @@ public class CommandReply extends Command implements TabExecutor {
 
             UUID targetUUID = cache.getCache().asMap().get(senderUUID);
             ProxiedPlayer target = ProxyServer.getInstance().getPlayer(targetUUID);
+            PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
 
             if (target == null) {
-                player.sendMessage(new TextComponent(ChatColor.RED + "Error: Couldn't find the original sender!"));
+                player.sendMessage(new TextComponent(Messages.COULD_NOT_FIND_PLAYER.getMessage()));
                 return;
             }
 
             // Check if the target player is vanished
             if (PlayerDataManager.getInstance().getPlayerData(target).getVanishState() == VanishState.ENABLED) {
-                player.sendMessage(new TextComponent(ChatColor.RED + "Error: The original sender is currently vanished!"));
-                return;
+                if (playerData.getBranchValue(Branch.STAFF) < 3) {
+                    player.sendMessage(new TextComponent(Messages.COULD_NOT_FIND_PLAYER.getMessage()));
+                    target.sendMessage(new TextComponent(ChatColor.GRAY + "Notice: " + playerData.getByBranch() + " " + player.getName() + ChatColor.GRAY
+                            + " attempted to message you: " + message));
+                    return;
+                }
             }
 
-            String message = String.join(" ", Arrays.copyOfRange(args, 0, length));
             CommandMessage.sendMessage(player, target, message);
             CommandMessage.getCacheReplyHandler().invalidate(targetUUID);
             CommandMessageCache targetCache = CommandMessage.getCacheReplyHandler().asMap().computeIfAbsent(targetUUID,

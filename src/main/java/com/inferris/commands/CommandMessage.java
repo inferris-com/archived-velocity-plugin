@@ -12,6 +12,7 @@ import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
 import com.inferris.rank.RankRegistry;
 import com.inferris.rank.RanksManager;
+import com.inferris.server.Messages;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -53,9 +54,11 @@ public class CommandMessage extends Command implements TabExecutor {
 
             String receiverName = args[0];
             ProxiedPlayer receiver = ProxyServer.getInstance().getPlayer(receiverName);
+            String message = String.join(" ", Arrays.copyOfRange(args, 1, length));
+            PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
 
             if (receiver == null) {
-                player.sendMessage(new TextComponent(ChatColor.RED + "Error: Couldn't find that player!"));
+                player.sendMessage(new TextComponent(Messages.COULD_NOT_FIND_PLAYER.getMessage()));
                 return;
             }
 
@@ -66,13 +69,14 @@ public class CommandMessage extends Command implements TabExecutor {
 
             // Check if the receiver is in a vanished state
             if (PlayerDataManager.getInstance().getPlayerData(receiver).getVanishState() == VanishState.ENABLED) {
-                if (PlayerDataManager.getInstance().getPlayerData(player).getBranchValue(Branch.STAFF) < 3) {
-                    player.sendMessage(new TextComponent(ChatColor.RED + "Error: Couldn't find that player!"));
+                if (playerData.getBranchValue(Branch.STAFF) < 3) {
+                    player.sendMessage(new TextComponent(Messages.COULD_NOT_FIND_PLAYER.getMessage()));
+                    receiver.sendMessage(new TextComponent(ChatColor.GRAY + "Notice: " + playerData.getByBranch() + " " + player.getName() + ChatColor.GRAY
+                            + " attempted to message you: " + message));
                     return;
                 }
             }
 
-            String message = String.join(" ", Arrays.copyOfRange(args, 1, length));
             sendMessage(player, receiver, message);
 
             // Update the reply cache
@@ -87,8 +91,8 @@ public class CommandMessage extends Command implements TabExecutor {
         RankRegistry playerRank = PlayerDataManager.getInstance().getPlayerData(sender).getByBranch();
         RankRegistry receiverRank = PlayerDataManager.getInstance().getPlayerData(receiver).getByBranch();
         sender.sendMessage(new TextComponent(ChatColor.GREEN + "Message sent!"));
-        sender.sendMessage(TextComponent.fromLegacyText(ChatColor.GRAY + "To " + receiverRank.getPrefix(true) + receiver.getName() + ChatColor.RESET + ": " + message));
-        receiver.sendMessage(TextComponent.fromLegacyText(ChatColor.GRAY + "From " + playerRank.getPrefix(true) + sender.getName() + ChatColor.RESET + ": " + message));
+        sender.sendMessage(TextComponent.fromLegacyText(ChatColor.GRAY + "To " + receiverRank.getPrefix(true) + ChatColor.RESET + receiver.getName() + ": " + message));
+        receiver.sendMessage(TextComponent.fromLegacyText(ChatColor.GRAY + "From " + playerRank.getPrefix(true) + ChatColor.RESET + sender.getName() + ": " + message));
     }
 
     @Override

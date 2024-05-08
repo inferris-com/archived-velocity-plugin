@@ -5,6 +5,8 @@ import com.inferris.Inferris;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.vanish.VanishState;
+import com.inferris.rank.Branch;
+import com.inferris.server.Messages;
 import com.inferris.server.jedis.JedisChannels;
 import com.inferris.util.SerializationUtils;
 import com.inferris.util.DatabaseUtils;
@@ -30,21 +32,27 @@ public class CommandVanish extends Command implements TabExecutor {
     public void execute(CommandSender sender, String[] args) {
         int length = args.length;
         if (sender instanceof ProxiedPlayer player) {
-            if (length == 0) {
-                player.sendMessage(new TextComponent(ChatColor.RED + "Usage: /vanish <on:off>"));
-            }
-            if (length == 1) {
-                if (args[0].equalsIgnoreCase("on")) {
-                    updateDatabase(player, 1);
-                    updatePlayerData(player, VanishState.ENABLED);
-                    //BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_DATA, Subchannel.VANISH, Subchannel.FORWARD, VanishState.ENABLED.name());
-                }
-                if (args[0].equalsIgnoreCase("off")) {
-                    updateDatabase(player, 0);
-                    updatePlayerData(player, VanishState.DISABLED);
-                    //BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_DATA, Subchannel.VANISH, Subchannel.FORWARD, VanishState.ENABLED.name());
+            PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
 
+            if (playerData.getBranchValue(Branch.STAFF) >= 3) {
+                if (length == 0) {
+                    player.sendMessage(new TextComponent(ChatColor.RED + "Usage: /vanish <on:off>"));
                 }
+                if (length == 1) {
+                    if (args[0].equalsIgnoreCase("on")) {
+                        updateDatabase(player, 1);
+                        updatePlayerData(player, VanishState.ENABLED);
+                        //BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_DATA, Subchannel.VANISH, Subchannel.FORWARD, VanishState.ENABLED.name());
+                    }
+                    if (args[0].equalsIgnoreCase("off")) {
+                        updateDatabase(player, 0);
+                        updatePlayerData(player, VanishState.DISABLED);
+                        //BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_DATA, Subchannel.VANISH, Subchannel.FORWARD, VanishState.ENABLED.name());
+
+                    }
+                }
+            }else{
+                player.sendMessage(Messages.NO_PERMISSION.getMessage());
             }
         }
     }
