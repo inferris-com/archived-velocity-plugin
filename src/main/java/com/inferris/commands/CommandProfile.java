@@ -174,7 +174,7 @@ public class CommandProfile extends Command implements TabExecutor {
 
 
     private void sendPlayerProfile(ProxiedPlayer player, UUID targetUUID) {
-        PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(targetUUID);
+        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(targetUUID);
         Profile profile = playerData.getProfile();
         ChatColor reset = ChatColor.RESET;
 
