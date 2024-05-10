@@ -27,7 +27,6 @@ import java.util.UUID;
 public class PlayerData implements PlayerDataService, Serializable {
     private UUID uuid;
     private String username;
-
     private Rank rank;
     private Profile profile;
     private Coins coins;
