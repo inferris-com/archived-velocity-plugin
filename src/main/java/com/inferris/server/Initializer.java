@@ -16,7 +16,8 @@ public class Initializer {
 
     public static void initialize(Plugin plugin){
         Inferris instance = Inferris.getInstance();
-        PluginManager pluginManager = Inferris.getInstance().getProxy().getPluginManager();;
+        PluginManager pluginManager = Inferris.getInstance().getProxy().getPluginManager();
+
 
         pluginManager.registerListener(instance, new EventJoin());
         pluginManager.registerListener(instance, new EventQuit());
@@ -45,6 +46,7 @@ public class Initializer {
         pluginManager.registerCommand(instance, new CommandBuy("buy"));
         pluginManager.registerCommand(instance, new CommandPermissions("permissions", "inferris.admin.permissions"));
         pluginManager.registerCommand(instance, new CommandTrollkick("trollkick"));
+        pluginManager.registerCommand(instance, new CommandDiscord("discord"));
 
         plugin.getProxy().registerChannel(BungeeChannel.STAFFCHAT.getName());
         plugin.getProxy().registerChannel(BungeeChannel.PLAYER_REGISTRY.getName());

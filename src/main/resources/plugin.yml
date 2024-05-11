@@ -54,3 +54,5 @@ commands:
     description: Unlink forum account
   trollkick:
     description: Yes
+  discord:
+    description: Discord
