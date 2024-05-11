@@ -34,6 +34,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -103,6 +104,22 @@ public class PlayerDataManager {
             Inferris.getInstance().getLogger().severe("Trying getRedisData over at " + debugOnly);
             return getRedisData(player);
         }
+    }
+
+    public CompletableFuture<PlayerData> getPlayerDataAsync(ProxiedPlayer player) {
+        UUID playerUUID = player.getUniqueId();
+
+        // Check the caffeine cache first
+        PlayerData cachedData = caffeineCache.getIfPresent(playerUUID);
+        if (cachedData != null) {
+            return CompletableFuture.completedFuture(cachedData);
+        }
+
+        // If not found in cache, fetch from Redis asynchronously
+        return CompletableFuture.supplyAsync(() -> {
+            Inferris.getInstance().getLogger().severe("Fetching data from Redis for: " + player.getName());
+            return getRedisData(player);
+        }, Inferris.getInstance().getExecutorService());  // Assuming you have an Executor for async tasks
     }
 
     public PlayerData getPlayerData(UUID uuid) {
@@ -327,12 +344,16 @@ public class PlayerDataManager {
                 Channels channel = Channels.valueOf(resultSet.getString("channel"));
                 int vanished = resultSet.getInt("vanished");
 
-                VanishState vanishState = VanishState.DISABLED;
+                VanishState vanishState;
 
+                if(vanished == 1){
+                    vanishState = VanishState.ENABLED;
+                }else{
+                    vanishState = VanishState.DISABLED;
+                }
+
+                // Load ranks
                 Rank rank = RanksManager.getInstance().loadRanks(uuid, connection);
-//                if (vanished == 1 || (rank != null && rank.getBranchID(Branch.STAFF) >= 3)) {
-//                    vanishState = VanishState.ENABLED;
-//                }
 
                 if (ProxyServer.getInstance().getPlayer(uuid) != null) {
                     ProxiedPlayer player = ProxyServer.getInstance().getPlayer(uuid);
@@ -349,6 +370,8 @@ public class PlayerDataManager {
                 String bio = null;
                 String pronouns = null;
                 int xenforoId = 0;
+                int discordLinked = 0;
+                boolean isDiscordLinked = false;
 
                 PreparedStatement selectProfileStatement = connection.prepareStatement("SELECT * FROM " + Tables.PROFILE.getName() + " WHERE uuid = ?");
                 selectProfileStatement.setString(1, uuid.toString());
@@ -359,7 +382,12 @@ public class PlayerDataManager {
                     bio = profileResultSet.getString("bio");
                     pronouns = profileResultSet.getString("pronouns");
                     xenforoId = profileResultSet.getInt("xenforo_id"); // Replace with the actual column name
-                    profile = new Profile(registrationDate, bio, pronouns, xenforoId);
+                    discordLinked = profileResultSet.getInt("discord_linked");
+
+                    if(discordLinked != 0){
+                        isDiscordLinked = true;
+                    }
+                    profile = new Profile(registrationDate, bio, pronouns, xenforoId, isDiscordLinked);
                 }
 
                 playerData = new PlayerData(uuid, username, rank, profile, new Coins(coins), channel, vanishState, Server.LOBBY);
@@ -390,12 +418,15 @@ public class PlayerDataManager {
                 Channels channel = Channels.valueOf(resultSet.getString("channel"));
                 int vanished = resultSet.getInt("vanished");
 
-                VanishState vanishState = VanishState.DISABLED;
+                VanishState vanishState;
+
+                if(vanished == 1){
+                    vanishState = VanishState.ENABLED;
+                }else{
+                    vanishState = VanishState.DISABLED;
+                }
 
                 Rank rank = RanksManager.getInstance().loadRanks(uuid, connection);
-//                if (vanished == 1 || (rank != null && rank.getBranchID(Branch.STAFF) >= 3)) {
-//                    vanishState = VanishState.ENABLED;
-//                }
 
                 if (ProxyServer.getInstance().getPlayer(uuid) != null) {
                     ProxiedPlayer player = ProxyServer.getInstance().getPlayer(uuid);
@@ -412,6 +443,8 @@ public class PlayerDataManager {
                 String bio = null;
                 String pronouns = null;
                 int xenforoId = 0;
+                int discordLinked = 0;
+                boolean isDiscordLinked = false;
 
                 PreparedStatement selectProfileStatement = connection.prepareStatement("SELECT * FROM " + Tables.PROFILE.getName() + " WHERE uuid = ?");
                 selectProfileStatement.setString(1, uuid.toString());
@@ -422,9 +455,13 @@ public class PlayerDataManager {
                     bio = profileResultSet.getString("bio");
                     pronouns = profileResultSet.getString("pronouns");
                     xenforoId = profileResultSet.getInt("xenforo_id"); // Replace with the actual column name
-                    profile = new Profile(registrationDate, bio, pronouns, xenforoId);
-                }
+                    discordLinked = profileResultSet.getInt("discord_linked");
 
+                    if(discordLinked != 0){
+                        isDiscordLinked = true;
+                    }
+                    profile = new Profile(registrationDate, bio, pronouns, xenforoId, isDiscordLinked);
+                }
                 playerData = new PlayerData(uuid, username, rank, profile, new Coins(coins), channel, vanishState, Server.LOBBY);
             } else {
                 if (insertData) {
@@ -439,6 +476,7 @@ public class PlayerDataManager {
         return playerData;
     }
 
+    // Insert a new player into the database - default values
     public void insertPlayerDataToDatabase(Connection connection, UUID uuid, String username) {
         try (PreparedStatement insertPlayersStatement = connection.prepareStatement("INSERT INTO " + Tables.PLAYER_DATA.getName() + " (uuid, username, coins, channel, vanished) VALUES (?, ?, ?, ?, ?)");
              PreparedStatement insertProfileStatement = connection.prepareStatement("INSERT INTO " + Tables.PROFILE.getName() + " (uuid, join_date, bio, pronouns) VALUES (?, ?, ?, ?)")) {
@@ -520,34 +558,11 @@ public class PlayerDataManager {
         }
     }
 
-    @Deprecated
-    private void hasDifferentUsername(ProxiedPlayer player) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            PlayerData deserializedPlayerData = SerializationUtils.deserializePlayerData(jedis.hget("playerdata", player.getUniqueId().toString()));
-
-            if (!deserializedPlayerData.getUsername().equals(player.getName())) {
-                logger.info("Username is different");
-
-                PlayerData redisData = getRedisData(player);
-
-                Profile profile = new Profile(redisData.getProfile().getRegistrationDate(), redisData.getProfile().getBio(), redisData.getProfile().getPronouns(), redisData.getProfile().getXenforoId());
-                PlayerData playerData = new PlayerData(player.getUniqueId(), player.getName(), redisData.getRank(), profile, redisData.getCoins(), redisData.getChannel(), redisData.getVanishState(), redisData.getCurrentServer());
-                jedis.hset("playerdata", player.getUniqueId().toString(), SerializationUtils.serializePlayerData(playerData));
-                caffeineCache.put(player.getUniqueId(), playerData);
-
-                Inferris.getInstance().getLogger().warning("Updated username!");
-                player.sendMessage(new TextComponent(caffeineCache.getIfPresent(player.getUniqueId()).getUsername()));
-            }
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-    }
-
     private PlayerData createEmpty(ProxiedPlayer player) {
         // Create and return an empty Registry object with default values
         return new PlayerData(player.getUniqueId(), player.getName(),
                 new Rank(0, 0, 0, 0),
-                new Profile(null, null, null, 0),
+                new Profile(null, null, null, 0, false),
                 new Coins(36), Channels.NONE, VanishState.DISABLED, Server.LOBBY);
     }
 
@@ -555,7 +570,7 @@ public class PlayerDataManager {
         // Create and return an empty Registry object with default values
         return new PlayerData(uuid, username,
                 new Rank(0, 0, 0, 0),
-                new Profile(null, null, null, 0),
+                new Profile(null, null, null, 0, false),
                 new Coins(36), Channels.NONE, VanishState.DISABLED, Server.LOBBY);
     }
 
