@@ -17,6 +17,7 @@ import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.event.ServerSwitchEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
+import net.md_5.bungee.event.EventPriority;
 
 public class EventJoin implements Listener {
 
@@ -53,24 +54,22 @@ public class EventJoin implements Listener {
      * @param event Post login event
      */
 // Todo, enable event
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onPostLogin(PostLoginEvent event) {
-
         ProxiedPlayer player = event.getPlayer();
 
-        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player, "onPostLogin");
+        PlayerDataManager.getInstance().getPlayerDataAsync(player).thenAccept(playerData -> {
+            Rank rank = playerData.getRank();
+            RankRegistry rankRegistry = playerData.getByBranch();
 
-        Rank rank = playerData.getRank();
-        RankRegistry rankRegistry = playerData.getByBranch();
-
-        if (rank.getBranchID(Branch.STAFF) >= 1) {
-            for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                PlayerData proxiedPlayerData = PlayerDataManager.getInstance().getPlayerData(proxiedPlayers);
-                if (proxiedPlayerData.getRank().getBranchID(Branch.STAFF) >= 1) {
-                    proxiedPlayers.sendMessage(TextComponent.fromLegacyText(Tags.STAFF.getName(true) + rankRegistry.getPrefix(true) + rankRegistry.getColor() + player.getName() + ChatColor.YELLOW + " connected"));
+            if (rank.getBranchID(Branch.STAFF) >= 1) {
+                for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
+                    if (PlayerDataManager.getInstance().getPlayerData(player).getRank().getBranchID(Branch.STAFF) >= 1) {
+                        proxiedPlayers.sendMessage(new TextComponent(Tags.STAFF.getName(true) + rankRegistry.getPrefix(true) + rankRegistry.getColor() + player.getName() + ChatColor.YELLOW + " connected"));
+                    }
                 }
             }
-        }
+        });
     }
 
     private void sendHeader(ProxiedPlayer player) {
