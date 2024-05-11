@@ -7,11 +7,13 @@ public class Profile {
     private String bio;
     private String pronouns;
     private int xenforoId;
-    public Profile(LocalDate registrationDate, String bio, String pronouns, int xenforoId){
+    private boolean discordLinked;
+    public Profile(LocalDate registrationDate, String bio, String pronouns, int xenforoId, boolean discordLinked){
         this.registrationDate = registrationDate;
         this.bio = bio;
         this.pronouns = pronouns;
         this.xenforoId = xenforoId;
+        this.discordLinked = discordLinked;
     }
 
     public Profile(){
@@ -46,5 +48,13 @@ public class Profile {
 
     public void setXenforoId(int xenforoId) {
         this.xenforoId = xenforoId;
+    }
+
+    public boolean isDiscordLinked() {
+        return discordLinked;
+    }
+
+    public void setDiscordLinked(boolean discordLinked) {
+        this.discordLinked = discordLinked;
     }
 }
