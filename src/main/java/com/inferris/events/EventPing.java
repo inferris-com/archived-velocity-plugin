@@ -33,7 +33,6 @@ public class EventPing implements Listener {
         }
     }
 
-    // TODO: Vanish count
     private int getTotalVanishedPlayers() {
         int vanishedCount = 0;
         for(ProxiedPlayer player : ProxyServer.getInstance().getPlayers()){
