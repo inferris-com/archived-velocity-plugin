@@ -30,6 +30,13 @@ public class JedisReceive extends JedisPubSub {
     @Override
     public void onMessage(String channel, String message) {
 
+        if (channel.equalsIgnoreCase(JedisChannels.PLAYERDATA_UPDATE.getChannelName())) {
+            Inferris.getInstance().getLogger().severe("Proxy received update");
+            ProxiedPlayer player = ProxyServer.getInstance().getPlayer(UUID.fromString(message));
+            PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
+            PlayerDataManager.getInstance().updateAllData(player, playerData);
+        }
+
         if (channel.equalsIgnoreCase(JedisChannels.SPIGOT_TO_PROXY_PLAYERDATA_CACHE_UPDATE.getChannelName())) {
             Inferris.getInstance().getLogger().severe("Spigot updated Proxy cache");
 
@@ -42,7 +49,7 @@ public class JedisReceive extends JedisPubSub {
             }
         }
 
-        if(channel.equals(JedisChannels.STAFFCHAT.getChannelName())){
+        if (channel.equals(JedisChannels.STAFFCHAT.getChannelName())) {
             Inferris.getInstance().getLogger().severe("Triggered");
             StaffChatMessage staffChatMessage = StaffChatSerializer.deserialize(message);
             assert staffChatMessage != null;
@@ -62,7 +69,7 @@ public class JedisReceive extends JedisPubSub {
             }
         }
 
-        if(channel.equalsIgnoreCase(JedisChannels.VIEW_LOGS_SPIGOT_TO_PROXY.getChannelName())){
+        if (channel.equalsIgnoreCase(JedisChannels.VIEW_LOGS_SPIGOT_TO_PROXY.getChannelName())) {
 
             String[] parts = message.split(":");
             UUID uuid = UUID.fromString(parts[0]);
@@ -89,7 +96,7 @@ public class JedisReceive extends JedisPubSub {
                     player.sendMessage(new TextComponent(timestamp + messageContent));
                 }
 
-                if(ServerStateManager.getCurrentState() == ServerState.DEBUG) {
+                if (ServerStateManager.getCurrentState() == ServerState.DEBUG) {
                     Inferris.getInstance().getLogger().severe("================================");
                     Inferris.getInstance().getLogger().severe("Event has been received");
                     Inferris.getInstance().getLogger().severe("================================");
