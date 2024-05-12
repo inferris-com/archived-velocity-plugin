@@ -1,19 +1,24 @@
 package com.inferris.commands;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.inferris.Inferris;
+import com.inferris.database.DatabasePool;
 import com.inferris.player.discord.UserFlag;
+import com.inferris.util.DatabaseUtils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class CommandDiscord extends Command {
     public CommandDiscord(String name) {
@@ -64,6 +69,13 @@ public class CommandDiscord extends Command {
                                     permanentData.put("flags", flags);
 
                                     jedis.hset("verified_discord_users", player.getUniqueId().toString(), permanentData.toString());
+
+//                                    try(Connection connection = DatabasePool.getConnection()){
+//                                        ResultSet resultSet = DatabaseUtils.executeQuery(connection, "profile",
+//                                                new String[] {""})
+//                                    }catch(SQLException e){
+//                                        e.printStackTrace();
+//                                    }
 
                                     player.sendMessage(new TextComponent(ChatColor.GREEN + "Discord account linked! Enjoy!"));
                                 }else{
