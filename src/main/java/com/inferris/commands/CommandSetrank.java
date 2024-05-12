@@ -4,6 +4,7 @@ import com.inferris.server.Messages;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.Branch;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -64,9 +65,18 @@ public class CommandSetrank extends Command implements TabExecutor {
             return;
         }
 
-        PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(uuid);
+        PlayerData playerData = PlayerDataManager.getInstance().getRedisData(uuid);
         playerData.setRank(branch, id, true);
         commandSender.sendMessage(new TextComponent("Rank set for " + args[0] + " to " + branch.name() + "-" + id));
+        if (ProxyServer.getInstance().getPlayer(uuid) != null) {
+            if (ProxyServer.getInstance().getPlayer(uuid).isConnected()) {
+                ProxiedPlayer target = ProxyServer.getInstance().getPlayer(uuid);
+                assert player != null;
+                PlayerData targetData = PlayerDataManager.getInstance().getPlayerData(target);
+
+                target.sendMessage(new TextComponent(ChatColor.GREEN + "Your rank has been set to " + targetData.getNameColor() + targetData.getByBranch()));
+            }
+        }
     }
 
     @Override
