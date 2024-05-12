@@ -60,6 +60,7 @@ public class Inferris extends Plugin {
 
         jedisPool = new JedisPool("198.27.83.200", Ports.JEDIS.getPort());
         Thread subscriptionThread = new Thread(() -> Inferris.getJedisPool().getResource().subscribe(jedisReceive,
+                JedisChannels.PLAYERDATA_UPDATE.getChannelName(),
                 JedisChannels.SPIGOT_TO_PROXY_PLAYERDATA_CACHE_UPDATE.getChannelName(),
                 JedisChannels.VIEW_LOGS_SPIGOT_TO_PROXY.getChannelName(), JedisChannels.STAFFCHAT.getChannelName()));
         subscriptionThread.start();
