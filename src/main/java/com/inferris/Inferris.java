@@ -48,7 +48,7 @@ public class Inferris extends Plugin {
             if (connection.isClosed()) {
                 getLogger().log(Level.SEVERE, "Database connection is closed!");
             } else {
-                getLogger().log(Level.WARNING, "Connected to database!");
+                getLogger().log(Level.INFO, "Connected to database!");
             }
         } catch (SQLException e) {
             getLogger().log(Level.WARNING, e.getMessage());
@@ -63,12 +63,13 @@ public class Inferris extends Plugin {
 
         //StatusUpdater statusUpdater = new StatusUpdater(ProxyServer.getInstance().getScheduler());
 
-        String debugMode = configurationHandler.getConfig(ConfigType.CONFIG).getString("debug.mode");
+        String debugMode = configurationHandler.getProperties(ConfigType.PROPERTIES).getProperty("debug.mode");
         if(debugMode != null && debugMode.equalsIgnoreCase("true")){
             ServerStateManager.setCurrentState(ServerState.DEBUG);
             getLogger().warning("============================");
             getLogger().warning("Debug is enabled!");
             getLogger().warning("============================");
+
         }else{
             ServerStateManager.setCurrentState(ServerState.NORMAL);
         }
