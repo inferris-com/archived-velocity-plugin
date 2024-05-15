@@ -1,6 +1,7 @@
 package com.inferris.events;
 
 import com.inferris.Inferris;
+import com.inferris.config.ConfigType;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.vanish.VanishState;
@@ -21,7 +22,8 @@ public class EventPing implements Listener {
         int count = ProxyServer.getInstance().getOnlineCount();
 
         ServerPing serverPing = event.getResponse();
-        serverPing.setDescriptionComponent(new TextComponent(ChatColor.translateAlternateColorCodes('&', Inferris.getProperties().getProperty("server.list.motd"))));
+        serverPing.setDescriptionComponent(new TextComponent(ChatColor.translateAlternateColorCodes('&',
+                Inferris.getInstance().getConfigurationHandler().getProperties(ConfigType.PROPERTIES).getProperty("server.list.motd"))));
 
         if(count >=1){
 

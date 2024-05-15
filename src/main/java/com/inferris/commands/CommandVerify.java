@@ -3,6 +3,7 @@ package com.inferris.commands;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.inferris.Inferris;
+import com.inferris.config.ConfigType;
 import com.inferris.database.DatabasePool;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
@@ -30,7 +31,7 @@ import java.util.*;
 public class CommandVerify extends Command implements TabExecutor {
 
     private static final String API_BASE_URL = "https://inferris.com/community/api/";
-    String API_KEY = Inferris.getProperties().getProperty("xf.api.key");
+    String API_KEY = Inferris.getInstance().getConfigurationHandler().getProperties(ConfigType.PROPERTIES).getProperty("xf.api.key");
     private static final String TITLE = "Verification request";
     private static final int EXPIRATION_TIME = 15; // minutes
     private String recommendationName = null;

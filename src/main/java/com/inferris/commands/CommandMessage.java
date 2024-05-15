@@ -5,6 +5,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.inferris.Inferris;
 import com.inferris.commands.cache.CommandJokeCache;
 import com.inferris.commands.cache.CommandMessageCache;
+import com.inferris.config.ConfigType;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.PlayerTaskManager;
@@ -32,7 +33,7 @@ public class CommandMessage extends Command implements TabExecutor {
     private final boolean JOKE_ALLOWED;
 
     {
-        JOKE_ALLOWED = Inferris.getConfiguration().getSection("command.features").getBoolean("message-joke");
+        JOKE_ALLOWED = Inferris.getInstance().getConfigurationHandler().getConfig(ConfigType.CONFIG).getSection("command.features").getBoolean("message-joke");
     }
 
     public CommandMessage(String name) {

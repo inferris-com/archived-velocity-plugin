@@ -6,6 +6,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.util.Properties;
 
+@Deprecated
 public class DatabaseConfigLoader {
     private final Properties properties;
     private final File pluginFolder = new File("plugins/Inferris");

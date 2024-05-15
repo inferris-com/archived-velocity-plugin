@@ -1,6 +1,7 @@
 package com.inferris.rank;
 
 import com.inferris.Inferris;
+import com.inferris.config.ConfigType;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.server.ServerState;
@@ -20,7 +21,7 @@ public class Permissions {
         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player, "attachPermissions");
         List<RankRegistry> ranks = playerData.getApplicableRanks();
 
-        Configuration permissionsConfig = Inferris.getPermissionsConfiguration();
+        Configuration permissionsConfig = Inferris.getInstance().getConfigurationHandler().getConfig(ConfigType.PERMISSIONS);
         Configuration ranksSection = permissionsConfig.getSection("ranks");
 
         if (ranksSection != null) {
@@ -58,7 +59,7 @@ public class Permissions {
     public static void listPermissions(ProxiedPlayer player) {
         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
         List<RankRegistry> ranks = playerData.getApplicableRanks();
-        Configuration permissionsConfig = Inferris.getPermissionsConfiguration();
+        Configuration permissionsConfig = Inferris.getInstance().getConfigurationHandler().getConfig(ConfigType.PERMISSIONS);
         Configuration ranksSection = permissionsConfig.getSection("ranks");
 
         if (ranksSection != null) {

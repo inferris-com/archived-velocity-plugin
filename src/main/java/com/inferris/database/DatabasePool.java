@@ -1,5 +1,7 @@
 package com.inferris.database;
 
+import com.inferris.config.ConfigType;
+import com.inferris.config.ConfigurationHandler;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import com.zaxxer.hikari.HikariPoolMXBean;
@@ -15,15 +17,10 @@ import java.util.Map;
 public class DatabasePool {
     private static final Logger LOGGER = LoggerFactory.getLogger(DatabasePool.class);
     private static final Map<Database, HikariDataSource> dataSources = new HashMap<>();
-    private static DatabaseConfigLoader configLoader;
+    private static final ConfigurationHandler configurationHandler = ConfigurationHandler.getInstance();
+
 
     static {
-        try {
-            configLoader = new DatabaseConfigLoader();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
         // Initialize connection pools for each database type
         for (Database database : Database.values()) {
             HikariConfig config = new HikariConfig();
@@ -32,10 +29,10 @@ public class DatabasePool {
             config.addDataSourceProperty("prepStmtCacheSize", "250");
             config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
             config.addDataSourceProperty("leakDetectionThreshold", "true");
-            config.setJdbcUrl(configLoader.getJdbcUrl(database.getType()));
-            config.setUsername(configLoader.getUsername(database.getType()));
-            config.setPassword(configLoader.getPassword(database.getType()));
-            config.setMaximumPoolSize(configLoader.getMaxPoolSize(database.getType()));
+            config.setJdbcUrl(configurationHandler.getProperties(ConfigType.DATABASE).getProperty(database.getType() + ".jdbcUrl"));
+            config.setUsername(configurationHandler.getProperties(ConfigType.DATABASE).getProperty(database.getType() + ".username"));
+            config.setPassword(configurationHandler.getProperties(ConfigType.DATABASE).getProperty(database.getType() + ".password"));
+            config.setMaximumPoolSize(Integer.parseInt(configurationHandler.getProperties(ConfigType.DATABASE).getProperty(database.getType() + ".maxPoolSize")));
 
             HikariDataSource dataSource = new HikariDataSource(config);
             dataSources.put(database, dataSource);

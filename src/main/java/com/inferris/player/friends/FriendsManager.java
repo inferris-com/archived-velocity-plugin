@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.inferris.Inferris;
+import com.inferris.config.ConfigType;
 import com.inferris.serialization.SerializationModule;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
@@ -196,7 +197,7 @@ public class FriendsManager {
             }
         }
 
-        int pageSize = Inferris.getConfiguration().getSection("friends").getInt("page-size");
+        int pageSize = Inferris.getInstance().getConfigurationHandler().getConfig(ConfigType.CONFIG).getSection("friends").getInt("page-size");
         player.sendMessage(new TextComponent(String.valueOf(pageSize)));
         int startIndex = (pageNumber - 1) * pageSize;
         int endIndex = Math.min(startIndex + pageSize, playerDataList.size());

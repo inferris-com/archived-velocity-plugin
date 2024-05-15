@@ -103,10 +103,6 @@ public class CommandBungeeTest extends Command {
 //                        player.sendMessage(new TextComponent(uuid.toString()));
 //                    }
                 }
-                if (args[0].equalsIgnoreCase("players")) {
-                    Configuration configuration = Inferris.getPlayersConfiguration().getSection("players");
-                    player.sendMessage(new TextComponent(configuration.get(player.getUniqueId() + ".channel").toString()));
-                }
                 if (args[0].equalsIgnoreCase("redis")) {
                     try (Jedis jedis = Inferris.getJedisPool().getResource()) {
                         jedis.publish("playerdata_update", SerializationUtils.serializePlayerData(PlayerDataManager.getInstance().getPlayerData(player)));
@@ -117,9 +113,6 @@ public class CommandBungeeTest extends Command {
 
                 if (args[0].equalsIgnoreCase("server")) {
                     player.sendMessage(new TextComponent(ChatColor.AQUA + PlayerDataManager.getInstance().getPlayerData(player).getCurrentServer().name()));
-                }
-                if (args[0].equalsIgnoreCase("configtest")) {
-                    player.sendMessage(new TextComponent(Inferris.getProperties().getProperty("verbose.debug.mode")));
                 }
             }
         }
