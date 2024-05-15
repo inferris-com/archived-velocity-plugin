@@ -7,11 +7,13 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.inferris.*;
+import com.inferris.config.ConfigType;
 import com.inferris.rank.Branch;
 import com.inferris.serialization.SerializationModule;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.Rank;
+import com.inferris.util.ConfigUtils;
 import com.inferris.util.SerializationUtils;
 import com.inferris.util.ChatUtil;
 import io.tebex.BuycraftApi;
@@ -21,9 +23,10 @@ import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
-import net.md_5.bungee.config.Configuration;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+
+import java.io.IOException;
 
 public class CommandBungeeTest extends Command {
 
@@ -42,6 +45,14 @@ public class CommandBungeeTest extends Command {
             int length = args.length;
 
             if (length == 1) {
+                if(args[0].equalsIgnoreCase("config")){
+                    try {
+                        player.sendMessage(new TextComponent("" + Inferris.getInstance().getConfigurationHandler().getConfig(ConfigType.CONFIG).getSection("test").getBoolean("value")));
+                        ConfigUtils.reloadConfiguration(ConfigUtils.Types.CONFIG);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
                 if(args[0].equalsIgnoreCase("playerdata")){
                     PlayerData playerData  = PlayerDataManager.getInstance().getRedisData(player);
                     try {
