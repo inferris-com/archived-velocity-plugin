@@ -70,37 +70,38 @@ public class JedisReceive extends JedisPubSub {
         }
 
         if (channel.equalsIgnoreCase(JedisChannels.VIEW_LOGS_SPIGOT_TO_PROXY.getChannelName())) {
+            Inferris.getInstance().getLogger().warning("JedisReceive triggered"); // Logging for debugging
+            Inferris.getInstance().getLogger().warning("Executing processMessage: " + message); // Logging for debugging
 
             String[] parts = message.split(":");
             UUID uuid = UUID.fromString(parts[0]);
             String json = message.substring(parts[0].length() + 1);
 
-            PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(uuid);
+            PlayerData playerData = PlayerDataManager.getInstance().getRedisData(uuid);
             ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerData.getUuid());
 
             ObjectMapper objectMapper = new ObjectMapper();
             try {
-                List<String> chatMessages = objectMapper.readValue(json, new TypeReference<>() {
+                List<String> chatMessages = objectMapper.readValue(json, new TypeReference<List<String>>() {
                 });
+                Inferris.getInstance().getLogger().warning("Executing processMessage: " + chatMessages.size());
 
                 if (chatMessages.isEmpty()) {
                     player.sendMessage(new TextComponent(ChatColor.RED + "No chat log messages available."));
-                    return;
-                }
-
-                for (String chatMessage : chatMessages) {
-                    int startIndex = chatMessage.indexOf("] ") + 2;
-                    String timestamp = chatMessage.substring(0, startIndex);
-                    String messageContent = chatMessage.substring(startIndex);
-
-                    player.sendMessage(new TextComponent(timestamp + messageContent));
+                } else {
+                    player.sendMessage("--------------------------------------------------------------");
+                    for (String chatMessage : chatMessages) {
+                        int startIndex = chatMessage.indexOf("] ") + 2;
+                        String timestamp = chatMessage.substring(0, startIndex);
+                        String messageContent = chatMessage.substring(startIndex);
+                        player.sendMessage(new TextComponent(timestamp + messageContent));
+                    }
                 }
 
                 if (ServerStateManager.getCurrentState() == ServerState.DEBUG) {
                     Inferris.getInstance().getLogger().severe("================================");
                     Inferris.getInstance().getLogger().severe("Event has been received");
                     Inferris.getInstance().getLogger().severe("================================");
-
                     ServerUtil.broadcastMessage(json);
                     ServerUtil.broadcastMessage(String.valueOf(uuid));
                 }

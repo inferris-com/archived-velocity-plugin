@@ -59,41 +59,5 @@ public class EventReceive implements Listener {
                 }
             }
         }
-        if (tag.equalsIgnoreCase("inferris:report")) {
-            Inferris.getInstance().getLogger().severe("================================");
-            Inferris.getInstance().getLogger().severe("Event has been received");
-            Inferris.getInstance().getLogger().severe("================================");
-            DataInputStream in = new DataInputStream(new ByteArrayInputStream(event.getData()));
-            try {
-                String subchannel = in.readUTF();
-                String uuid = in.readUTF();
-                String payload = in.readUTF();
-
-
-                if (subchannel.equalsIgnoreCase(Subchannel.RESPONSE.toLowerCase())) {
-                    ProxiedPlayer player = ProxyServer.getInstance().getPlayer(UUID.fromString(uuid));
-
-                    ObjectMapper objectMapper = new ObjectMapper();
-
-                    List<String> chatMessages = objectMapper.readValue(payload, new TypeReference<>() {
-                    });
-
-                    if (chatMessages.isEmpty()) {
-                        player.sendMessage(new TextComponent(ChatColor.RED + "No chat log messages available."));
-                        return;
-                    }
-
-                    for (String chatMessage : chatMessages) {
-                        int startIndex = chatMessage.indexOf("] ") + 2;
-                        String timestamp = chatMessage.substring(0, startIndex);
-                        String messageContent = chatMessage.substring(startIndex);
-
-                        player.sendMessage(new TextComponent(timestamp + messageContent));
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
     }
 }

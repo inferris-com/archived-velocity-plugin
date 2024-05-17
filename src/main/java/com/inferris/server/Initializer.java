@@ -50,7 +50,6 @@ public class Initializer {
 
         plugin.getProxy().registerChannel(BungeeChannel.STAFFCHAT.getName());
         plugin.getProxy().registerChannel(BungeeChannel.PLAYER_REGISTRY.getName());
-        plugin.getProxy().registerChannel(BungeeChannel.REPORT.getName());
         plugin.getProxy().registerChannel(BungeeChannel.TEST.getName());
         plugin.getProxy().registerChannel(BungeeChannel.BUYCRAFT.getName());
     }

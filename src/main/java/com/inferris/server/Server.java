@@ -4,6 +4,7 @@ public enum Server {
     PROXY(25565),
     LOBBY(25566),
     INFERRIS(25567),
+    STARLUME(25568),
     UNKNOWN(-1);
 
     private final int port;

@@ -10,6 +10,8 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import redis.clients.jedis.Jedis;
 
+import java.sql.Timestamp;
+
 /**
  * The CommandViewlogs class represents a command used to view logs of a specific server in a game proxy.
  * It allows players to request and view the logs of a particular server.
@@ -32,6 +34,7 @@ public class CommandViewlogs extends Command {
 
             if (length == 1) {
                 String requestedServer = args[0].toLowerCase();
+
                 if(!isValidServer(requestedServer)){
                     player.sendMessage(new TextComponent(ChatColor.RED + "Error: Invalid server!"));
                     return;
@@ -39,6 +42,7 @@ public class CommandViewlogs extends Command {
                 //BungeeUtils.sendBungeeMessage(player, BungeeChannel.REPORT, Subchannel.REQUEST, requestedServer);
                 try(Jedis jedis = Inferris.getJedisPool().getResource()){
                     String payload = requestedServer + ":" + player.getUniqueId().toString();
+                    Inferris.getInstance().getLogger().info("[CommandViewlogs] Publishing at " + System.currentTimeMillis());
 
                     jedis.publish(JedisChannels.VIEW_LOGS_PROXY_TO_SPIGOT.getChannelName(), payload);
                 }
