@@ -119,18 +119,7 @@ public class CommandViewlogs extends Command {
                     } else {
                         formattedLogs.append(ChatColor.AQUA).append("Chat logs for " + requestedServer + ":").append("\n");
                         for (String chatMessage : chatMessages) {
-                            int timestampEndIndex = chatMessage.indexOf("] ") + 2;
-
-                            String prefix = chatMessage.substring(0, 6); // [Chat]
-                            String timestamp = chatMessage.substring(6, timestampEndIndex);
-                            String messageContent = chatMessage.substring(timestampEndIndex);
-
-                            // Find the username start index
-                            int usernameStartIndex = messageContent.indexOf(": ");
-                            String username = messageContent.substring(0, usernameStartIndex);
-                            String userMessage = messageContent.substring(usernameStartIndex + 2);
-
-                            formattedLogs.append(formatChatMessage(chatMessage));
+                            formattedLogs.append(formatChatMessage(chatMessage)).append("\n");
                         }
                     }
 
@@ -174,6 +163,6 @@ public class CommandViewlogs extends Command {
         String formattedMessage = ChatColor.YELLOW + userMessage;
 
         // Combine everything
-        return formattedPrefix + " " + formattedTimestamp + " " + formattedUsername + ": " + formattedMessage + "\n";
+        return formattedPrefix + " " + formattedTimestamp + " " + formattedUsername + ": " + formattedMessage;
     }
 }
