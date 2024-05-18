@@ -4,7 +4,6 @@ import com.inferris.commands.CommandViewlogs;
 import com.inferris.config.ConfigType;
 import com.inferris.config.ConfigurationHandler;
 import com.inferris.database.DatabasePool;
-import com.inferris.events.*;
 import com.inferris.events.redis.*;
 import com.inferris.events.redis.dispatching.DispatchingJedisPubSub;
 import com.inferris.events.redis.dispatching.JedisEventDispatcher;
@@ -37,7 +36,6 @@ public class Inferris extends Plugin {
         }
 
         Initializer.initialize(this);
-        JedisReceive jedisReceive = new JedisReceive();
 
         try {
             Connection connection = DatabasePool.getConnection();
@@ -49,8 +47,6 @@ public class Inferris extends Plugin {
         } catch (SQLException e) {
             getLogger().log(Level.WARNING, e.getMessage());
         }
-
-
 
         // Custom Redis dispatch methods
         CommandViewlogs commandViewlogs = new CommandViewlogs("viewlogs");
@@ -64,7 +60,7 @@ public class Inferris extends Plugin {
 
         DispatchingJedisPubSub jedisPubSub = new DispatchingJedisPubSub(dispatcher);
 
-        jedisPool = new JedisPool("198.27.83.200", Ports.JEDIS.getPort());
+        jedisPool = new JedisPool(configurationHandler.getProperties(ConfigType.PROPERTIES).getProperty("address"), Ports.JEDIS.getPort());
         Thread subscriptionThread = new Thread(() -> Inferris.getJedisPool().getResource().subscribe(jedisPubSub,
                 JedisChannels.PLAYERDATA_UPDATE.getChannelName(),
                 JedisChannels.SPIGOT_TO_PROXY_PLAYERDATA_CACHE_UPDATE.getChannelName(),
