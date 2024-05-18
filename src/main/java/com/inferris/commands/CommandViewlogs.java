@@ -1,16 +1,26 @@
 package com.inferris.commands;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.inferris.Inferris;
 import com.inferris.server.*;
 import com.inferris.server.jedis.JedisChannels;
+import com.inferris.util.ServerUtil;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import redis.clients.jedis.Jedis;
 
-import java.sql.Timestamp;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * The CommandViewlogs class represents a command used to view logs of a specific server in a game proxy.
@@ -27,25 +37,42 @@ public class CommandViewlogs extends Command {
         super(name);
     }
 
+    private final Map<UUID, Consumer<String>> callbacks = new ConcurrentHashMap<>();
+
+
     @Override
     public void execute(CommandSender sender, String[] args) {
-        if(sender instanceof ProxiedPlayer player) {
-            int length = args.length;
+        if (sender instanceof ProxiedPlayer player) {
+            if (args.length != 1) {
+                player.sendMessage(new TextComponent(ChatColor.RED + "Usage: /viewlogs <server>"));
+                return;
+            }
 
-            if (length == 1) {
-                String requestedServer = args[0].toLowerCase();
+            UUID requestId = UUID.randomUUID();
+            callbacks.put(requestId, logData -> {
+                sender.sendMessage(new TextComponent(logData));
+                callbacks.remove(requestId);
+            });
 
-                if(!isValidServer(requestedServer)){
-                    player.sendMessage(new TextComponent(ChatColor.RED + "Error: Invalid server!"));
-                    return;
-                }
-                //BungeeUtils.sendBungeeMessage(player, BungeeChannel.REPORT, Subchannel.REQUEST, requestedServer);
-                try(Jedis jedis = Inferris.getJedisPool().getResource()){
-                    String payload = requestedServer + ":" + player.getUniqueId().toString();
-                    Inferris.getInstance().getLogger().info("[CommandViewlogs] Publishing at " + System.currentTimeMillis());
+            String requestedServer = args[0].toLowerCase();
+            if (!isValidServer(requestedServer)) {
+                player.sendMessage(new TextComponent(ChatColor.RED + "Error: Invalid server!"));
+                return;
+            }
 
-                    jedis.publish(JedisChannels.VIEW_LOGS_PROXY_TO_SPIGOT.getChannelName(), payload);
-                }
+            try (Jedis jedis = Inferris.getJedisPool().getResource()) {
+                String payload = requestedServer + ":" + player.getUniqueId().toString() + ":" + requestId;
+                Inferris.getInstance().getLogger().info("[CommandViewlogs] Publishing payload: " + payload);
+
+                jedis.publish(JedisChannels.VIEW_LOGS_PROXY_TO_SPIGOT.getChannelName(), payload);
+
+                ProxyServer.getInstance().getScheduler().schedule(Inferris.getInstance(), () -> {
+                    if (callbacks.containsKey(requestId)) {
+                        sender.sendMessage(new TextComponent(ChatColor.RED + "Request timed out - invalid callback key. Inform an administrator or developer immediately," +
+                                " as this may conclude Redis is down, or the publication channels are not working properly which may impact player data integrity."));
+                        callbacks.remove(requestId);
+                    }
+                }, 5L, TimeUnit.SECONDS);
             }
         }
     }
@@ -65,5 +92,88 @@ public class CommandViewlogs extends Command {
             }
         }
         return false;
+    }
+
+    public void onLogReceived(String requestedServer, UUID requestId, UUID playerUuid, String logData) {
+        ProxyServer.getInstance().getPlayer(playerUuid).sendMessage("onLogReceived");
+        if (callbacks.containsKey(requestId)) {
+            ProxyServer.getInstance().getPlayer(playerUuid).sendMessage("Contains key");
+
+            Consumer<String> callback = callbacks.get(requestId);
+
+            ProxyServer.getInstance().getScheduler().runAsync(Inferris.getInstance(), () -> {
+                ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerUuid);
+                if (player == null) {
+                    Inferris.getInstance().getLogger().warning("Player with UUID " + playerUuid + " not found.");
+                    return;
+                }
+
+                ObjectMapper objectMapper = new ObjectMapper();
+                try {
+                    List<String> chatMessages = objectMapper.readValue(logData, new TypeReference<List<String>>() {
+                    });
+
+                    StringBuilder formattedLogs = new StringBuilder();
+                    if (chatMessages.isEmpty()) {
+                        formattedLogs.append(ChatColor.RED).append("No chat log messages available.");
+                    } else {
+                        formattedLogs.append(ChatColor.AQUA).append("Chat logs for " + requestedServer + ":").append("\n");
+                        for (String chatMessage : chatMessages) {
+                            int timestampEndIndex = chatMessage.indexOf("] ") + 2;
+
+                            String prefix = chatMessage.substring(0, 6); // [Chat]
+                            String timestamp = chatMessage.substring(6, timestampEndIndex);
+                            String messageContent = chatMessage.substring(timestampEndIndex);
+
+                            // Find the username start index
+                            int usernameStartIndex = messageContent.indexOf(": ");
+                            String username = messageContent.substring(0, usernameStartIndex);
+                            String userMessage = messageContent.substring(usernameStartIndex + 2);
+
+                            formattedLogs.append(formatChatMessage(chatMessage));
+                        }
+                    }
+
+                    if (ServerStateManager.getCurrentState() == ServerState.DEBUG) {
+                        Inferris.getInstance().getLogger().severe("================================");
+                        Inferris.getInstance().getLogger().severe("[Bungee] Viewlog Event has been received");
+                        Inferris.getInstance().getLogger().severe("================================");
+                    }
+
+                    callback.accept(formattedLogs.toString());
+
+                } catch (JsonProcessingException e) {
+                    player.sendMessage(new TextComponent(ChatColor.RED + "Error processing chat log data."));
+                    Inferris.getInstance().getLogger().severe("Error processing chat log data: " + e.getMessage());
+                }
+            });
+        }
+    }
+
+    private String formatChatMessage(String chatMessage) {
+        // Example input: "[Chat] [01:22:38 UTC] Username: Any message here"
+
+        // Extract the prefix "[Chat]"
+        String prefix = "[Chat]";
+        int prefixLength = prefix.length();
+
+        // Extract the timestamp
+        int timestampEndIndex = chatMessage.indexOf(" UTC]") + 5; // Length of " UTC]" is 5 characters
+        String timestamp = chatMessage.substring(prefixLength, timestampEndIndex).trim();
+
+        // Extract the username and message content
+        String remainingContent = chatMessage.substring(timestampEndIndex + 1); // Skip the space after the timestamp
+        int usernameEndIndex = remainingContent.indexOf(": ");
+        String username = remainingContent.substring(0, usernameEndIndex);
+        String userMessage = remainingContent.substring(usernameEndIndex + 2);
+
+        // Format each part with the specified colors
+        String formattedPrefix = ChatColor.RED + prefix;
+        String formattedTimestamp = ChatColor.GRAY + timestamp;
+        String formattedUsername = ChatColor.WHITE + username;
+        String formattedMessage = ChatColor.YELLOW + userMessage;
+
+        // Combine everything
+        return formattedPrefix + " " + formattedTimestamp + " " + formattedUsername + ": " + formattedMessage + "\n";
     }
 }

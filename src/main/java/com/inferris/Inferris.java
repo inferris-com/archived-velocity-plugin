@@ -1,25 +1,21 @@
 package com.inferris;
 
+import com.inferris.commands.CommandViewlogs;
 import com.inferris.config.ConfigType;
 import com.inferris.config.ConfigurationHandler;
 import com.inferris.database.DatabasePool;
 import com.inferris.events.*;
+import com.inferris.events.redis.*;
+import com.inferris.events.redis.dispatching.DispatchingJedisPubSub;
+import com.inferris.events.redis.dispatching.JedisEventDispatcher;
 import com.inferris.server.*;
 import com.inferris.server.jedis.JedisChannels;
-import com.inferris.util.ConfigUtils;
-import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
-import net.md_5.bungee.api.scheduler.TaskScheduler;
-import net.md_5.bungee.config.Configuration;
-import net.md_5.bungee.config.ConfigurationProvider;
-import net.md_5.bungee.config.YamlConfiguration;
 import redis.clients.jedis.JedisPool;
 
 import java.io.*;
-import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Properties;
 import java.util.logging.Level;
 
 public class Inferris extends Plugin {
@@ -54,14 +50,26 @@ public class Inferris extends Plugin {
             getLogger().log(Level.WARNING, e.getMessage());
         }
 
+
+
+        // Custom Redis dispatch methods
+        CommandViewlogs commandViewlogs = new CommandViewlogs("viewlogs");
+        getProxy().getPluginManager().registerCommand(this, commandViewlogs);
+
+        JedisEventDispatcher dispatcher = new JedisEventDispatcher();
+        dispatcher.registerHandler(JedisChannels.VIEW_LOGS_SPIGOT_TO_PROXY.getChannelName(), new EventViewlog(commandViewlogs));
+        dispatcher.registerHandler(JedisChannels.STAFFCHAT.getChannelName(), new EventStaffchat());
+        dispatcher.registerHandler(JedisChannels.PLAYERDATA_UPDATE.getChannelName(), new EventPlayerDataUpdate());
+        dispatcher.registerHandler(JedisChannels.SPIGOT_TO_PROXY_PLAYERDATA_CACHE_UPDATE.getChannelName(), new EventUpdateDataFromSpigot());
+
+        DispatchingJedisPubSub jedisPubSub = new DispatchingJedisPubSub(dispatcher);
+
         jedisPool = new JedisPool("198.27.83.200", Ports.JEDIS.getPort());
-        Thread subscriptionThread = new Thread(() -> Inferris.getJedisPool().getResource().subscribe(jedisReceive,
+        Thread subscriptionThread = new Thread(() -> Inferris.getJedisPool().getResource().subscribe(jedisPubSub,
                 JedisChannels.PLAYERDATA_UPDATE.getChannelName(),
                 JedisChannels.SPIGOT_TO_PROXY_PLAYERDATA_CACHE_UPDATE.getChannelName(),
                 JedisChannels.VIEW_LOGS_SPIGOT_TO_PROXY.getChannelName(), JedisChannels.STAFFCHAT.getChannelName()));
         subscriptionThread.start();
-
-        //StatusUpdater statusUpdater = new StatusUpdater(ProxyServer.getInstance().getScheduler());
 
         String debugMode = configurationHandler.getProperties(ConfigType.PROPERTIES).getProperty("debug.mode");
         if(debugMode != null && debugMode.equalsIgnoreCase("true")){
@@ -77,7 +85,7 @@ public class Inferris extends Plugin {
 
     @Override
     public void onDisable() {
-        jedisPool.close();
+        jedisPool.getResource().close();
     }
 
     public ConfigurationHandler getConfigurationHandler() {

@@ -37,7 +37,8 @@ public class Initializer {
         pluginManager.registerCommand(instance, new CommandProfile("profile"));
         pluginManager.registerCommand(instance, new CommandAccount("account"));
         pluginManager.registerCommand(instance, new CommandServerState("serverstate"));
-        pluginManager.registerCommand(instance, new CommandViewlogs("viewlogs"));
+        //pluginManager.registerCommand(instance, new CommandViewlogs("viewlogs"));
+        //todo ^^^
         pluginManager.registerCommand(instance, new CommandReport("report"));
         pluginManager.registerCommand(instance, new CommandLocate("locate"));
         pluginManager.registerCommand(instance, new CommandFriend("friend"));
