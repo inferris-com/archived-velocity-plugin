@@ -56,3 +56,9 @@ commands:
     description: Yes
   discord:
     description: Discord
+  whoisvanished:
+    description: Who is vanished
+  announce:
+    description: Announcement command
+  sc:
+    description: Staff chat shortcut
