@@ -38,6 +38,7 @@ public class EventJoin implements Listener {
     @EventHandler
     public void onSwitch(ServerSwitchEvent event) {
         ProxiedPlayer player = event.getPlayer();
+        PlayerTaskManager taskManager = new PlayerTaskManager(Inferris.getInstance().getProxy().getScheduler());
         sendHeader(player);
 
         PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
@@ -45,18 +46,6 @@ public class EventJoin implements Listener {
         Friends friends = friendsManager.getFriendsData(player.getUniqueId());
         friendsManager.updateCache(player.getUniqueId(), friends);
 
-        // Important implementation
-        playerDataManager.checkJoinedBefore(player);
-
-        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player, "onSwitch"); // Grabs the Redis cache
-        Permissions.attachPermissions(player);
-
-        playerData.setCurrentServer(ServerUtil.getServerType(player));
-
-        playerDataManager.updateAllData(player, playerData); //new, so that it updates the bungee cache too
-
-        PlayerTaskManager taskManager = new PlayerTaskManager(Inferris.getInstance().getProxy().getScheduler());
-        Runnable task1 = () -> {
             if (!ConfigurationHandler.getInstance().getProperties(ConfigType.PROPERTIES).getProperty("server.join.message").isEmpty()) {
                 String joinMessageTemplate = ConfigurationHandler.getInstance().getProperties(ConfigType.PROPERTIES).getProperty("server.join.message");
                 String joinMessage = joinMessageTemplate;
@@ -67,14 +56,21 @@ public class EventJoin implements Listener {
                 player.sendMessage(TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&',
                         joinMessage)));
             }
-        };
 
-        Runnable task2 = () -> {
-            player.sendMessage(TextComponent.fromLegacyText(ChatColor.YELLOW + generateRandomMessage(messageList())));
-        };
+        // Important implementation
+        if(playerDataManager.checkJoinedBefore(player)){
+            Runnable task2 = () -> {
+                player.sendMessage(TextComponent.fromLegacyText(ChatColor.YELLOW + generateRandomMessage(messageList())));
+            };
+            taskManager.addTaskForPlayer(task2, 3, TimeUnit.SECONDS);
+        }
 
-        taskManager.addTaskForPlayer(task1, 1, TimeUnit.SECONDS);
-        taskManager.addTaskForPlayer(task2, 3, TimeUnit.SECONDS);
+        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player, "onSwitch"); // Grabs the Redis cache
+        Permissions.attachPermissions(player);
+
+        playerData.setCurrentServer(ServerUtil.getServerType(player));
+
+        playerDataManager.updateAllData(player, playerData); //new, so that it updates the bungee cache too;
     }
 
     /**
@@ -82,7 +78,6 @@ public class EventJoin implements Listener {
      *
      * @param event Post login event
      */
-// Todo, enable event
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPostLogin(PostLoginEvent event) {
         ProxiedPlayer player = event.getPlayer();
