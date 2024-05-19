@@ -114,7 +114,7 @@ public class CommandViewlogs extends Command {
                     });
 
                     StringBuilder formattedLogs = new StringBuilder();
-                    if (chatMessages.isEmpty()) {
+                    if (chatMessages.toString().equalsIgnoreCase("[]")) {
                         formattedLogs.append(ChatColor.RED).append("No chat log messages available.");
                     } else {
                         formattedLogs.append(ChatColor.AQUA).append("Chat logs for " + requestedServer + ":").append("\n");

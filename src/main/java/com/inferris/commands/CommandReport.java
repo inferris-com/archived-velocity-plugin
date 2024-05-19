@@ -85,8 +85,8 @@ public class CommandReport extends Command implements TabExecutor {
 
                 String stringBuilder = reason.substring(0, 1).toUpperCase() + reason.substring(1);
 
-                PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(player.getUniqueId());
-                PlayerData targetPlayerData = PlayerDataManager.getInstance().getRedisDataOrNull(uuid);
+                PlayerData playerData = PlayerDataManager.getInstance().getRedisData(player.getUniqueId());
+                PlayerData targetPlayerData = PlayerDataManager.getInstance().getRedisData(uuid);
                 String username = targetPlayerData.getUsername();
 
                 ReportPayload reportPayload = new ReportPayload(
@@ -113,7 +113,7 @@ public class CommandReport extends Command implements TabExecutor {
                         ChatColor.GRAY + "Server: " + ChatColor.GOLD + reportPayload.getServer(),
                         ChatColor.AQUA + "Click to join server", "/server " + reportPayload.getServer(), ClickEvent.Action.RUN_COMMAND);
 
-                TextComponent senderPlayer = createClickableTextComponent(
+                TextComponent senderPlayer = createLegacyClickableTextComponent(
                         ChatColor.GRAY + "Reported by: " + ChatColor.RESET + reportPayload.getSender(), "Click to copy username", playerData.getUsername(), ClickEvent.Action.COPY_TO_CLIPBOARD);
 
                 TextComponent logs = createClickableTextComponent(

@@ -37,8 +37,6 @@ public class Initializer {
         pluginManager.registerCommand(instance, new CommandProfile("profile"));
         pluginManager.registerCommand(instance, new CommandAccount("account"));
         pluginManager.registerCommand(instance, new CommandServerState("serverstate"));
-        //pluginManager.registerCommand(instance, new CommandViewlogs("viewlogs"));
-        //todo ^^^
         pluginManager.registerCommand(instance, new CommandReport("report"));
         pluginManager.registerCommand(instance, new CommandLocate("locate"));
         pluginManager.registerCommand(instance, new CommandFriend("friend"));
@@ -48,6 +46,10 @@ public class Initializer {
         pluginManager.registerCommand(instance, new CommandPermissions("permissions", "inferris.admin.permissions"));
         pluginManager.registerCommand(instance, new CommandTrollkick("trollkick"));
         pluginManager.registerCommand(instance, new CommandDiscord("discord"));
+        pluginManager.registerCommand(instance, new CommandWhoIsVanished("whoisvanished"));
+        pluginManager.registerCommand(instance, new CommandAnnouncement("announce"));
+        pluginManager.registerCommand(instance, new CommandStaffchatShortcut("sc"));
+        pluginManager.registerCommand(instance, new CommandWebsite("website"));
 
         plugin.getProxy().registerChannel(BungeeChannel.STAFFCHAT.getName());
         plugin.getProxy().registerChannel(BungeeChannel.PLAYER_REGISTRY.getName());
