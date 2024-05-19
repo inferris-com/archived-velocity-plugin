@@ -4,9 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.inferris.Inferris;
+import com.inferris.player.PlayerDataManager;
+import com.inferris.rank.Branch;
 import com.inferris.server.*;
 import com.inferris.server.jedis.JedisChannels;
-import com.inferris.util.ServerUtil;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -77,6 +78,11 @@ public class CommandViewlogs extends Command {
         }
     }
 
+    @Override
+    public boolean hasPermission(CommandSender sender) {
+        return PlayerDataManager.getInstance().getPlayerData((ProxiedPlayer) sender).getBranchValue(Branch.STAFF) >=3;
+    }
+
     /**
      * Checks if the specified server is valid.
      * It compares the server name with the valid servers defined in the Servers enum.
@@ -95,16 +101,13 @@ public class CommandViewlogs extends Command {
     }
 
     public void onLogReceived(String requestedServer, UUID requestId, UUID playerUuid, String logData) {
-        ProxyServer.getInstance().getPlayer(playerUuid).sendMessage("onLogReceived");
         if (callbacks.containsKey(requestId)) {
-            ProxyServer.getInstance().getPlayer(playerUuid).sendMessage("Contains key");
-
             Consumer<String> callback = callbacks.get(requestId);
 
             ProxyServer.getInstance().getScheduler().runAsync(Inferris.getInstance(), () -> {
                 ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerUuid);
                 if (player == null) {
-                    Inferris.getInstance().getLogger().warning("Player with UUID " + playerUuid + " not found.");
+                    Inferris.getInstance().getLogger().info("Player with UUID " + playerUuid + " not found.");
                     return;
                 }
 
@@ -117,7 +120,7 @@ public class CommandViewlogs extends Command {
                     if (chatMessages.toString().equalsIgnoreCase("[]")) {
                         formattedLogs.append(ChatColor.RED).append("No chat log messages available.");
                     } else {
-                        formattedLogs.append(ChatColor.AQUA).append("Chat logs for " + requestedServer + ":").append("\n");
+                        formattedLogs.append(ChatColor.AQUA).append("Chat logs for ").append(requestedServer).append(":").append("\n");
                         for (String chatMessage : chatMessages) {
                             formattedLogs.append(formatChatMessage(chatMessage)).append("\n");
                         }
