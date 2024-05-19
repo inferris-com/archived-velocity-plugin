@@ -8,6 +8,7 @@ import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
 import com.inferris.server.Messages;
 import com.inferris.server.jedis.JedisChannels;
+import com.inferris.server.jedis.JedisHelper;
 import com.inferris.util.SerializationUtils;
 import com.inferris.util.DatabaseUtils;
 import net.md_5.bungee.api.ChatColor;
@@ -16,6 +17,8 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -35,23 +38,34 @@ public class CommandVanish extends Command implements TabExecutor {
             PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
 
             if (playerData.getBranchValue(Branch.STAFF) >= 3) {
-                if (length == 0) {
+                if (length == 0 || length > 1) {
                     player.sendMessage(new TextComponent(ChatColor.RED + "Usage: /vanish <on:off>"));
+                    return;
                 }
-                if (length == 1) {
-                    if (args[0].equalsIgnoreCase("on")) {
-                        updateDatabase(player, 1);
-                        updatePlayerData(player, VanishState.ENABLED);
-                        //BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_DATA, Subchannel.VANISH, Subchannel.FORWARD, VanishState.ENABLED.name());
-                    }
-                    if (args[0].equalsIgnoreCase("off")) {
-                        updateDatabase(player, 0);
-                        updatePlayerData(player, VanishState.DISABLED);
-                        //BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_DATA, Subchannel.VANISH, Subchannel.FORWARD, VanishState.ENABLED.name());
 
+                if (args[0].equalsIgnoreCase("on")) {
+                    updateDatabase(player, 1);
+                    updatePlayerData(player, VanishState.ENABLED);
+                    //BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_DATA, Subchannel.VANISH, Subchannel.FORWARD, VanishState.ENABLED.name());
+                }
+                if (args[0].equalsIgnoreCase("off")) {
+                    updateDatabase(player, 0);
+                    updatePlayerData(player, VanishState.DISABLED);
+                    //BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_DATA, Subchannel.VANISH, Subchannel.FORWARD, VanishState.ENABLED.name());
+                }
+
+                if(args[0].equalsIgnoreCase("join")){
+                    try(Jedis jedis = Inferris.getJedisPool().getResource()){
+                        jedis.publish(JedisChannels.PLAYERDATA_VANISH.getChannelName(), player.getUniqueId().toString() + ":join");
                     }
                 }
-            }else{
+
+                if(args[0].equalsIgnoreCase("quit")){
+                    try(Jedis jedis = Inferris.getJedisPool().getResource()){
+                        jedis.publish(JedisChannels.PLAYERDATA_VANISH.getChannelName(), player.getUniqueId().toString() + ":quit");
+                    }
+                }
+            } else {
                 player.sendMessage(Messages.NO_PERMISSION.getMessage());
             }
         }
@@ -97,7 +111,7 @@ public class CommandVanish extends Command implements TabExecutor {
             String partialOption = args[0].toLowerCase();
             List<String> options = new ArrayList<>();
 
-            List<String> availableOptions = Arrays.asList("off", "on");
+            List<String> availableOptions = Arrays.asList("off", "on", "join", "quit");
 
             for (String option : availableOptions) {
                 if (option.toLowerCase().startsWith(partialOption)) {
