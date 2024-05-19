@@ -20,10 +20,11 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.event.ServerSwitchEvent;
 import net.md_5.bungee.api.plugin.Listener;
-import net.md_5.bungee.api.scheduler.TaskScheduler;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.event.EventPriority;
 
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 public class EventJoin implements Listener {
@@ -68,7 +69,12 @@ public class EventJoin implements Listener {
             }
         };
 
+        Runnable task2 = () -> {
+            player.sendMessage(TextComponent.fromLegacyText(ChatColor.YELLOW + generateRandomMessage(messageList())));
+        };
+
         taskManager.addTaskForPlayer(task1, 1, TimeUnit.SECONDS);
+        taskManager.addTaskForPlayer(task2, 3, TimeUnit.SECONDS);
     }
 
     /**
@@ -99,5 +105,26 @@ public class EventJoin implements Listener {
         BaseComponent headerComponent = new TextComponent(ChatColor.AQUA + "Inferris");
         BaseComponent footerComponent = new TextComponent(Messages.WEBSITE_URL.getMessage());
         player.setTabHeader(headerComponent, footerComponent);
+    }
+
+    private static String generateRandomMessage(List<String> messages) {
+        Random random = new Random();
+        int index = random.nextInt(messages.size());
+        return messages.get(index);
+    }
+
+    private List<String> messageList() {
+        return List.of(
+                "Welcome back! You're safe now.",
+                "Your presence brightens our community every time.",
+                "Hi! Remember, your presence makes a difference. Thanks for being here.",
+                "Welcome back! We’ve missed you. It’s always better with you here.",
+                "Welcome back! Your presence makes this place feel like home.",
+                "Hey! You’re a vital part of our community. Thanks for being you!",
+                "Welcome back! It’s always better with you around. Let’s make the most of today.",
+                "Hi there! The moment you arrived, everything got better.",
+                "Welcome back! Your return feels like sunshine after a rainy day.",
+                "Hey! The room feels warmer and happier now that you’ve returned.\n"
+        );
     }
 }
