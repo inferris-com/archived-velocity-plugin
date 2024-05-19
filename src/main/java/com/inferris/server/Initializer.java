@@ -51,6 +51,7 @@ public class Initializer {
         pluginManager.registerCommand(instance, new CommandStaffchatShortcut("sc"));
         pluginManager.registerCommand(instance, new CommandWebsite("website"));
         pluginManager.registerCommand(instance, new CommandNuke("nuke"));
+        pluginManager.registerCommand(instance, new CommandRemoveFromRedis("removefromredis"));
 
         plugin.getProxy().registerChannel(BungeeChannel.STAFFCHAT.getName());
         plugin.getProxy().registerChannel(BungeeChannel.PLAYER_REGISTRY.getName());

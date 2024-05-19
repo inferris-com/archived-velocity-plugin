@@ -69,3 +69,5 @@ commands:
     description: Website URL
   nuke:
     description: Nuke an account
+  removefromredis:
+    description: Admin command
