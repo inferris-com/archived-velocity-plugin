@@ -2,6 +2,9 @@ name: Inferris
 main: com.inferris.Inferris
 version: 1.0-DEV
 author: Refrizor
+description: Inferris backend
+website: https://inferris.com
+database: true
 
 commands:
   config:
