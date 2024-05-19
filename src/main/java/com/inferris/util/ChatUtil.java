@@ -1,10 +1,15 @@
 package com.inferris.util;
 
+import com.inferris.player.PlayerDataManager;
+import com.inferris.server.Tags;
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,6 +17,15 @@ import java.util.regex.Pattern;
 import static net.md_5.bungee.api.ChatColor.COLOR_CHAR;
 
 public class ChatUtil {
+
+    public static void sendStaffChatMessage(String message) {
+        for (ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
+            BaseComponent[] textComponent = TextComponent.fromLegacyText(Tags.STAFF.getName(true) + ChatColor.RESET + message);
+            if(PlayerDataManager.getInstance().getPlayerData(player).isStaff()){
+                player.sendMessage(textComponent);
+            }
+        }
+    }
 
     public static String translateToHex(String message) {
         final Pattern pattern = Pattern.compile("(?<!\\\\)(#[a-fA-F0-9]{6})");
