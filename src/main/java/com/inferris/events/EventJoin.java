@@ -1,5 +1,9 @@
 package com.inferris.events;
 
+import com.inferris.Inferris;
+import com.inferris.config.ConfigType;
+import com.inferris.config.ConfigurationHandler;
+import com.inferris.player.PlayerTaskManager;
 import com.inferris.server.Messages;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
@@ -16,8 +20,11 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.event.ServerSwitchEvent;
 import net.md_5.bungee.api.plugin.Listener;
+import net.md_5.bungee.api.scheduler.TaskScheduler;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.event.EventPriority;
+
+import java.util.concurrent.TimeUnit;
 
 public class EventJoin implements Listener {
 
@@ -46,6 +53,22 @@ public class EventJoin implements Listener {
         playerData.setCurrentServer(ServerUtil.getServerType(player));
 
         playerDataManager.updateAllData(player, playerData); //new, so that it updates the bungee cache too
+
+        PlayerTaskManager taskManager = new PlayerTaskManager(Inferris.getInstance().getProxy().getScheduler());
+        Runnable task1 = () -> {
+            if (!ConfigurationHandler.getInstance().getProperties(ConfigType.PROPERTIES).getProperty("server.join.message").isEmpty()) {
+                String joinMessageTemplate = ConfigurationHandler.getInstance().getProperties(ConfigType.PROPERTIES).getProperty("server.join.message");
+                String joinMessage = joinMessageTemplate;
+                if (joinMessageTemplate.contains("{version}")) {
+                    joinMessage = joinMessageTemplate.replace("{version}", Inferris.getInstance().getDescription().getVersion());
+                }
+
+                player.sendMessage(TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&',
+                        joinMessage)));
+            }
+        };
+
+        taskManager.addTaskForPlayer(task1, 1, TimeUnit.SECONDS);
     }
 
     /**
