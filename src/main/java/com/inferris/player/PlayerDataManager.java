@@ -23,7 +23,6 @@ import com.inferris.util.SerializationUtils;
 import com.inferris.util.DatabaseUtils;
 import com.inferris.util.ServerUtil;
 import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -144,7 +143,6 @@ public class PlayerDataManager {
                 return SerializationUtils.deserializePlayerData(json);
             } else {
                 return this.getPlayerDataFromDatabase(player.getUniqueId());
-                //return createEmpty(player); // Create an empty Registry object instead of returning null
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
@@ -216,7 +214,7 @@ public class PlayerDataManager {
     public UUID getUUIDByUsername(String username) {
         UUID uuid;
         PlayerData playerData = null;
-        
+
         try (Jedis jedis = jedisPool.getResource()) {
             String playerDataJson = jedis.hget("playerdata", username);
 
@@ -227,13 +225,13 @@ public class PlayerDataManager {
             } else {
                 // Not found in Jedis, retrieve from the database
                 String condition = "`username` = '" + username + "'";
-                try(Connection connection = DatabasePool.getConnection()){
+                try (Connection connection = DatabasePool.getConnection()) {
                     ResultSet resultSet = DatabaseUtils.queryData(connection, Tables.PLAYER_DATA.getName(), new String[]{"uuid"}, condition);
-                    if(resultSet.next()) {
+                    if (resultSet.next()) {
                         uuid = UUID.fromString(resultSet.getString("uuid"));
                         playerData = getPlayerDataFromDatabase(uuid);
                     }
-                }catch(SQLException e){
+                } catch (SQLException e) {
                     Inferris.getInstance().getLogger().severe(e.getMessage());
                 }
                 if (playerData != null) {
@@ -287,11 +285,11 @@ public class PlayerDataManager {
             updateCaffeineCache(player, playerData);
             Inferris.getInstance().getLogger().info("Updated all data and Redis information via Jedis. We let the front-end know, it has the cue!");
 
-            switch (jedisChannels){
+            switch (jedisChannels) {
                 case PLAYERDATA_UPDATE:
                 case PLAYERDATA_VANISH:
                     jedis.publish(jedisChannels.getChannelName(), player.getUniqueId().toString());
-                //case PLAYERDATA_VANISH:jedis.publish(jedisChannels.getChannelName(), CacheSerializationUtils.serializePlayerData(playerData));
+                    //case PLAYERDATA_VANISH:jedis.publish(jedisChannels.getChannelName(), CacheSerializationUtils.serializePlayerData(playerData));
 
             }
             Inferris.getInstance().getLogger().severe(player.getUniqueId().toString());
@@ -312,6 +310,11 @@ public class PlayerDataManager {
     public void updateCaffeineCache(ProxiedPlayer player, PlayerData playerData) {
         caffeineCache.put(player.getUniqueId(), playerData);
         Inferris.getInstance().getLogger().info("Updated Caffeine cache for player: " + player.getName());
+    }
+
+    public void updateCaffeineCache(UUID uuid, PlayerData playerData) {
+        caffeineCache.put(uuid, playerData);
+        Inferris.getInstance().getLogger().info("Updated Caffeine cache for player: " + getPlayerData(uuid).getUsername());
     }
 
     public PlayerData getDeserializedRedisData(ProxiedPlayer player) {
@@ -346,9 +349,9 @@ public class PlayerDataManager {
 
                 VanishState vanishState;
 
-                if(vanished == 1){
+                if (vanished == 1) {
                     vanishState = VanishState.ENABLED;
-                }else{
+                } else {
                     vanishState = VanishState.DISABLED;
                 }
 
@@ -384,7 +387,7 @@ public class PlayerDataManager {
                     xenforoId = profileResultSet.getInt("xenforo_id"); // Replace with the actual column name
                     discordLinked = profileResultSet.getInt("discord_linked");
 
-                    if(discordLinked != 0){
+                    if (discordLinked != 0) {
                         isDiscordLinked = true;
                     }
                     profile = new Profile(registrationDate, bio, pronouns, xenforoId, isDiscordLinked);
@@ -420,9 +423,9 @@ public class PlayerDataManager {
 
                 VanishState vanishState;
 
-                if(vanished == 1){
+                if (vanished == 1) {
                     vanishState = VanishState.ENABLED;
-                }else{
+                } else {
                     vanishState = VanishState.DISABLED;
                 }
 
@@ -457,19 +460,20 @@ public class PlayerDataManager {
                     xenforoId = profileResultSet.getInt("xenforo_id"); // Replace with the actual column name
                     discordLinked = profileResultSet.getInt("discord_linked");
 
-                    if(discordLinked != 0){
+                    if (discordLinked != 0) {
                         isDiscordLinked = true;
                     }
                     profile = new Profile(registrationDate, bio, pronouns, xenforoId, isDiscordLinked);
                 }
                 playerData = new PlayerData(uuid, username, rank, profile, new Coins(coins), channel, vanishState, Server.LOBBY);
             } else {
+                // Insert into database if insertData is true
                 if (insertData) {
                     this.insertPlayerDataToDatabase(connection, uuid, username);
                     playerData = getPlayerData(uuid);
+                    Inferris.getInstance().getLogger().severe("Debug: " + playerData.toString());
                 }
             }
-
         } catch (SQLException e) {
             Inferris.getInstance().getLogger().warning(e.getMessage());
         }
@@ -500,47 +504,98 @@ public class PlayerDataManager {
         }
     }
 
+    /**
+     * Inserts the player data into the database if it does not already exist.
+     *
+     * @param uuid     The UUID of the player.
+     * @param username The username of the player.
+     * @return true if the player data was inserted, false if it already exists.
+     */
+    private boolean insertPlayerDataIfNotExists(UUID uuid, String username) {
+        boolean inserted = false;
+        try (Connection connection = DatabasePool.getConnection()) {
+            // Check if the player data exists in the database
+            PreparedStatement queryStatement = connection.prepareStatement("SELECT COUNT(*) FROM " + Tables.PLAYER_DATA.getName() + " WHERE uuid = ?");
+            queryStatement.setString(1, uuid.toString());
+            ResultSet resultSet = queryStatement.executeQuery();
+
+            if (resultSet.next() && resultSet.getInt(1) == 0) {
+                // Insert the player data if it doesn't exist
+                insertPlayerDataToDatabase(connection, uuid, username);
+                inserted = true;
+            }
+
+            // Retrieve the player data
+            PlayerData playerData = getPlayerDataFromDatabase(uuid, username, false);
+
+            // Cache the player data and update Redis
+            String playerDataJson = SerializationUtils.serializePlayerData(playerData);
+            try (Jedis jedis = jedisPool.getResource()) {
+                jedis.hset("playerdata", uuid.toString(), playerDataJson);
+                updateCaffeineCache(uuid, playerData);
+            }
+        } catch (SQLException | JsonProcessingException e) {
+            Inferris.getInstance().getLogger().warning(e.getMessage());
+        }
+        return inserted;
+    }
 
     /**
      * Checks if the provided player has joined before by looking up their data in Redis and caching within Caffeine if necessary.
      *
      * @param player The ProxiedPlayer object representing the player to check.
      */
-    public void checkJoinedBefore(ProxiedPlayer player) {
-        boolean isDebug = ServerStateManager.getCurrentState() == ServerState.DEBUG;
-
+    public boolean checkJoinedBefore(ProxiedPlayer player) {
         ServerUtil.log("Checking Jedis #checkJoinedBefore", Level.WARNING, ServerState.DEBUG);
 
-        try (Jedis jedis = getJedisPool().getResource()) {
-            UUID playerUUID = player.getUniqueId();
+        UUID playerUUID = player.getUniqueId();
+        String playerUUIDString = playerUUID.toString();
 
-            if (jedis.hexists("playerdata", playerUUID.toString())) {
+        try (Jedis jedis = getJedisPool().getResource()) {
+            // Check if player data exists in Redis
+            if (jedis.hexists("playerdata", playerUUIDString)) {
                 ServerUtil.log("Exists in Jedis", Level.WARNING, ServerState.DEBUG);
 
+                // Cache data in Caffeine if not present
                 if (caffeineCache.getIfPresent(playerUUID) == null) {
-                    String playerDataJson = jedis.hget("playerdata", playerUUID.toString());
+                    String playerDataJson = jedis.hget("playerdata", playerUUIDString);
                     PlayerData playerData = SerializationUtils.deserializePlayerData(playerDataJson);
                     updateCaffeineCache(player, playerData);
                     logPlayerData(playerData);
-
-                    // Published in join event
                 }
+                return true;
             } else {
-                ServerUtil.log("Not in Redis, caching", Level.WARNING, ServerState.DEBUG);
-                PlayerData playerData = getPlayerDataFromDatabase(player.getUniqueId(), player.getName(), true); // Checks database
+                ServerUtil.log("Not in Redis, checking database", Level.WARNING, ServerState.DEBUG);
 
-                ServerUtil.log("Gonna get the username", Level.WARNING, ServerState.DEBUG);
-                ServerUtil.log(playerData.getUsername(), Level.WARNING, ServerState.DEBUG);
-                ServerUtil.log(String.valueOf(playerData.getRank().getStaff()), Level.WARNING, ServerState.DEBUG);
+                // Check and insert player data into the database
+                boolean wasInserted = insertPlayerDataIfNotExists(playerUUID, player.getName());
+                if (wasInserted) {
+                    ServerUtil.log("Inserted into database and Jedis", Level.WARNING, ServerState.DEBUG);
+                    return false;
+                }
 
-                // todo: default values, change to database values
-                String playerDataJson = SerializationUtils.serializePlayerData(playerData);
-                this.updateAllData(player, playerData);
-
-                ServerUtil.log(">>> Inserted into Jedis: " + playerDataJson, Level.WARNING, ServerState.DEBUG);
+                // Shouldn't reach here but just in case
+                return true;
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public void deletePlayerData(PlayerData playerData) {
+        try (Connection connection = DatabasePool.getConnection()) {
+            DatabaseUtils.removeData(connection, Tables.PLAYER_DATA.getName(), "`uuid` = '" + playerData.getUuid().toString() + "'");
+            DatabaseUtils.removeData(connection, "`rank`", "`uuid` = '" + playerData.getUuid().toString() + "'");
+            DatabaseUtils.removeData(connection, Tables.PROFILE.getName(), "`uuid` = '" + playerData.getUuid().toString() + "'");
+            DatabaseUtils.removeData(connection, Tables.VERIFICATION.getName(), "`uuid` = '" + playerData.getUuid().toString() + "'");
+            DatabaseUtils.removeData(connection, Tables.VERIFICATION_SESSIONS.getName(), "`uuid` = '" + playerData.getUuid().toString() + "'");
+        } catch (SQLException e) {
+            logger.severe(e.getMessage());
+        }
+
+        try (Jedis jedis = getJedisPool().getResource()) {
+            jedis.hdel("playerdata", playerData.getUuid().toString());
+            jedis.hdel("friends", playerData.getUuid().toString());
         }
     }
 
