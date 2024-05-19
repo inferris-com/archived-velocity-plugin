@@ -67,3 +67,5 @@ commands:
     description: Staff chat shortcut
   website:
     description: Website URL
+  nuke:
+    description: Nuke an account

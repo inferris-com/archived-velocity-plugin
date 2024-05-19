@@ -1,0 +1,101 @@
+package com.inferris.commands;
+
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.inferris.player.PlayerData;
+import com.inferris.player.PlayerDataManager;
+import com.inferris.rank.Branch;
+import com.inferris.util.ChatUtil;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.md_5.bungee.api.plugin.Command;
+
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+public class CommandNuke extends Command {
+
+    private static final String CONSOLE_IDENTIFIER = "console";
+    private final Cache<String, Boolean> confirmationCache = Caffeine.newBuilder()
+            .expireAfterWrite(1, TimeUnit.MINUTES) // Set TTL to 2 minutes
+            .build();
+
+    public CommandNuke(String name) {
+        super(name);
+    }
+
+    @Override
+    public boolean hasPermission(CommandSender sender) {
+        if (sender instanceof ProxiedPlayer player) {
+            return PlayerDataManager.getInstance().getPlayerData(player).getBranchValue(Branch.STAFF) >= 3;
+        }
+        // Allow console to execute the command
+        return sender.getName().equalsIgnoreCase("CONSOLE");
+    }
+
+    @Override
+    public void execute(CommandSender sender, String[] args) {
+        int length = args.length;
+
+        if (length == 0 || length > 1) {
+            sender.sendMessage(TextComponent.fromLegacyText(ChatUtil.translateToHex(
+                    """
+                            #ff1100Warning! The /nuke command will irreversibly delete an account's data from the database and the Redis keystore. This action cannot be undone.
+                            Before proceeding, you MUST request and receive explicit permission.
+                            """
+            )));
+            sender.sendMessage(TextComponent.fromLegacyText(ChatColor.RESET + "Usage: /nuclear <account>"));
+            return;
+        }
+
+        String senderIdentifier = (sender instanceof ProxiedPlayer) ? ((ProxiedPlayer) sender).getUniqueId().toString() : CONSOLE_IDENTIFIER;
+
+        UUID uuid;
+        PlayerData playerData;
+        try {
+            uuid = PlayerDataManager.getInstance().getUUIDByUsername(args[0]);
+            playerData = PlayerDataManager.getInstance().getPlayerDataFromDatabase(uuid);
+        } catch (Exception e) {
+            sender.sendMessage(new TextComponent(ChatColor.RED + "An error occurred while retrieving player data: " + e.getMessage()));
+            return;
+        }
+
+        if (playerData == null) {
+            sender.sendMessage(new TextComponent(ChatColor.RED + "Player data could not be found for the given UUID."));
+            return;
+        }
+
+        String cacheKey = senderIdentifier + ":" + playerData.getUuid();
+        if (confirmationCache.getIfPresent(cacheKey) == null) {
+            confirmationCache.put(cacheKey, true);
+            sender.sendMessage(new TextComponent(ChatColor.YELLOW + "Please re-enter the command to confirm the deletion of the player's data. This request will expire in 1 minute."));
+            return;
+        }
+
+
+        if(sender instanceof ProxiedPlayer player) {
+            ChatUtil.sendStaffChatMessage(PlayerDataManager.getInstance().getPlayerData(player).getByBranch().getPrefix(true)
+            + ChatColor.RESET + player.getName() + ChatColor.YELLOW + " completely erased " + playerData.getByBranch().getPrefix(true)
+            + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + "'s data");
+        }else{
+            ChatUtil.sendStaffChatMessage(ChatColor.RED + sender.getName() + ChatColor.YELLOW + " completely erased " + playerData.getByBranch().getPrefix(true)
+                    + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + "'s data");
+        }
+
+        // Proceed with deletion
+        PlayerDataManager.getInstance().deletePlayerData(playerData);
+        sender.sendMessage(new TextComponent(ChatColor.GREEN + "Player data has been successfully deleted."));
+
+        ProxiedPlayer target = ProxyServer.getInstance().getPlayer(uuid);
+        if (target != null) {
+            if (ProxyServer.getInstance().getPlayer(uuid).isConnected()) {
+                TextComponent textComponent = new TextComponent(ChatColor.RED + "Your account data has been permanently deleted by an admin." +
+                        "\n\n\nIf you believe this was done in error,\nplease contact support.");
+                target.disconnect(textComponent);
+            }
+        }
+    }
+}
