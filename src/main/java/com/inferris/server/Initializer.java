@@ -49,6 +49,7 @@ public class Initializer {
         pluginManager.registerCommand(instance, new CommandWhoIsVanished("whoisvanished"));
         pluginManager.registerCommand(instance, new CommandAnnouncement("announce"));
         pluginManager.registerCommand(instance, new CommandStaffchatShortcut("sc"));
+        pluginManager.registerCommand(instance, new CommandWebsite("website"));
 
         plugin.getProxy().registerChannel(BungeeChannel.STAFFCHAT.getName());
         plugin.getProxy().registerChannel(BungeeChannel.PLAYER_REGISTRY.getName());

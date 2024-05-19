@@ -62,3 +62,5 @@ commands:
     description: Announcement command
   sc:
     description: Staff chat shortcut
+  website:
+    description: Website URL
