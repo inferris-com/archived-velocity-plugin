@@ -1,15 +1,9 @@
 package com.inferris.commands;
 
-import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
-import com.inferris.rank.Branch;
-import com.inferris.rank.RankRegistry;
-import com.inferris.server.Tags;
-import net.md_5.bungee.api.ChatColor;
+import com.inferris.util.ChatUtil;
 import net.md_5.bungee.api.CommandSender;
-import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
@@ -20,30 +14,25 @@ public class CommandStaffchatShortcut extends Command {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        if(sender instanceof ProxiedPlayer player){
-            PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
-            if(playerData.getBranchValue(Branch.STAFF) > 0){
-                StringBuilder message = new StringBuilder();
-                RankRegistry rank = playerData.getByBranch();
+        StringBuilder message = new StringBuilder();
+        BaseComponent[] textComponent = null;
 
-                for (String word : args) {
-                    message.append(word).append(" "); // Add a space between words
-                }
+        for (String word : args) {
+            message.append(word).append(" "); // Add a space between words
+        }
 
-                BaseComponent[] textComponent = TextComponent.fromLegacyText(Tags.STAFF.getName(true)
-                        + rank.getPrefix(true) + playerData.getNameColor() + player.getName() + ChatColor.RESET + ": " + message);
-
-                for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                    if (PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getBranchValue(Branch.STAFF) >= 1) {
-                        proxiedPlayers.sendMessage(textComponent);
-                    }
-                }
-            }
+        if (sender instanceof ProxiedPlayer player) {
+            ChatUtil.sendStaffChatMessage(message.toString(), ChatUtil.StaffChatMessageType.PLAYER, player.getUniqueId());
+        }else{
+            ChatUtil.sendStaffChatMessage(message.toString(), ChatUtil.StaffChatMessageType.CONSOLE);
         }
     }
 
     @Override
     public boolean hasPermission(CommandSender sender) {
-        return PlayerDataManager.getInstance().getPlayerData((ProxiedPlayer) sender).isStaff();
+        if (sender instanceof ProxiedPlayer player) {
+            return PlayerDataManager.getInstance().getPlayerData(player).isStaff();
+        }
+        return true;
     }
 }

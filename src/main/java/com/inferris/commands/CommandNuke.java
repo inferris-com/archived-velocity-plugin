@@ -79,10 +79,10 @@ public class CommandNuke extends Command {
         if(sender instanceof ProxiedPlayer player) {
             ChatUtil.sendStaffChatMessage(PlayerDataManager.getInstance().getPlayerData(player).getByBranch().getPrefix(true)
             + ChatColor.RESET + player.getName() + ChatColor.YELLOW + " completely erased " + playerData.getByBranch().getPrefix(true)
-            + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + "'s data");
+            + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + "'s data", ChatUtil.StaffChatMessageType.NOTIFICATION);
         }else{
             ChatUtil.sendStaffChatMessage(ChatColor.RED + sender.getName() + ChatColor.YELLOW + " completely erased " + playerData.getByBranch().getPrefix(true)
-                    + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + "'s data");
+                    + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + "'s data", ChatUtil.StaffChatMessageType.NOTIFICATION);
         }
 
         // Proceed with deletion

@@ -59,12 +59,11 @@ public class CommandRemoveFromRedis extends Command {
             jedis.hdel("playerdata", uuid.toString());
 
             if (sender instanceof ProxiedPlayer player) {
-                ChatUtil.sendStaffChatMessage(PlayerDataManager.getInstance().getPlayerData(player).getByBranch().getPrefix(true)
-                        + ChatColor.RESET + player.getName() + ChatColor.YELLOW + " removed " + playerData.getByBranch().getPrefix(true)
-                        + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + " from Redis keystore");
+                ChatUtil.sendStaffChatMessage(player.getName() + ChatColor.YELLOW + " removed " + playerData.getByBranch().getPrefix(true)
+                        + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + " from Redis keystore", ChatUtil.StaffChatMessageType.NOTIFICATION);
             } else {
                 ChatUtil.sendStaffChatMessage(ChatColor.RED + sender.getName() + ChatColor.YELLOW + " removed " + playerData.getByBranch().getPrefix(true)
-                        + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + " from Redis keystore");
+                        + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + " from Redis keystore", ChatUtil.StaffChatMessageType.NOTIFICATION);
             }
 
             sender.sendMessage(new TextComponent(ChatColor.GREEN + "Redis data has been successfully deleted."));
