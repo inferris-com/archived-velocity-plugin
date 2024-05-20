@@ -229,7 +229,7 @@ public class FriendsManager {
             String playerStr = ChatColor.YELLOW + "Player ";
             String is = ChatColor.YELLOW + " is";
 
-            if (friendPlayer != null) {
+            if (friendPlayer != null && playerData.getVanishState() == VanishState.DISABLED) {
                 onlineFriends.add(playerStr + prefix + ChatColor.RESET + playerName + is + online);
             } else {
                 offlineFriends.add(playerStr + prefix + ChatColor.RESET + playerName + is + offline);
