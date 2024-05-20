@@ -5,7 +5,7 @@ import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
 import com.inferris.rank.RankRegistry;
-import com.inferris.server.Tags;
+import com.inferris.server.Tag;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -27,7 +27,7 @@ public class EventQuit implements Listener {
             for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
                 PlayerData proxiedPlayerData = PlayerDataManager.getInstance().getPlayerData(proxiedPlayers);
                 if (proxiedPlayerData.getRank().getBranchID(Branch.STAFF) >= 1) {
-                    proxiedPlayers.sendMessage(TextComponent.fromLegacyText(Tags.STAFF.getName(true) + rankRegistry.getPrefix(true) + rankRegistry.getColor() + player.getName() + ChatColor.YELLOW + " disconnected"));
+                    proxiedPlayers.sendMessage(TextComponent.fromLegacyText(Tag.STAFF.getName(true) + rankRegistry.getPrefix(true) + rankRegistry.getColor() + player.getName() + ChatColor.YELLOW + " disconnected"));
                 }
             }
         }
