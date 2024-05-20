@@ -1,15 +1,12 @@
 package com.inferris.events;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.inferris.Inferris;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.Branch;
 import com.inferris.rank.RankRegistry;
 import com.inferris.server.BungeeChannel;
 import com.inferris.server.Subchannel;
-import com.inferris.server.Tags;
+import com.inferris.server.Tag;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -22,8 +19,6 @@ import net.md_5.bungee.event.EventHandler;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.util.List;
-import java.util.UUID;
 
 public class EventReceive implements Listener {
     //TODO Jedis?
@@ -45,7 +40,7 @@ public class EventReceive implements Listener {
 
                         ProxyServer proxyServer = ProxyServer.getInstance();
                         RankRegistry rank = playerData.getByBranch();
-                        BaseComponent[] textComponent = TextComponent.fromLegacyText(Tags.STAFF.getName(true)
+                        BaseComponent[] textComponent = TextComponent.fromLegacyText(Tag.STAFF.getName(true)
                                 + rank.getPrefix(true) + player.getName() + ChatColor.RESET + ": " + message);
 
                         for (ProxiedPlayer proxiedPlayers : proxyServer.getPlayers()) {
