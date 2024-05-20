@@ -71,3 +71,5 @@ commands:
     description: Nuke an account
   removefromredis:
     description: Admin command
+  bungeedev:
+    description: Bungee dev command
