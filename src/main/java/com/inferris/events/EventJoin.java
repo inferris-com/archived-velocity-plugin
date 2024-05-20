@@ -1,17 +1,18 @@
 package com.inferris.events;
 
 import com.inferris.Inferris;
+import com.inferris.common.ColorType;
 import com.inferris.config.ConfigType;
 import com.inferris.config.ConfigurationHandler;
-import com.inferris.player.PlayerTaskManager;
-import com.inferris.server.Messages;
+import com.inferris.tasks.PlayerTaskManager;
+import com.inferris.server.Message;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.friends.Friends;
 import com.inferris.player.friends.FriendsManager;
 import com.inferris.rank.*;
 import com.inferris.util.ServerUtil;
-import com.inferris.server.Tags;
+import com.inferris.server.Tag;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -23,6 +24,7 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.event.EventPriority;
 
+import java.awt.*;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -62,7 +64,43 @@ public class EventJoin implements Listener {
             Runnable task2 = () -> {
                 player.sendMessage(TextComponent.fromLegacyText(ChatColor.YELLOW + generateRandomMessage(messageList())));
             };
-            taskManager.addTaskForPlayer(task2, 3, TimeUnit.SECONDS);
+            taskManager.addTaskForPlayer(player, task2, 3, TimeUnit.SECONDS);
+        }else{
+
+            ChatColor primaryColor = ChatColor.of(new Color(106, 137, 252));
+            String line = ChatColor.STRIKETHROUGH + "---------------------------------";
+            ChatColor headerFooterColor = ChatColor.DARK_GRAY;
+            ChatColor messageColor = ChatColor.of(new Color(222, 192, 74));
+            String sparkle = ChatColor.of(new Color(217, 224, 250)) + "✨";
+
+            Runnable welcomeRunnable1 = () -> {
+                String header = headerFooterColor + line + "\n" +
+                        primaryColor +
+                        ChatColor.BOLD + "Welcome to Inferris! " +
+                        sparkle + "\n" + headerFooterColor + line + "\n";
+
+                String message1 = messageColor +
+                        "We are thrilled to have you join our community, " + player.getName() + "! " +
+                        "Here at Inferris, we believe in forging meaningful connections through fun and deep conversations. " +
+                        "Whether you're here to explore, build, or make new friends, you'll find a nurturing atmosphere and a " +
+                        "place where you can truly thrive.";
+
+                player.sendMessage(TextComponent.fromLegacyText(header + message1));
+            };
+            Runnable welcomeRunnable2 = () -> {
+                String message2 = "\n\n" + messageColor + "Take a moment to introduce yourself, and don't hesitate to " +
+                        "ask for help if you need it. We're all in this together, and your journey starts here.";
+                player.sendMessage(TextComponent.fromLegacyText(message2));
+            };
+            Runnable welcomeRunnable3 = () -> {
+                String message3 = "\n\n" + messageColor + "May your adventures be filled with wonder and joy. We're glad you're here!";
+                player.sendMessage(TextComponent.fromLegacyText(message3));
+            };
+
+            taskManager.addTaskForPlayer(player, welcomeRunnable1, 3, TimeUnit.SECONDS);
+            taskManager.addTaskForPlayer(player, welcomeRunnable2, 7, TimeUnit.SECONDS);
+            taskManager.addTaskForPlayer(player, welcomeRunnable3, 8, TimeUnit.SECONDS);
+
         }
 
         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player, "onSwitch"); // Grabs the Redis cache
@@ -89,7 +127,7 @@ public class EventJoin implements Listener {
             if (rank.getBranchID(Branch.STAFF) >= 1) {
                 for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
                     if (PlayerDataManager.getInstance().getPlayerData(player).getRank().getBranchID(Branch.STAFF) >= 1) {
-                        proxiedPlayers.sendMessage(TextComponent.fromLegacyText(Tags.STAFF.getName(true) + rankRegistry.getPrefix(true) + rankRegistry.getColor() + player.getName() + ChatColor.YELLOW + " connected"));
+                        proxiedPlayers.sendMessage(TextComponent.fromLegacyText(Tag.STAFF.getName(true) + rankRegistry.getPrefix(true) + rankRegistry.getColor() + player.getName() + ChatColor.YELLOW + " connected"));
                     }
                 }
             }
@@ -97,8 +135,8 @@ public class EventJoin implements Listener {
     }
 
     private void sendHeader(ProxiedPlayer player) {
-        BaseComponent headerComponent = new TextComponent(ChatColor.AQUA + "Inferris");
-        BaseComponent footerComponent = new TextComponent(Messages.WEBSITE_URL.getMessage());
+        BaseComponent headerComponent = new TextComponent(ChatColor.of(ColorType.BRAND_SECONDARY.getColor()) + "Inferris");
+        BaseComponent footerComponent = new TextComponent(Message.WEBSITE_URL.getMessage());
         player.setTabHeader(headerComponent, footerComponent);
     }
 
