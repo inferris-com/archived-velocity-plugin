@@ -2,11 +2,11 @@ package com.inferris.server;
 
 import net.md_5.bungee.api.ChatColor;
 
-public enum Tags {
+public enum Tag {
     STAFF(ChatColor.AQUA + "[STAFF]");
 
     private final String name;
-    Tags(String name){
+    Tag(String name){
         this.name = name;
     }
 

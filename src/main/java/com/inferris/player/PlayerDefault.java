@@ -1,10 +1,10 @@
 package com.inferris.player;
 
-public enum PlayerDefaults {
-    COIN_BALANCE(36);
+public enum PlayerDefault {
+    COIN_BALANCE(50);
 
     private final int value;
-    PlayerDefaults(int value){
+    PlayerDefault(int value){
         this.value = value;
     }
 

@@ -1,6 +1,6 @@
 package com.inferris.database;
 
-public enum Tables {
+public enum Table {
     PLAYER_DATA,
     PROFILE,
     RANK,

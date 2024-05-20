@@ -1,11 +1,11 @@
 package com.inferris.server;
 
-public enum Ports {
+public enum Port {
     MYSQL(3306),
     JEDIS(6379);
 
     private final int port;
-    Ports(int port){
+    Port(int port){
         this.port = port;
     }
 
