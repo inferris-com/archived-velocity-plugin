@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.inferris.player.Channels;
+import com.inferris.player.Channel;
 import com.inferris.player.PlayerData;
 import com.inferris.player.Profile;
 import com.inferris.player.coins.Coins;
@@ -30,7 +30,7 @@ public class PlayerDataDeserializer extends JsonDeserializer<PlayerData> {
         Rank rank = objectMapper.treeToValue(registryNode.get("rank"), Rank.class);
         Profile profile = objectMapper.treeToValue(registryNode.get("profile"), Profile.class);
         Coins coins = objectMapper.treeToValue(registryNode.get("coins"), Coins.class);
-        Channels channel = objectMapper.treeToValue(registryNode.get("channel"), Channels.class);
+        Channel channel = objectMapper.treeToValue(registryNode.get("channel"), Channel.class);
         VanishState vanishState = objectMapper.treeToValue(registryNode.get("vanishState"), VanishState.class);
         Server currentServer = objectMapper.treeToValue(registryNode.get("currentServer"), Server.class);
 

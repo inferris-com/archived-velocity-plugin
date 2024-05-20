@@ -9,7 +9,7 @@ import com.google.gson.JsonElement;
 import com.inferris.Inferris;
 import com.inferris.serialization.SerializationModule;
 import com.inferris.database.DatabasePool;
-import com.inferris.database.Tables;
+import com.inferris.database.Table;
 import com.inferris.player.coins.Coins;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
@@ -226,7 +226,7 @@ public class PlayerDataManager {
                 // Not found in Jedis, retrieve from the database
                 String condition = "`username` = '" + username + "'";
                 try (Connection connection = DatabasePool.getConnection()) {
-                    ResultSet resultSet = DatabaseUtils.queryData(connection, Tables.PLAYER_DATA.getName(), new String[]{"uuid"}, condition);
+                    ResultSet resultSet = DatabaseUtils.queryData(connection, Table.PLAYER_DATA.getName(), new String[]{"uuid"}, condition);
                     if (resultSet.next()) {
                         uuid = UUID.fromString(resultSet.getString("uuid"));
                         playerData = getPlayerDataFromDatabase(uuid);
@@ -336,7 +336,7 @@ public class PlayerDataManager {
         String username;
 
         try (Connection connection = DatabasePool.getConnection();
-             PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM " + Tables.PLAYER_DATA.getName() + " WHERE uuid = ?")) {
+             PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM " + Table.PLAYER_DATA.getName() + " WHERE uuid = ?")) {
 
             queryStatement.setString(1, uuid.toString());
             ResultSet resultSet = queryStatement.executeQuery();
@@ -344,7 +344,7 @@ public class PlayerDataManager {
             if (resultSet.next()) {
                 username = resultSet.getString("username");
                 int coins = resultSet.getInt("coins");
-                Channels channel = Channels.valueOf(resultSet.getString("channel"));
+                Channel channel = Channel.valueOf(resultSet.getString("channel"));
                 int vanished = resultSet.getInt("vanished");
 
                 VanishState vanishState;
@@ -376,7 +376,7 @@ public class PlayerDataManager {
                 int discordLinked = 0;
                 boolean isDiscordLinked = false;
 
-                PreparedStatement selectProfileStatement = connection.prepareStatement("SELECT * FROM " + Tables.PROFILE.getName() + " WHERE uuid = ?");
+                PreparedStatement selectProfileStatement = connection.prepareStatement("SELECT * FROM " + Table.PROFILE.getName() + " WHERE uuid = ?");
                 selectProfileStatement.setString(1, uuid.toString());
                 ResultSet profileResultSet = selectProfileStatement.executeQuery();
 
@@ -410,7 +410,7 @@ public class PlayerDataManager {
         Profile profile = null;
 
         try (Connection connection = DatabasePool.getConnection();
-             PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM " + Tables.PLAYER_DATA.getName() + " WHERE uuid = ?")) {
+             PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM " + Table.PLAYER_DATA.getName() + " WHERE uuid = ?")) {
 
             queryStatement.setString(1, uuid.toString());
             ResultSet resultSet = queryStatement.executeQuery();
@@ -418,7 +418,7 @@ public class PlayerDataManager {
             if (resultSet.next()) {
                 username = resultSet.getString("username");
                 int coins = resultSet.getInt("coins");
-                Channels channel = Channels.valueOf(resultSet.getString("channel"));
+                Channel channel = Channel.valueOf(resultSet.getString("channel"));
                 int vanished = resultSet.getInt("vanished");
 
                 VanishState vanishState;
@@ -449,7 +449,7 @@ public class PlayerDataManager {
                 int discordLinked = 0;
                 boolean isDiscordLinked = false;
 
-                PreparedStatement selectProfileStatement = connection.prepareStatement("SELECT * FROM " + Tables.PROFILE.getName() + " WHERE uuid = ?");
+                PreparedStatement selectProfileStatement = connection.prepareStatement("SELECT * FROM " + Table.PROFILE.getName() + " WHERE uuid = ?");
                 selectProfileStatement.setString(1, uuid.toString());
                 ResultSet profileResultSet = selectProfileStatement.executeQuery();
 
@@ -482,13 +482,13 @@ public class PlayerDataManager {
 
     // Insert a new player into the database - default values
     public void insertPlayerDataToDatabase(Connection connection, UUID uuid, String username) {
-        try (PreparedStatement insertPlayersStatement = connection.prepareStatement("INSERT INTO " + Tables.PLAYER_DATA.getName() + " (uuid, username, coins, channel, vanished) VALUES (?, ?, ?, ?, ?)");
-             PreparedStatement insertProfileStatement = connection.prepareStatement("INSERT INTO " + Tables.PROFILE.getName() + " (uuid, join_date, bio, pronouns) VALUES (?, ?, ?, ?)")) {
+        try (PreparedStatement insertPlayersStatement = connection.prepareStatement("INSERT INTO " + Table.PLAYER_DATA.getName() + " (uuid, username, coins, channel, vanished) VALUES (?, ?, ?, ?, ?)");
+             PreparedStatement insertProfileStatement = connection.prepareStatement("INSERT INTO " + Table.PROFILE.getName() + " (uuid, join_date, bio, pronouns) VALUES (?, ?, ?, ?)")) {
 
             insertPlayersStatement.setString(1, uuid.toString());
             insertPlayersStatement.setString(2, username);
-            insertPlayersStatement.setInt(3, PlayerDefaults.COIN_BALANCE.getValue());
-            insertPlayersStatement.setString(4, String.valueOf(Channels.NONE));
+            insertPlayersStatement.setInt(3, PlayerDefault.COIN_BALANCE.getValue());
+            insertPlayersStatement.setString(4, String.valueOf(Channel.NONE));
             insertPlayersStatement.setInt(5, 0);
             insertPlayersStatement.execute();
 
@@ -515,7 +515,7 @@ public class PlayerDataManager {
         boolean inserted = false;
         try (Connection connection = DatabasePool.getConnection()) {
             // Check if the player data exists in the database
-            PreparedStatement queryStatement = connection.prepareStatement("SELECT COUNT(*) FROM " + Tables.PLAYER_DATA.getName() + " WHERE uuid = ?");
+            PreparedStatement queryStatement = connection.prepareStatement("SELECT COUNT(*) FROM " + Table.PLAYER_DATA.getName() + " WHERE uuid = ?");
             queryStatement.setString(1, uuid.toString());
             ResultSet resultSet = queryStatement.executeQuery();
 
@@ -584,11 +584,11 @@ public class PlayerDataManager {
 
     public void deletePlayerData(PlayerData playerData) {
         try (Connection connection = DatabasePool.getConnection()) {
-            DatabaseUtils.removeData(connection, Tables.PLAYER_DATA.getName(), "`uuid` = '" + playerData.getUuid().toString() + "'");
+            DatabaseUtils.removeData(connection, Table.PLAYER_DATA.getName(), "`uuid` = '" + playerData.getUuid().toString() + "'");
             DatabaseUtils.removeData(connection, "`rank`", "`uuid` = '" + playerData.getUuid().toString() + "'");
-            DatabaseUtils.removeData(connection, Tables.PROFILE.getName(), "`uuid` = '" + playerData.getUuid().toString() + "'");
-            DatabaseUtils.removeData(connection, Tables.VERIFICATION.getName(), "`uuid` = '" + playerData.getUuid().toString() + "'");
-            DatabaseUtils.removeData(connection, Tables.VERIFICATION_SESSIONS.getName(), "`uuid` = '" + playerData.getUuid().toString() + "'");
+            DatabaseUtils.removeData(connection, Table.PROFILE.getName(), "`uuid` = '" + playerData.getUuid().toString() + "'");
+            DatabaseUtils.removeData(connection, Table.VERIFICATION.getName(), "`uuid` = '" + playerData.getUuid().toString() + "'");
+            DatabaseUtils.removeData(connection, Table.VERIFICATION_SESSIONS.getName(), "`uuid` = '" + playerData.getUuid().toString() + "'");
         } catch (SQLException e) {
             logger.severe(e.getMessage());
         }
@@ -618,7 +618,7 @@ public class PlayerDataManager {
         return new PlayerData(player.getUniqueId(), player.getName(),
                 new Rank(0, 0, 0, 0),
                 new Profile(null, null, null, 0, false),
-                new Coins(36), Channels.NONE, VanishState.DISABLED, Server.LOBBY);
+                new Coins(36), Channel.NONE, VanishState.DISABLED, Server.LOBBY);
     }
 
     private PlayerData createEmpty(UUID uuid, String username) {
@@ -626,7 +626,7 @@ public class PlayerDataManager {
         return new PlayerData(uuid, username,
                 new Rank(0, 0, 0, 0),
                 new Profile(null, null, null, 0, false),
-                new Coins(36), Channels.NONE, VanishState.DISABLED, Server.LOBBY);
+                new Coins(36), Channel.NONE, VanishState.DISABLED, Server.LOBBY);
     }
 
     public void invalidateRedisEntry(ProxiedPlayer player) {

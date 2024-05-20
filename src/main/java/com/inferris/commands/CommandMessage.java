@@ -8,12 +8,11 @@ import com.inferris.commands.cache.CommandMessageCache;
 import com.inferris.config.ConfigType;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
-import com.inferris.player.PlayerTaskManager;
+import com.inferris.tasks.PlayerTaskManager;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
 import com.inferris.rank.RankRegistry;
-import com.inferris.rank.RanksManager;
-import com.inferris.server.Messages;
+import com.inferris.server.Message;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -59,7 +58,7 @@ public class CommandMessage extends Command implements TabExecutor {
             PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
 
             if (receiver == null) {
-                player.sendMessage(new TextComponent(Messages.COULD_NOT_FIND_PLAYER.getMessage()));
+                player.sendMessage(new TextComponent(Message.COULD_NOT_FIND_PLAYER.getMessage()));
                 return;
             }
 
@@ -71,7 +70,7 @@ public class CommandMessage extends Command implements TabExecutor {
             // Check if the receiver is in a vanished state
             if (PlayerDataManager.getInstance().getPlayerData(receiver).getVanishState() == VanishState.ENABLED) {
                 if (playerData.getBranchValue(Branch.STAFF) < 3) {
-                    player.sendMessage(new TextComponent(Messages.COULD_NOT_FIND_PLAYER.getMessage()));
+                    player.sendMessage(new TextComponent(Message.COULD_NOT_FIND_PLAYER.getMessage()));
                     receiver.sendMessage(new TextComponent(ChatColor.GRAY + "Notice: " + playerData.getByBranch() + " " + player.getName() + ChatColor.GRAY
                             + " attempted to message you: " + message));
                     return;
@@ -179,12 +178,12 @@ public class CommandMessage extends Command implements TabExecutor {
                         cacheJokeHandler.invalidate(receiver.getUniqueId());
                     };
 
-                    taskManager.addTaskForPlayer(task1, 2, TimeUnit.SECONDS);
-                    taskManager.addTaskForPlayer(task2, 2, TimeUnit.SECONDS);
-                    taskManager.addTaskForPlayer(task3, 4, TimeUnit.SECONDS);
-                    taskManager.addTaskForPlayer(task4, 4, TimeUnit.SECONDS);
-                    taskManager.addTaskForPlayer(task5, 4, TimeUnit.SECONDS);
-                    taskManager.addTaskForPlayer(task6, 5, TimeUnit.SECONDS);
+                    taskManager.addTaskForPlayer(receiver, task1, 2, TimeUnit.SECONDS);
+                    taskManager.addTaskForPlayer(receiver, task2, 2, TimeUnit.SECONDS);
+                    taskManager.addTaskForPlayer(receiver, task3, 4, TimeUnit.SECONDS);
+                    taskManager.addTaskForPlayer(receiver, task4, 4, TimeUnit.SECONDS);
+                    taskManager.addTaskForPlayer(receiver, task5, 4, TimeUnit.SECONDS);
+                    taskManager.addTaskForPlayer(receiver, task6, 5, TimeUnit.SECONDS);
                 }
             }
         }

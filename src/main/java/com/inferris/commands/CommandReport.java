@@ -6,7 +6,7 @@ import com.inferris.player.PlayerDataManager;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.server.ReportPayload;
 import com.inferris.util.ChatUtil;
-import com.inferris.server.Tags;
+import com.inferris.server.Tag;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -128,7 +128,7 @@ public class CommandReport extends Command implements TabExecutor {
                 for (ProxiedPlayer staffPlayer : ProxyServer.getInstance().getPlayers()) {
                     // Check if the player is a staff member
                     if (PlayerDataManager.getInstance().getPlayerData(staffPlayer).isStaff()) {
-                        staffPlayer.sendMessage(new TextComponent(Tags.STAFF.getName(true) + ChatColor.RED + "New chat report!"));
+                        staffPlayer.sendMessage(new TextComponent(Tag.STAFF.getName(true) + ChatColor.RED + "New chat report!"));
                         staffPlayer.sendMessage(new TextComponent(""));
 
                         // Send the report information to the staff player

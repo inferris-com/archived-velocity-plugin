@@ -4,7 +4,7 @@ import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
-import com.inferris.server.Messages;
+import com.inferris.server.Message;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -53,7 +53,7 @@ public class CommandLocate extends Command implements TabExecutor {
         }
         ProxiedPlayer target = ProxyServer.getInstance().getPlayer(args[0]);
         if (target == null) {
-            player.sendMessage(new TextComponent(Messages.COULD_NOT_FIND_PLAYER.getMessage()));
+            player.sendMessage(new TextComponent(Message.COULD_NOT_FIND_PLAYER.getMessage()));
             return;
         }
 
@@ -61,7 +61,7 @@ public class CommandLocate extends Command implements TabExecutor {
         PlayerData targetData = PlayerDataManager.getInstance().getPlayerData(target);
         if (targetData.getVanishState() == VanishState.ENABLED) {
             if(playerData.getBranchValue(Branch.STAFF) < 3) {
-                player.sendMessage(new TextComponent(Messages.COULD_NOT_FIND_PLAYER.getMessage()));
+                player.sendMessage(new TextComponent(Message.COULD_NOT_FIND_PLAYER.getMessage()));
                 return;
             }
         }

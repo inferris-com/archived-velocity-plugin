@@ -1,6 +1,6 @@
 package com.inferris.commands;
 
-import com.inferris.server.Messages;
+import com.inferris.server.Message;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.friends.Friends;
@@ -66,7 +66,7 @@ public class CommandFriend extends Command implements TabExecutor {
                 }
                 UUID targetUUID = PlayerDataManager.getInstance().getUUIDByUsername(args[1]);
                 if (targetUUID == null) {
-                    player.sendMessage(new TextComponent(Messages.PLAYER_NOT_IN_SYSTEM.getMessage()));
+                    player.sendMessage(new TextComponent(Message.PLAYER_NOT_IN_SYSTEM.getMessage()));
                     return;
                 }
                 PlayerData targetData = PlayerDataManager.getInstance().getRedisData(targetUUID);

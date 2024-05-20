@@ -60,7 +60,7 @@ public class Inferris extends Plugin {
 
         DispatchingJedisPubSub jedisPubSub = new DispatchingJedisPubSub(dispatcher);
 
-        jedisPool = new JedisPool(configurationHandler.getProperties(ConfigType.PROPERTIES).getProperty("address"), Ports.JEDIS.getPort());
+        jedisPool = new JedisPool(configurationHandler.getProperties(ConfigType.PROPERTIES).getProperty("address"), Port.JEDIS.getPort());
         Thread subscriptionThread = new Thread(() -> Inferris.getJedisPool().getResource().subscribe(jedisPubSub,
                 JedisChannels.PLAYERDATA_UPDATE.getChannelName(),
                 JedisChannels.SPIGOT_TO_PROXY_PLAYERDATA_CACHE_UPDATE.getChannelName(),

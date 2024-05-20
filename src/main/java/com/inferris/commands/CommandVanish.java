@@ -6,7 +6,7 @@ import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
-import com.inferris.server.Messages;
+import com.inferris.server.Message;
 import com.inferris.server.jedis.JedisChannels;
 import com.inferris.util.SerializationUtils;
 import com.inferris.util.DatabaseUtils;
@@ -64,7 +64,7 @@ public class CommandVanish extends Command implements TabExecutor {
                     }
                 }
             } else {
-                player.sendMessage(Messages.NO_PERMISSION.getMessage());
+                player.sendMessage(Message.NO_PERMISSION.getMessage());
             }
         }
     }

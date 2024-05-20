@@ -1,6 +1,6 @@
 package com.inferris.commands;
 
-import com.inferris.server.Messages;
+import com.inferris.server.Message;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.Branch;
@@ -30,7 +30,7 @@ public class CommandSetrank extends Command implements TabExecutor {
 
         if (player != null) {
             if (!(PlayerDataManager.getInstance().getPlayerData(player).getBranchValue(Branch.STAFF) >= 3) && !player.getUniqueId().equals(uuid)) {
-                player.sendMessage(Messages.NO_PERMISSION.getMessage());
+                player.sendMessage(Message.NO_PERMISSION.getMessage());
                 return;
             }
         }
@@ -61,7 +61,7 @@ public class CommandSetrank extends Command implements TabExecutor {
 
         UUID uuid = playerDataManager.getUUIDByUsername(targetName);
         if (uuid == null) {
-            commandSender.sendMessage(Messages.PLAYER_NOT_IN_SYSTEM.getMessage());
+            commandSender.sendMessage(Message.PLAYER_NOT_IN_SYSTEM.getMessage());
             return;
         }
 

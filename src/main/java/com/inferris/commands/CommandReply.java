@@ -5,7 +5,7 @@ import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
-import com.inferris.server.Messages;
+import com.inferris.server.Message;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -50,14 +50,14 @@ public class CommandReply extends Command implements TabExecutor {
             PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
 
             if (target == null) {
-                player.sendMessage(new TextComponent(Messages.COULD_NOT_FIND_PLAYER.getMessage()));
+                player.sendMessage(new TextComponent(Message.COULD_NOT_FIND_PLAYER.getMessage()));
                 return;
             }
 
             // Check if the target player is vanished
             if (PlayerDataManager.getInstance().getPlayerData(target).getVanishState() == VanishState.ENABLED) {
                 if (playerData.getBranchValue(Branch.STAFF) < 3) {
-                    player.sendMessage(new TextComponent(Messages.COULD_NOT_FIND_PLAYER.getMessage()));
+                    player.sendMessage(new TextComponent(Message.COULD_NOT_FIND_PLAYER.getMessage()));
                     target.sendMessage(new TextComponent(ChatColor.GRAY + "Notice: " + playerData.getByBranch() + " " + player.getName() + ChatColor.GRAY
                             + " attempted to message you: " + message));
                     return;

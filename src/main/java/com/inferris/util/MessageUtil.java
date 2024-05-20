@@ -1,6 +1,6 @@
 package com.inferris.util;
 
-import com.inferris.server.Tags;
+import com.inferris.server.Tag;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -14,6 +14,6 @@ public class MessageUtil {
         player.sendMessage(new TextComponent(message));
     }
     public static void sendMessage(ProxiedPlayer player, String message, boolean isStaff){
-        player.sendMessage( new TextComponent(Tags.STAFF.getName(true) + message));
+        player.sendMessage( new TextComponent(Tag.STAFF.getName(true) + message));
     }
 }

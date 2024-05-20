@@ -10,7 +10,7 @@ import java.sql.SQLException;
 
 public class ChannelManager {
 
-    public void setChannel(ProxiedPlayer player, Channels channel, boolean sendMessage){
+    public void setChannel(ProxiedPlayer player, Channel channel, boolean sendMessage){
         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player, "#setChannel, ChannelManager");
         playerData.setChannel(channel);
         String channelName = null;

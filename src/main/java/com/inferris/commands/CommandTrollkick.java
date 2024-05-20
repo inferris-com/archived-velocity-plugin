@@ -4,8 +4,7 @@ import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
-import com.inferris.server.Messages;
-import net.md_5.bungee.api.ChatColor;
+import com.inferris.server.Message;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -33,7 +32,7 @@ public class CommandTrollkick extends Command implements TabExecutor {
 
             if (playerData.getBranchValue(Branch.STAFF) < 2) {
                 // Insufficient permissions, send NO_PERMISSION message and exit
-                player.sendMessage(Messages.NO_PERMISSION.getMessage());
+                player.sendMessage(Message.NO_PERMISSION.getMessage());
                 return;
             }
 

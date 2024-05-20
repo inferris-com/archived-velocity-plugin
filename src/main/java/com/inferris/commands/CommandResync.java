@@ -1,7 +1,6 @@
 package com.inferris.commands;
 
 import com.inferris.rank.Branch;
-import com.inferris.server.Messages;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import net.md_5.bungee.api.ChatColor;

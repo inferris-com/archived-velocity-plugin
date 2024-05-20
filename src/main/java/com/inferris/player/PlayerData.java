@@ -10,9 +10,6 @@ import com.inferris.rank.RankRegistry;
 import com.inferris.rank.RanksManager;
 import com.inferris.server.Server;
 import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -30,11 +27,11 @@ public class PlayerData implements PlayerDataService, Serializable {
     private Rank rank;
     private Profile profile;
     private Coins coins;
-    private Channels channel;
+    private Channel channel;
     private VanishState vanishState;
     private Server currentServer;
 
-    public PlayerData(UUID uuid, String username, Rank rank, Profile profile, Coins coins, Channels channel, VanishState vanishState, Server currentServer) {
+    public PlayerData(UUID uuid, String username, Rank rank, Profile profile, Coins coins, Channel channel, VanishState vanishState, Server currentServer) {
         this.uuid = uuid;
         this.username = username;
         this.rank = rank;
@@ -69,7 +66,7 @@ public class PlayerData implements PlayerDataService, Serializable {
         return coins;
     }
 
-    public Channels getChannel() {
+    public Channel getChannel() {
         return channel;
     }
 
@@ -116,7 +113,7 @@ public class PlayerData implements PlayerDataService, Serializable {
         RanksManager.getInstance().setRank(uuid, branch, level);
     }
 
-    public void setChannel(Channels channel) {
+    public void setChannel(Channel channel) {
         this.channel = channel;
     }
 

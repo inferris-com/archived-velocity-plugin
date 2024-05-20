@@ -15,12 +15,12 @@ public interface PlayerDataService {
     Rank getRank();
     Profile getProfile();
     Coins getCoins();
-    Channels getChannel();
+    Channel getChannel();
     VanishState getVanishState();
     ChatColor getNameColor();
     boolean isStaff();
     void setCoins(int amount);
     void setRank(Branch branch, int level);
-    void setChannel(Channels channel);
+    void setChannel(Channel channel);
     void setVanishState(VanishState vanishState);
 }

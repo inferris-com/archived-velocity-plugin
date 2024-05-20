@@ -1,8 +1,8 @@
 package com.inferris.commands;
 
-import com.inferris.server.Messages;
+import com.inferris.server.Message;
 import com.inferris.player.ChannelManager;
-import com.inferris.player.Channels;
+import com.inferris.player.Channel;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.Branch;
 import net.md_5.bungee.api.ChatColor;
@@ -37,13 +37,13 @@ public class CommandChannel extends Command implements TabExecutor {
             switch (channel) {
                 case "staff" -> {
                     if (PlayerDataManager.getInstance().getPlayerData(player).getBranchValue(Branch.STAFF) >= 1) {
-                        channelManager.setChannel(player, Channels.STAFF, true);
+                        channelManager.setChannel(player, Channel.STAFF, true);
                     } else {
-                        player.sendMessage(Messages.NO_PERMISSION.getMessage());
+                        player.sendMessage(Message.NO_PERMISSION.getMessage());
                     }
                 }
-                case "special" -> channelManager.setChannel(player, Channels.SPECIAL, true);
-                case "none" -> channelManager.setChannel(player, Channels.NONE, true);
+                case "special" -> channelManager.setChannel(player, Channel.SPECIAL, true);
+                case "none" -> channelManager.setChannel(player, Channel.NONE, true);
             }
         }
     }

@@ -9,7 +9,7 @@ import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
 import com.inferris.util.DatabaseUtils;
 import com.inferris.util.MessageUtil;
-import com.inferris.server.Tags;
+import com.inferris.server.Tag;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -52,7 +52,7 @@ public class CommandAccount extends Command implements TabExecutor {
 
                 UUID uuid = playerDataManager.getUUIDByUsername(args[0]);
                 PlayerData playerData = playerDataManager.getPlayerData(uuid);
-                String tag = Tags.STAFF.getName(true);
+                String tag = Tag.STAFF.getName(true);
                 ChatColor reset = ChatColor.RESET;
 
                 TextComponent header = new TextComponent("----- Player Information -----");
