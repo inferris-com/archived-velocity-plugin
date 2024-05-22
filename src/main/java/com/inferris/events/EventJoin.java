@@ -135,8 +135,8 @@ public class EventJoin implements Listener {
     }
 
     private void sendHeader(ProxiedPlayer player) {
-        BaseComponent headerComponent = new TextComponent(ChatColor.of(ColorType.BRAND_SECONDARY.getColor()) + "Inferris");
-        BaseComponent footerComponent = new TextComponent(Message.WEBSITE_URL.getMessage());
+        BaseComponent[] headerComponent = TextComponent.fromLegacyText(ChatColor.of(ColorType.BRAND_SECONDARY.getColor()) + "Inferris");
+        BaseComponent[] footerComponent = TextComponent.fromLegacyText(Message.WEBSITE_URL.getMessage().getText());
         player.setTabHeader(headerComponent, footerComponent);
     }
 
