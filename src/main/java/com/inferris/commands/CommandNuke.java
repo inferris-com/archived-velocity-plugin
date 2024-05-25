@@ -5,6 +5,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.Branch;
+import com.inferris.server.ErrorCode;
 import com.inferris.util.ChatUtil;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -92,8 +93,9 @@ public class CommandNuke extends Command {
         ProxiedPlayer target = ProxyServer.getInstance().getPlayer(uuid);
         if (target != null) {
             if (ProxyServer.getInstance().getPlayer(uuid).isConnected()) {
-                TextComponent textComponent = new TextComponent(ChatColor.RED + "Your account data has been permanently deleted by an admin." +
-                        "\n\n\nIf you believe this was done in error,\nplease contact support.");
+                TextComponent textComponent = new TextComponent(ChatColor.GRAY + "Woa! Something went wrong: " + ErrorCode.PLAYER_DATA_DELETED_BY_ADMIN.getCode(true)
+                        + "\n\n" + ErrorCode.PLAYER_DATA_DELETED_BY_ADMIN.getMessage(true) + "\n\n"
+                        + ChatColor.WHITE + "If this was unexpected or you need assistance, please reach out to our team, and we'll help resolve the issue!");
                 target.disconnect(textComponent);
             }
         }
