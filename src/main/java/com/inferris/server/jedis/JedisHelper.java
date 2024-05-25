@@ -32,4 +32,10 @@ public class JedisHelper {
             System.err.println("Error performing HSET operation: " + e.getMessage());
         }
     }
+
+    public void publish(JedisChannels channel, String message){
+        try(Jedis jedis = jedisPool.getResource()){
+            jedis.publish(channel.getChannelName(), message);
+        }
+    }
 }
