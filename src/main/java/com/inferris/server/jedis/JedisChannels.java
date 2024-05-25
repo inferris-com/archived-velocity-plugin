@@ -1,6 +1,7 @@
 package com.inferris.server.jedis;
 
 public enum JedisChannels {
+    FLEX_EVENT("flex_event"),
     PLAYERDATA_UPDATE("playerdata:update"),
     PLAYERDATA_RANK_UPDATE("playerdata:rank_update"),
     PLAYERDATA_EVENT_JOIN("playerdata:event_join"),

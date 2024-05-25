@@ -4,6 +4,8 @@ import com.inferris.Inferris;
 import com.inferris.common.ColorType;
 import com.inferris.config.ConfigType;
 import com.inferris.config.ConfigurationHandler;
+import com.inferris.server.jedis.JedisChannels;
+import com.inferris.server.jedis.JedisHelper;
 import com.inferris.tasks.PlayerTaskManager;
 import com.inferris.server.Message;
 import com.inferris.player.PlayerData;
@@ -66,7 +68,6 @@ public class EventJoin implements Listener {
             };
             taskManager.addTaskForPlayer(player, task2, 3, TimeUnit.SECONDS);
         }else{
-
             ChatColor primaryColor = ChatColor.of(new Color(106, 137, 252));
             String line = ChatColor.STRIKETHROUGH + "---------------------------------";
             ChatColor headerFooterColor = ChatColor.DARK_GRAY;
@@ -74,6 +75,14 @@ public class EventJoin implements Listener {
             String sparkle = ChatColor.of(new Color(217, 224, 250)) + "✨";
 
             Runnable welcomeRunnable1 = () -> {
+                ProxyServer.getInstance().broadcast(TextComponent.fromLegacyText(ChatColor.YELLOW + "Let’s give a warm welcome to " +  ChatColor.of(ColorType.BRAND_SECONDARY.getColor())
+                        + player.getName() + ChatColor.YELLOW + " who has just joined us!"));
+
+                JedisHelper jedisHelper = new JedisHelper(Inferris.getJedisPool());
+                jedisHelper.publish(JedisChannels.FLEX_EVENT, "welcome:" + player.getUniqueId().toString());
+            };
+
+            Runnable welcomeRunnable2 = () -> {
                 String header = headerFooterColor + line + "\n" +
                         primaryColor +
                         ChatColor.BOLD + "Welcome to Inferris! " +
@@ -87,20 +96,20 @@ public class EventJoin implements Listener {
 
                 player.sendMessage(TextComponent.fromLegacyText(header + message1));
             };
-            Runnable welcomeRunnable2 = () -> {
+            Runnable welcomeRunnable3 = () -> {
                 String message2 = "\n\n" + messageColor + "Take a moment to introduce yourself, and don't hesitate to " +
                         "ask for help if you need it. We're all in this together, and your journey starts here.";
                 player.sendMessage(TextComponent.fromLegacyText(message2));
             };
-            Runnable welcomeRunnable3 = () -> {
+            Runnable welcomeRunnable4 = () -> {
                 String message3 = "\n\n" + messageColor + "May your adventures be filled with wonder and joy. We're glad you're here!";
                 player.sendMessage(TextComponent.fromLegacyText(message3));
             };
 
-            taskManager.addTaskForPlayer(player, welcomeRunnable1, 3, TimeUnit.SECONDS);
-            taskManager.addTaskForPlayer(player, welcomeRunnable2, 7, TimeUnit.SECONDS);
-            taskManager.addTaskForPlayer(player, welcomeRunnable3, 8, TimeUnit.SECONDS);
-
+            taskManager.addTaskForPlayer(player, welcomeRunnable1, 2, TimeUnit.SECONDS);
+            taskManager.addTaskForPlayer(player, welcomeRunnable2, 6, TimeUnit.SECONDS);
+            taskManager.addTaskForPlayer(player, welcomeRunnable3, 11, TimeUnit.SECONDS);
+            taskManager.addTaskForPlayer(player, welcomeRunnable4, 8, TimeUnit.SECONDS);
         }
 
         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player, "onSwitch"); // Grabs the Redis cache
@@ -109,6 +118,7 @@ public class EventJoin implements Listener {
         playerData.setCurrentServer(ServerUtil.getServerType(player));
 
         playerDataManager.updateAllData(player, playerData); //new, so that it updates the bungee cache too;
+
     }
 
     /**
