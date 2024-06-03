@@ -136,7 +136,7 @@ public class EventJoin implements Listener {
 
             if (rank.getBranchID(Branch.STAFF) >= 1) {
                 for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                    if (PlayerDataManager.getInstance().getPlayerData(player).getRank().getBranchID(Branch.STAFF) >= 1) {
+                    if (PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getRank().getBranchID(Branch.STAFF) >= 1) {
                         proxiedPlayers.sendMessage(TextComponent.fromLegacyText(Tag.STAFF.getName(true) + rankRegistry.getPrefix(true) + rankRegistry.getColor() + player.getName() + ChatColor.YELLOW + " connected"));
                     }
                 }
