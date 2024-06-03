@@ -1,6 +1,5 @@
 package com.inferris.events;
 
-import com.inferris.Inferris;
 import com.inferris.common.ColorType;
 import com.inferris.config.ConfigType;
 import com.inferris.config.ConfigurationHandler;
@@ -16,7 +15,6 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.ProxyPingEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
-import redis.clients.jedis.Jedis;
 
 public class EventPing implements Listener {
 
