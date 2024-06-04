@@ -7,6 +7,8 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.inferris.Inferris;
+import com.inferris.player.friends.Friends;
+import com.inferris.player.friends.FriendsManager;
 import com.inferris.serialization.SerializationModule;
 import com.inferris.database.DatabasePool;
 import com.inferris.database.Table;
@@ -32,6 +34,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
@@ -583,6 +587,22 @@ public class PlayerDataManager {
     }
 
     public void deletePlayerData(PlayerData playerData) {
+        UUID playerUUID = playerData.getUuid();
+
+        // Step 1: Fetch the list of friends
+        FriendsManager friendsManager = FriendsManager.getInstance();
+        Friends playerFriends = friendsManager.getFriendsData(playerUUID);
+        List<UUID> friendsList = new ArrayList<>(playerFriends.getFriendsList());
+
+        // Step 2: Update each friend's data
+        for (UUID friendUUID : friendsList) {
+            Friends friendData = friendsManager.getFriendsData(friendUUID);
+            friendData.removeFriend(playerUUID);
+            friendsManager.updateCache(friendUUID, friendData);
+            friendsManager.updateRedisData(friendUUID, friendData);
+        }
+
+        // Step 3: Remove the player's data from all necessary tables
         try (Connection connection = DatabasePool.getConnection()) {
             DatabaseUtils.removeData(connection, Table.PLAYER_DATA.getName(), "`uuid` = '" + playerData.getUuid().toString() + "'");
             DatabaseUtils.removeData(connection, "`rank`", "`uuid` = '" + playerData.getUuid().toString() + "'");
@@ -593,11 +613,14 @@ public class PlayerDataManager {
             logger.severe(e.getMessage());
         }
 
+        // Step 4: Remove the player's data from Redis and cache
         try (Jedis jedis = getJedisPool().getResource()) {
             jedis.hdel("playerdata", playerData.getUuid().toString());
             jedis.hdel("friends", playerData.getUuid().toString());
+            friendsManager.getCaffeineCache().invalidate(playerUUID);
         }
     }
+
 
     /**
      * Logs relevant information about the player's data.
