@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class FriendsManager {
     private static FriendsManager instance;
@@ -32,17 +33,17 @@ public class FriendsManager {
     private FriendsManager() {
         jedisPool = Inferris.getJedisPool(); // Set Redis server details
         objectMapper = SerializationUtils.createObjectMapper(new SerializationModule());
-        caffeineCache = Caffeine.newBuilder().build();
+        caffeineCache = Caffeine.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build();
     }
 
-    public static FriendsManager getInstance() {
+    public static synchronized FriendsManager getInstance() {
         if (instance == null) {
             instance = new FriendsManager();
         }
         return instance;
     }
 
-    public Friends getFriendsData(UUID playerUUID) {
+    public synchronized Friends getFriendsData(UUID playerUUID) {
         if (caffeineCache.getIfPresent(playerUUID) != null) {
             return caffeineCache.asMap().get(playerUUID);
         } else {
@@ -50,7 +51,7 @@ public class FriendsManager {
         }
     }
 
-    public Friends getFriendsDataFromRedis(UUID playerUUID) {
+    public synchronized Friends getFriendsDataFromRedis(UUID playerUUID) {
         try (Jedis jedis = jedisPool.getResource()) {
             Inferris.getInstance().getLogger().info("Loading Friends from Redis");
             String json = jedis.hget("friends", playerUUID.toString());
@@ -75,11 +76,11 @@ public class FriendsManager {
      * @param playerUUID Player's UUI D
      * @param friends {@link Friends} class
      */
-    public void updateCache(UUID playerUUID, Friends friends) {
+    public synchronized void updateCache(UUID playerUUID, Friends friends) {
         caffeineCache.put(playerUUID, friends);
     }
 
-    public void friendRequest(UUID playerUUID, UUID targetUUID) {
+    public synchronized void friendRequest(UUID playerUUID, UUID targetUUID) {
         try (Jedis jedis = jedisPool.getResource()) {
             Friends playerFriends = getFriendsDataFromRedis(playerUUID);
             Friends targetFriends = getFriendsDataFromRedis(targetUUID);
@@ -109,7 +110,7 @@ public class FriendsManager {
     }
 
 
-    public void addFriend(UUID playerUUID, UUID targetUUID) {
+    public synchronized void addFriend(UUID playerUUID, UUID targetUUID) {
         try (Jedis jedis = jedisPool.getResource()) {
             Friends playerFriends = getFriendsDataFromRedis(playerUUID);
             Friends targetFriends = getFriendsDataFromRedis(targetUUID);
@@ -124,7 +125,7 @@ public class FriendsManager {
         }
     }
 
-    public void removeFriend(UUID playerUUID, UUID targetUUID) {
+    public synchronized void removeFriend(UUID playerUUID, UUID targetUUID) {
         try (Jedis jedis = jedisPool.getResource()) {
             Friends playerFriends = getFriendsDataFromRedis(playerUUID);
             Friends targetFriends = getFriendsDataFromRedis(targetUUID);
@@ -154,7 +155,7 @@ public class FriendsManager {
         }
     }
 
-    public void rejectFriendRequest(UUID playerUUID, UUID targetUUID) {
+    public synchronized void rejectFriendRequest(UUID playerUUID, UUID targetUUID) {
         try (Jedis jedis = jedisPool.getResource()) {
             Friends playerFriends = getFriendsDataFromRedis(playerUUID);
             Friends targetFriends = getFriendsDataFromRedis(targetUUID);
@@ -179,7 +180,7 @@ public class FriendsManager {
         }
     }
 
-    public void listFriends(UUID playerUUID, int pageNumber) {
+    public synchronized void listFriends(UUID playerUUID, int pageNumber) {
         ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerUUID);
         Friends friends = caffeineCache.getIfPresent(playerUUID);
         List<String> onlineFriends = new ArrayList<>();
@@ -255,7 +256,7 @@ public class FriendsManager {
         offlineFriends.forEach(message -> player.sendMessage(TextComponent.fromLegacyText(message)));
     }
 
-    public void updateRedisData(UUID playerUUID, Friends friends) {
+    public synchronized void updateRedisData(UUID playerUUID, Friends friends) {
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.hset("friends", playerUUID.toString(), SerializationUtils.serializeFriends(friends));
         } catch (JsonProcessingException e) {
