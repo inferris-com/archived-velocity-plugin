@@ -2,6 +2,8 @@ package com.inferris.commands;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.inferris.player.Channel;
+import com.inferris.player.ChannelManager;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.Branch;
@@ -78,12 +80,12 @@ public class CommandNuke extends Command {
 
 
         if(sender instanceof ProxiedPlayer player) {
-            ChatUtil.sendStaffChatMessage(PlayerDataManager.getInstance().getPlayerData(player).getByBranch().getPrefix(true)
+            ChannelManager.sendStaffChatMessage(Channel.STAFF, PlayerDataManager.getInstance().getPlayerData(player).getByBranch().getPrefix(true)
             + ChatColor.RESET + player.getName() + ChatColor.YELLOW + " completely erased " + playerData.getByBranch().getPrefix(true)
-            + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + "'s data", ChatUtil.StaffChatMessageType.NOTIFICATION);
+            + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + "'s data", ChannelManager.StaffChatMessageType.NOTIFICATION);
         }else{
-            ChatUtil.sendStaffChatMessage(ChatColor.RED + sender.getName() + ChatColor.YELLOW + " completely erased " + playerData.getByBranch().getPrefix(true)
-                    + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + "'s data", ChatUtil.StaffChatMessageType.NOTIFICATION);
+            ChannelManager.sendStaffChatMessage(Channel.STAFF, ChatColor.RED + sender.getName() + ChatColor.YELLOW + " completely erased " + playerData.getByBranch().getPrefix(true)
+                    + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + "'s data", ChannelManager.StaffChatMessageType.NOTIFICATION);
         }
 
         // Proceed with deletion

@@ -31,19 +31,25 @@ public class CommandChannel extends Command implements TabExecutor {
                 player.sendMessage(new TextComponent(ChatColor.RED + "/channel <channel>"));
                 return;
             }
-            ChannelManager channelManager = new ChannelManager();
             String channel = args[0].toLowerCase();
 
             switch (channel) {
                 case "staff" -> {
                     if (PlayerDataManager.getInstance().getPlayerData(player).getBranchValue(Branch.STAFF) >= 1) {
-                        channelManager.setChannel(player, Channel.STAFF, true);
+                        ChannelManager.setChannel(player, Channel.STAFF, true);
                     } else {
                         player.sendMessage(Message.NO_PERMISSION.getMessage());
                     }
                 }
-                case "special" -> channelManager.setChannel(player, Channel.SPECIAL, true);
-                case "none" -> channelManager.setChannel(player, Channel.NONE, true);
+                case "admin" -> {
+                    if(PlayerDataManager.getInstance().getPlayerData(player).getBranchValue(Branch.STAFF) >=3){
+                        ChannelManager.setChannel(player, Channel.ADMIN, true);
+                    }else{
+                        player.sendMessage(Message.NO_PERMISSION.getMessage());
+                    }
+                }
+                case "special" -> ChannelManager.setChannel(player, Channel.SPECIAL, true);
+                case "none" -> ChannelManager.setChannel(player, Channel.NONE, true);
             }
         }
     }
@@ -54,7 +60,7 @@ public class CommandChannel extends Command implements TabExecutor {
             String partialOption = args[0].toLowerCase();
             List<String> options = new ArrayList<>();
 
-            List<String> availableOptions = Arrays.asList("staff", "special", "none");
+            List<String> availableOptions = Arrays.asList("staff", "admin", "special", "none");
 
             for (String option : availableOptions) {
                 if (option.toLowerCase().startsWith(partialOption)) {

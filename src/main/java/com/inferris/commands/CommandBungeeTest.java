@@ -105,7 +105,7 @@ public class CommandBungeeTest extends Command {
                         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
                         player.sendMessage(playerData.getUsername());
                         player.sendMessage(playerData.getVanishState().toString());
-                        player.sendMessage(playerData.getChannel().getMessage());
+                        player.sendMessage(playerData.getChannel().getTag());
 
                     }
                 }

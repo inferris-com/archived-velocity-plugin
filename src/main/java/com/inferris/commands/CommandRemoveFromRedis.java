@@ -1,6 +1,8 @@
 package com.inferris.commands;
 
 import com.inferris.Inferris;
+import com.inferris.player.Channel;
+import com.inferris.player.ChannelManager;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.Branch;
@@ -59,11 +61,11 @@ public class CommandRemoveFromRedis extends Command {
             jedis.hdel("playerdata", uuid.toString());
 
             if (sender instanceof ProxiedPlayer player) {
-                ChatUtil.sendStaffChatMessage(player.getName() + ChatColor.YELLOW + " removed " + playerData.getByBranch().getPrefix(true)
-                        + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + " from Redis keystore", ChatUtil.StaffChatMessageType.NOTIFICATION);
+                ChannelManager.sendStaffChatMessage(Channel.STAFF, player.getName() + ChatColor.YELLOW + " removed " + playerData.getByBranch().getPrefix(true)
+                        + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + " from Redis keystore", ChannelManager.StaffChatMessageType.NOTIFICATION);
             } else {
-                ChatUtil.sendStaffChatMessage(ChatColor.RED + sender.getName() + ChatColor.YELLOW + " removed " + playerData.getByBranch().getPrefix(true)
-                        + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + " from Redis keystore", ChatUtil.StaffChatMessageType.NOTIFICATION);
+                ChannelManager.sendStaffChatMessage(Channel.STAFF, ChatColor.RED + sender.getName() + ChatColor.YELLOW + " removed " + playerData.getByBranch().getPrefix(true)
+                        + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + " from Redis keystore", ChannelManager.StaffChatMessageType.NOTIFICATION);
             }
 
             sender.sendMessage(new TextComponent(ChatColor.GREEN + "Redis data has been successfully deleted."));

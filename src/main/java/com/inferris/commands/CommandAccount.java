@@ -82,7 +82,7 @@ public class CommandAccount extends Command implements TabExecutor {
 
                 TextComponent verified = new TextComponent(ChatColor.YELLOW + "XenForo ID: " + ChatColor.RESET + playerData.getProfile().getXenforoId());
 
-                TextComponent channel = new TextComponent(ChatColor.YELLOW + "Current channel: " + reset + playerData.getChannel().getMessage());
+                TextComponent channel = new TextComponent(ChatColor.YELLOW + "Current channel: " + reset + playerData.getChannel().getTag());
 
                 TextComponent vanished;
                 if (playerData.getVanishState() == VanishState.ENABLED) {

@@ -1,5 +1,7 @@
 package com.inferris.commands;
 
+import com.inferris.player.Channel;
+import com.inferris.player.ChannelManager;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.util.ChatUtil;
 import net.md_5.bungee.api.CommandSender;
@@ -22,9 +24,9 @@ public class CommandStaffchatShortcut extends Command {
         }
 
         if (sender instanceof ProxiedPlayer player) {
-            ChatUtil.sendStaffChatMessage(message.toString(), ChatUtil.StaffChatMessageType.PLAYER, player.getUniqueId());
+            ChannelManager.sendStaffChatMessage(Channel.STAFF, message.toString(), ChannelManager.StaffChatMessageType.PLAYER, player.getUniqueId());
         }else{
-            ChatUtil.sendStaffChatMessage(message.toString(), ChatUtil.StaffChatMessageType.CONSOLE);
+            ChannelManager.sendStaffChatMessage(Channel.STAFF, message.toString(), ChannelManager.StaffChatMessageType.CONSOLE);
         }
     }
 

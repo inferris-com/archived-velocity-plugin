@@ -1,7 +1,10 @@
 package com.inferris.util;
 
+import com.inferris.messaging.PlayerCondition;
+import com.inferris.player.Channel;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
+import com.inferris.rank.Branch;
 import com.inferris.rank.RankRegistry;
 import com.inferris.server.Tag;
 import net.md_5.bungee.api.ChatColor;
@@ -19,65 +22,13 @@ import java.util.regex.Pattern;
 
 public class ChatUtil {
 
-    // Method for sending player messages
-    public static void sendStaffChatMessage(String message, StaffChatMessageType chatMessageType, UUID senderUuid) {
-        if (chatMessageType == StaffChatMessageType.PLAYER && senderUuid != null) {
-            BaseComponent[] textComponent = createTextComponent(message, chatMessageType, senderUuid);
-            sendMessageToStaff(textComponent);
-        } else {
-            throw new IllegalArgumentException("Invalid use of sendStaffChatMessage for PLAYER type without senderUuid.");
-        }
-    }
-
-    // Method for sending console and notification messages
-    public static void sendStaffChatMessage(String message, StaffChatMessageType chatMessageType) {
-        if (chatMessageType == StaffChatMessageType.CONSOLE || chatMessageType == StaffChatMessageType.NOTIFICATION) {
-            BaseComponent[] textComponent = createTextComponent(message, chatMessageType, null);
-            sendMessageToStaff(textComponent);
-        } else {
-            throw new IllegalArgumentException("Invalid use of sendStaffChatMessage for non-console/notification type.");
-        }
-    }
-
-    // Helper method to create text components based on the message type
-    private static BaseComponent[] createTextComponent(String message, StaffChatMessageType chatMessageType, UUID senderUuid) {
-        String formattedMessage;
-        switch (chatMessageType) {
-            case PLAYER:
-                ProxiedPlayer player = ProxyServer.getInstance().getPlayer(senderUuid);
-                PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(senderUuid);
-                RankRegistry rank = playerData.getByBranch();
-                formattedMessage = Tag.STAFF.getName(true) +
-                        rank.getPrefix(true) + playerData.getNameColor() + player.getName() +
-                        ChatColor.RESET + ": " + message;
-                break;
-            case CONSOLE:
-                formattedMessage = Tag.STAFF.getName(true) +
-                        ChatColor.RED + ChatColor.ITALIC + "Terminal" +
-                        ChatColor.RESET + ": " + message;
-                break;
-            case NOTIFICATION:
-            default:
-                formattedMessage = Tag.STAFF.getName(true) + ChatColor.RESET + message;
-                break;
-        }
-        return TextComponent.fromLegacyText(formattedMessage);
-    }
-
-    // Helper method to send the message to all staff members and the console
-    private static void sendMessageToStaff(BaseComponent[] textComponent) {
+    public static void sendGlobalMessage(PlayerCondition condition, BaseComponent[] message) {
+        TextComponent textComponent = new TextComponent(message);
         for (ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
-            if (PlayerDataManager.getInstance().getPlayerData(player).isStaff()) {
+            if (condition.shouldSendMessage(player)) {
                 player.sendMessage(textComponent);
             }
         }
-        ProxyServer.getInstance().getConsole().sendMessage(textComponent);
-    }
-
-    public enum StaffChatMessageType{
-        PLAYER,
-        CONSOLE,
-        NOTIFICATION;
     }
 
     public static String translateToHex(String message) {
