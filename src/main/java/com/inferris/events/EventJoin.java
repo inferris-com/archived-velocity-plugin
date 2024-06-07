@@ -4,6 +4,7 @@ import com.inferris.Inferris;
 import com.inferris.common.ColorType;
 import com.inferris.config.ConfigType;
 import com.inferris.config.ConfigurationHandler;
+import com.inferris.events.redis.EventPayload;
 import com.inferris.server.jedis.JedisChannels;
 import com.inferris.server.jedis.JedisHelper;
 import com.inferris.tasks.PlayerTaskManager;
@@ -50,24 +51,24 @@ public class EventJoin implements Listener {
         Friends friends = friendsManager.getFriendsData(player.getUniqueId());
         friendsManager.updateCache(player.getUniqueId(), friends);
 
-            if (!ConfigurationHandler.getInstance().getProperties(ConfigType.PROPERTIES).getProperty("server.join.message").isEmpty()) {
-                String joinMessageTemplate = ConfigurationHandler.getInstance().getProperties(ConfigType.PROPERTIES).getProperty("server.join.message");
-                String joinMessage = joinMessageTemplate;
-                if (joinMessageTemplate.contains("{version}")) {
-                    joinMessage = joinMessageTemplate.replace("{version}", Inferris.getInstance().getDescription().getVersion());
-                }
-
-                player.sendMessage(TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&',
-                        joinMessage)));
+        if (!ConfigurationHandler.getInstance().getProperties(ConfigType.PROPERTIES).getProperty("server.join.message").isEmpty()) {
+            String joinMessageTemplate = ConfigurationHandler.getInstance().getProperties(ConfigType.PROPERTIES).getProperty("server.join.message");
+            String joinMessage = joinMessageTemplate;
+            if (joinMessageTemplate.contains("{version}")) {
+                joinMessage = joinMessageTemplate.replace("{version}", Inferris.getInstance().getDescription().getVersion());
             }
 
+            player.sendMessage(TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&',
+                    joinMessage)));
+        }
+
         // Important implementation
-        if(playerDataManager.checkJoinedBefore(player)){
+        if (playerDataManager.checkJoinedBefore(player)) {
             Runnable task2 = () -> {
                 player.sendMessage(TextComponent.fromLegacyText(ChatColor.YELLOW + generateRandomMessage(messageList())));
             };
             taskManager.addTaskForPlayer(player, task2, 3, TimeUnit.SECONDS);
-        }else{
+        } else {
             ChatColor primaryColor = ChatColor.of(new Color(106, 137, 252));
             String line = ChatColor.STRIKETHROUGH + "---------------------------------";
             ChatColor headerFooterColor = ChatColor.DARK_GRAY;
@@ -75,11 +76,10 @@ public class EventJoin implements Listener {
             String sparkle = ChatColor.of(new Color(217, 224, 250)) + "✨";
 
             Runnable welcomeRunnable1 = () -> {
-                ProxyServer.getInstance().broadcast(TextComponent.fromLegacyText(ChatColor.YELLOW + "Let’s give a warm welcome to " +  ChatColor.of(ColorType.BRAND_SECONDARY.getColor())
+                ProxyServer.getInstance().broadcast(TextComponent.fromLegacyText(ChatColor.YELLOW + "Let’s give a warm welcome to " + ChatColor.of(ColorType.BRAND_SECONDARY.getColor())
                         + player.getName() + ChatColor.YELLOW + " who has just joined us!"));
 
-                JedisHelper jedisHelper = new JedisHelper(Inferris.getJedisPool());
-                jedisHelper.publish(JedisChannels.FLEX_EVENT, "welcome:" + player.getUniqueId().toString());
+                JedisHelper.publish(JedisChannels.FLEX_EVENT, new EventPayload(player.getUniqueId(), EventPayload.Action.WELCOME, null).toPayloadString());
             };
 
             Runnable welcomeRunnable2 = () -> {
@@ -138,6 +138,18 @@ public class EventJoin implements Listener {
                 for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
                     if (PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getRank().getBranchID(Branch.STAFF) >= 1) {
                         proxiedPlayers.sendMessage(TextComponent.fromLegacyText(Tag.STAFF.getName(true) + rankRegistry.getPrefix(true) + rankRegistry.getColor() + player.getName() + ChatColor.YELLOW + " connected"));
+                    }
+                }
+            }
+
+            if (!playerData.isStaff()) {
+                if (playerData.getProfile().isFlagged()) {
+                    for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
+                        if (PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getRank().getBranchID(Branch.STAFF) >= 1) {
+                            proxiedPlayers.sendMessage(TextComponent.fromLegacyText(Tag.STAFF.getName(true)
+                                    + Tag.POI.getName(true)
+                                    + rankRegistry.getPrefix(true) + rankRegistry.getColor() + player.getName() + ChatColor.YELLOW + " connected"));
+                        }
                     }
                 }
             }
