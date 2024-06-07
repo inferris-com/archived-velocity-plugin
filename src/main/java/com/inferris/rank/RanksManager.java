@@ -163,14 +163,13 @@ public class RanksManager {
 
             try (Jedis jedis = jedisPool.getResource()) {
                 String json = SerializationUtils.serializePlayerData(playerData);
-                JedisHelper jedisHelper = new JedisHelper(jedisPool);
 
                 if (!isNull) {
                     /* In the future, we can check current Caffeine cache against new incoming
                      Redis data to see if it warrants front-end update mechanisms! Same with vanish
                      */
 
-                    PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData, JedisChannels.PLAYERDATA_UPDATE);
+                    PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData, JedisChannels.PLAYERDATA_UPDATE_TO_FRONTEND);
 
                     // What the fuck is this?
                     String payload = playerData.getCurrentServer().name() + ":" + json;
