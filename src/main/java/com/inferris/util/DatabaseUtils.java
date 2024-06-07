@@ -1,6 +1,5 @@
 package com.inferris.util;
 
-import com.inferris.database.Database;
 import com.inferris.database.DatabasePool;
 
 import java.sql.Connection;
@@ -38,8 +37,6 @@ public class DatabaseUtils {
         return statement.executeQuery();
     }
 
-
-
     public static ResultSet executeQuery(String sql, Object... parameters) throws SQLException {
         try (Connection connection = DatabasePool.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -53,8 +50,15 @@ public class DatabaseUtils {
         }
     }
 
-
-
+    public static void updateData(Connection connection, String tableName, String[] columnNames, Object[] values, String whereClause) throws SQLException {
+        String sql = buildUpdateQuery(tableName, columnNames, whereClause);
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            for (int i = 0; i < values.length; i++) {
+                preparedStatement.setObject(i + 1, values[i]);
+            }
+            preparedStatement.executeUpdate();
+        }
+    }
     public static int executeUpdate(String sql, Object... parameters) throws SQLException {
         Connection connection = null;
         PreparedStatement statement = null;
@@ -160,6 +164,15 @@ public class DatabaseUtils {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.executeUpdate();
         }
+    }
+
+    public static int executeDelete(Connection connection, String tableName, String condition, Object... parameters) throws SQLException {
+        String query = "DELETE FROM " + tableName + " WHERE " + condition;
+        PreparedStatement statement = connection.prepareStatement(query);
+        for (int i = 0; i < parameters.length; i++) {
+            statement.setObject(i + 1, parameters[i]);
+        }
+        return statement.executeUpdate();
     }
 }
 
