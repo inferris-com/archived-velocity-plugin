@@ -5,7 +5,6 @@ import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.server.ReportPayload;
-import com.inferris.util.ChatUtil;
 import com.inferris.server.Tag;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -39,9 +38,7 @@ import static com.inferris.util.ChatUtil.*;
  */
 
 public class CommandReport extends Command implements TabExecutor {
-    List<String> possibleReasons = List.of("spamming", "harassment", "inappropriate_behavior", "cheating", "exploiting_bugs", "impersonation", "scamming", "advertisement", "other");
-    private ChatUtil chatUtil;
-
+    private final List<String> possibleReasons = List.of("spamming", "harassment", "inappropriate_behavior", "cheating", "exploiting_bugs", "impersonation", "scamming", "advertisement", "other");
     public CommandReport(String name) {
         super(name);
     }
@@ -106,9 +103,6 @@ public class CommandReport extends Command implements TabExecutor {
                         ChatColor.GREEN + "[Account]", ChatColor.GREEN + "Click to view account info",
                         "/account " + username, ClickEvent.Action.RUN_COMMAND);
 
-                reportedPlayer.setHoverEvent(createHoverEvent("Click to copy username"));
-                reportedPlayer.setClickEvent(createClickEvent(username, ClickEvent.Action.COPY_TO_CLIPBOARD));
-
                 TextComponent server = createClickableTextComponent(
                         ChatColor.GRAY + "Server: " + ChatColor.GOLD + reportPayload.getServer(),
                         ChatColor.AQUA + "Click to join server", "/server " + reportPayload.getServer(), ClickEvent.Action.RUN_COMMAND);
@@ -122,24 +116,26 @@ public class CommandReport extends Command implements TabExecutor {
                         ChatColor.AQUA + "Click to run command",
                         "/viewlogs " + reportPayload.getServer(), ClickEvent.Action.RUN_COMMAND);
 
-                TextComponent spacer = new TextComponent("");
+                TextComponent reportReason = new TextComponent(ChatColor.GRAY + "Reason: " + ChatColor.RESET + reportPayload.getReason());
 
+                TextComponent fullMessage = new TextComponent(Tag.STAFF.getName(true) + ChatColor.RED + "New chat report!\n\n");
+                fullMessage.addExtra(reportedPlayer);
+                fullMessage.addExtra(new TextComponent(" "));
+                fullMessage.addExtra(info);
+                fullMessage.addExtra(new TextComponent(" "));
+                fullMessage.addExtra(accountInfo);
+                fullMessage.addExtra(new TextComponent("\n"));
+                fullMessage.addExtra(reportReason);
+                fullMessage.addExtra(new TextComponent("\n"));
+                fullMessage.addExtra(server);
+                fullMessage.addExtra(new TextComponent("\n"));
+                fullMessage.addExtra(senderPlayer);
+                fullMessage.addExtra(new TextComponent("\n"));
+                fullMessage.addExtra(logs);
 
                 for (ProxiedPlayer staffPlayer : ProxyServer.getInstance().getPlayers()) {
-                    // Check if the player is a staff member
                     if (PlayerDataManager.getInstance().getPlayerData(staffPlayer).isStaff()) {
-                        staffPlayer.sendMessage(new TextComponent(Tag.STAFF.getName(true) + ChatColor.RED + "New chat report!"));
-                        staffPlayer.sendMessage(new TextComponent(""));
-
-                        // Send the report information to the staff player
-                        staffPlayer.sendMessage(reportedPlayer, new TextComponent(" "), info, new TextComponent(" "), accountInfo);
-                        staffPlayer.sendMessage(new TextComponent(ChatColor.GRAY + "Reason: " + ChatColor.RESET + reportPayload.getReason()));
-                        staffPlayer.sendMessage(spacer);
-                        staffPlayer.sendMessage(server);
-                        staffPlayer.sendMessage(senderPlayer);
-                        staffPlayer.sendMessage(spacer);
-                        staffPlayer.sendMessage(logs);
-
+                        staffPlayer.sendMessage(fullMessage);
                     }
                 }
             }
