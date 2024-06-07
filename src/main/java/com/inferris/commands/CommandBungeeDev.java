@@ -32,6 +32,9 @@ public class CommandBungeeDev extends Command {
                                 + "\n\n" + ErrorCode.PROXY_STOPPED_BY_ADMIN.getMessage(true) + "\n\n"
                                 + ChatColor.WHITE + "Not to fret! They're probably fixin' up an issue\n or deploying a patch. Hang tight!");
                     }
+                    case "cache" -> {
+                        player.sendMessage(new TextComponent(String.valueOf(PlayerDataManager.getInstance().getCache().getIfPresent(player.getUniqueId()).getProfile().toString())));
+                    }
                 }
             }
         }
