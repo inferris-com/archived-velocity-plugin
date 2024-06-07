@@ -12,6 +12,7 @@ import java.util.UUID;
 public class EventPlayerDataUpdate implements JedisEventHandler {
     @Override
     public void handle(String message) {
+        //todo handle offline
         Inferris.getInstance().getLogger().severe("Proxy received update");
         ProxiedPlayer player = ProxyServer.getInstance().getPlayer(UUID.fromString(message));
         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
