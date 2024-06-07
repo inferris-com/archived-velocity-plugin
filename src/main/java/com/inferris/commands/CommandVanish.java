@@ -93,14 +93,6 @@ public class CommandVanish extends Command implements TabExecutor {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-
-        /* Publishes the player data update so that Inferris front-end can pick it up
-        and update their caches accordingly */
-
-//        Inferris.getInstance().getLogger().info(".....");
-//        try(Jedis jedis = Inferris.getJedisPool().getResource()){
-//            jedis.publish(JedisChannels.PLAYERDATA_VANISH.getChannelName(), json);
-//        }
     }
 
     @Override
