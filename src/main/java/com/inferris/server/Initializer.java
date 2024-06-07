@@ -49,10 +49,13 @@ public class Initializer {
         pluginManager.registerCommand(instance, new CommandWhoIsVanished("whoisvanished"));
         pluginManager.registerCommand(instance, new CommandAnnouncement("announce"));
         pluginManager.registerCommand(instance, new CommandStaffchatShortcut("sc"));
+        pluginManager.registerCommand(instance, new CommandAdminchatShortcut("ac"));
         pluginManager.registerCommand(instance, new CommandWebsite("website"));
         pluginManager.registerCommand(instance, new CommandNuke("nuke"));
         pluginManager.registerCommand(instance, new CommandRemoveFromRedis("removefromredis"));
         pluginManager.registerCommand(instance, new CommandBungeeDev("bungeedev"));
+        pluginManager.registerCommand(instance, new CommandFlagPlayer("flagplayer"));
+        pluginManager.registerCommand(instance, new CommandConvertTimezone("converttime"));
 
         plugin.getProxy().registerChannel(BungeeChannel.STAFFCHAT.getName());
         plugin.getProxy().registerChannel(BungeeChannel.PLAYER_REGISTRY.getName());

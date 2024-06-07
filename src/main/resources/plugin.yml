@@ -1,6 +1,6 @@
 name: Inferris
 main: com.inferris.Inferris
-version: 1.0-DEV
+version: 1.1-DEV
 author: Refrizor
 description: Inferris backend
 website: https://inferris.com
@@ -65,6 +65,8 @@ commands:
     description: Announcement command
   sc:
     description: Staff chat shortcut
+  ac:
+    description: Admin chat shortcut
   website:
     description: Website URL
   nuke:
@@ -73,3 +75,7 @@ commands:
     description: Admin command
   bungeedev:
     description: Bungee dev command
+  flagplayer:
+    description: Flag a player
+  convert:
+    description: Convert times
