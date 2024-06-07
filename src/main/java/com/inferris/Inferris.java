@@ -48,21 +48,21 @@ public class Inferris extends Plugin {
             getLogger().log(Level.WARNING, e.getMessage());
         }
 
-        // Custom Redis dispatch methods
+        // Custom Redis event RECEIVE dispatch methods
         CommandViewlogs commandViewlogs = new CommandViewlogs("viewlogs");
         getProxy().getPluginManager().registerCommand(this, commandViewlogs);
 
         JedisEventDispatcher dispatcher = new JedisEventDispatcher();
         dispatcher.registerHandler(JedisChannels.VIEW_LOGS_SPIGOT_TO_PROXY.getChannelName(), new EventViewlog(commandViewlogs));
         dispatcher.registerHandler(JedisChannels.STAFFCHAT.getChannelName(), new EventStaffchat());
-        dispatcher.registerHandler(JedisChannels.PLAYERDATA_UPDATE.getChannelName(), new EventPlayerDataUpdate());
+        dispatcher.registerHandler(JedisChannels.PLAYERDATA_UPDATE_TO_BACKEND.getChannelName(), new EventPlayerDataUpdate());
         dispatcher.registerHandler(JedisChannels.SPIGOT_TO_PROXY_PLAYERDATA_CACHE_UPDATE.getChannelName(), new EventUpdateDataFromSpigot());
 
         DispatchingJedisPubSub jedisPubSub = new DispatchingJedisPubSub(dispatcher);
 
         jedisPool = new JedisPool(configurationHandler.getProperties(ConfigType.PROPERTIES).getProperty("address"), Port.JEDIS.getPort());
         Thread subscriptionThread = new Thread(() -> Inferris.getJedisPool().getResource().subscribe(jedisPubSub,
-                JedisChannels.PLAYERDATA_UPDATE.getChannelName(),
+                JedisChannels.PLAYERDATA_UPDATE_TO_BACKEND.getChannelName(), // Subs to the frontend to backend
                 JedisChannels.SPIGOT_TO_PROXY_PLAYERDATA_CACHE_UPDATE.getChannelName(),
                 JedisChannels.VIEW_LOGS_SPIGOT_TO_PROXY.getChannelName(), JedisChannels.STAFFCHAT.getChannelName()));
         subscriptionThread.start();
