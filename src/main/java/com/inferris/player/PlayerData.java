@@ -143,7 +143,6 @@ public class PlayerData implements PlayerDataService, Serializable {
     }
 
 
-
     /**
      * Retrieves the top ranks from each branch (staff and donor) for the player.
      * Only the highest rank from each branch will be included in the list.
@@ -159,7 +158,7 @@ public class PlayerData implements PlayerDataService, Serializable {
         int donor = rank.getDonor();
 
         switch (staff) {
-            case 4,3 -> ranks.add(RankRegistry.ADMIN);
+            case 4, 3 -> ranks.add(RankRegistry.ADMIN);
             case 2 -> ranks.add(RankRegistry.MOD);
             case 1 -> ranks.add(RankRegistry.HELPER);
         }
@@ -189,7 +188,7 @@ public class PlayerData implements PlayerDataService, Serializable {
         int builder = getBranchValue(Branch.BUILDER);
         int donor = getBranchValue(Branch.DONOR);
 
-        if (staff >=3) {
+        if (staff >= 3) {
             return RankRegistry.ADMIN;
         } else if (staff == 2) {
             return RankRegistry.MOD;
