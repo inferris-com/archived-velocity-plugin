@@ -67,7 +67,8 @@ public class CommandAccount extends Command implements TabExecutor {
                 TextComponent prefix = new TextComponent(TextComponent.fromLegacyText("Ranks: " + playerData.formatRankList(playerData.getApplicableRanks())));
                 prefix.setColor(ChatColor.YELLOW);
 
-                TextComponent registration_date = new TextComponent(ChatColor.YELLOW + "Registration date: " + reset + playerData.getProfile().getRegistrationDate());
+                TextComponent registration_date = new TextComponent(ChatColor.YELLOW + "Registration date: " + reset
+                        + playerData.getProfile().getFormattedRegistrationDate("MMMM dd, yyyy") + " at " + playerData.getProfile().getRegistrationTimeOnly());
 
                 String xenforoUsername = ChatColor.YELLOW + "XenForo username: " + ChatColor.RESET;
                 try (Connection connection = DatabasePool.getConnection(Database.XENFORO);

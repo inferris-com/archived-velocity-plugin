@@ -14,7 +14,10 @@ import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
 
 import java.sql.SQLException;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -183,15 +186,10 @@ public class CommandProfile extends Command implements TabExecutor {
         player.sendMessage(TextComponent.fromLegacyText(ChatColor.GRAY + "Rank: " + playerData.getByBranch().getPrefix()));
         if (profile.getPronouns() != null)
             player.sendMessage(new TextComponent(ChatColor.GRAY + "Pronouns: " + reset + profile.getPronouns()));
-        player.sendMessage(new TextComponent(ChatColor.GRAY + "Registration date: " + reset + getFormattedRegistrationDate(profile.getRegistrationDate())));
+        player.sendMessage(new TextComponent(ChatColor.GRAY + "Registration date: " + reset + profile.getFormattedRegistrationDate("MMMM dd, yyyy")));
         if (profile.getBio() != null)
-            player.sendMessage(new TextComponent(ChatColor.GRAY + "Bio: " + reset + profile.getBio()));
+            player.sendMessage(new TextComponent(ChatColor.GRAY + "Bio: " + reset + ChatColor.translateAlternateColorCodes('&', profile.getBio())));
         player.sendMessage(new TextComponent(""));
 
-    }
-
-    private String getFormattedRegistrationDate(LocalDate registrationDate) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy"); // Define the desired format pattern
-        return registrationDate.format(formatter); // Format the registration date using the formatter
     }
 }
