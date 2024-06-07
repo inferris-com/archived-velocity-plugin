@@ -33,7 +33,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -99,6 +99,15 @@ public class PlayerDataManager {
         }
     }
 
+    public PlayerData getPlayerData(UUID uuid) {
+        if (caffeineCache.getIfPresent(uuid) != null) {
+            return caffeineCache.asMap().get(uuid);
+        } else {
+            Inferris.getInstance().getLogger().severe("Trying getRedisData");
+            return getRedisData(uuid);
+        }
+    }
+
     // TODO DEBUG, REMOVE
     public PlayerData getPlayerData(ProxiedPlayer player, String debugOnly) {
         if (caffeineCache.getIfPresent(player.getUniqueId()) != null) {
@@ -123,14 +132,6 @@ public class PlayerDataManager {
             Inferris.getInstance().getLogger().severe("Fetching data from Redis for: " + player.getName());
             return getRedisData(player);
         }, Inferris.getInstance().getExecutorService());  // Assuming you have an Executor for async tasks
-    }
-
-    public PlayerData getPlayerData(UUID uuid) {
-        if (caffeineCache.getIfPresent(uuid) != null) {
-            return caffeineCache.asMap().get(uuid);
-        } else {
-            return getRedisData(uuid);
-        }
     }
 
     /**
@@ -274,7 +275,7 @@ public class PlayerDataManager {
             updateCaffeineCache(player, playerData);
             Inferris.getInstance().getLogger().info("Updated all data and Redis information via Jedis. We let the front-end know, it has the cue!");
 
-            jedis.publish(JedisChannels.PLAYERDATA_UPDATE.getChannelName(), player.getUniqueId().toString());
+            jedis.publish(JedisChannels.PLAYERDATA_UPDATE_TO_FRONTEND.getChannelName(), player.getUniqueId().toString());
             Inferris.getInstance().getLogger().severe(player.getUniqueId().toString());
 
         } catch (JsonProcessingException e) {
@@ -282,7 +283,37 @@ public class PlayerDataManager {
         }
     }
 
-    // todo forgot to add options for other publish parameters sigh
+    public void updateAllDataAndPush(UUID uuid, PlayerData playerData) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            // Serialize and save player data to Redis
+            jedis.hset("playerdata", uuid.toString(), SerializationUtils.serializePlayerData(playerData));
+
+            // Retrieve the ProxiedPlayer object
+            ProxiedPlayer player = ProxyServer.getInstance().getPlayer(uuid);
+
+            // Check if the player is not null and is connected
+            if (player != null && player.isConnected()) {
+                updateCaffeineCache(player, playerData);
+                Inferris.getInstance().getLogger().info("Updated Caffeine cache for online player: " + player.getName());
+            } else {
+                // Log detailed information if the player is null or not connected
+                if (player == null) {
+                    Inferris.getInstance().getLogger().severe("ProxiedPlayer is null for UUID: " + uuid);
+                } else {
+                    Inferris.getInstance().getLogger().severe("ProxiedPlayer is not connected for UUID: " + uuid);
+                }
+            }
+
+            // Log update to Redis and publish the update
+            Inferris.getInstance().getLogger().info("Updated all data and Redis information via Jedis. We let the front-end know, it has the cue!");
+            jedis.publish(JedisChannels.PLAYERDATA_UPDATE_TO_FRONTEND.getChannelName(), uuid.toString());
+            Inferris.getInstance().getLogger().severe("Published update for UUID: " + uuid);
+
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void updateAllDataAndPush(ProxiedPlayer player, PlayerData playerData, JedisChannels jedisChannels) {
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.hset("playerdata", player.getUniqueId().toString(), SerializationUtils.serializePlayerData(playerData));
@@ -290,7 +321,7 @@ public class PlayerDataManager {
             Inferris.getInstance().getLogger().info("Updated all data and Redis information via Jedis. We let the front-end know, it has the cue!");
 
             switch (jedisChannels) {
-                case PLAYERDATA_UPDATE:
+                case PLAYERDATA_UPDATE_TO_FRONTEND:
                 case PLAYERDATA_VANISH:
                     jedis.publish(jedisChannels.getChannelName(), player.getUniqueId().toString());
                     //case PLAYERDATA_VANISH:jedis.publish(jedisChannels.getChannelName(), CacheSerializationUtils.serializePlayerData(playerData));
@@ -334,6 +365,7 @@ public class PlayerDataManager {
         }
     }
 
+    // todo player data might be null on an offline ca;;, fix asap
     public PlayerData getPlayerDataFromDatabase(UUID uuid) {
         PlayerData playerData = null;
         Profile profile = null;
@@ -373,28 +405,33 @@ public class PlayerDataManager {
                 }
 
                 // Query for profile data
-                LocalDate registrationDate = null;
+                Long registrationDate = null;
                 String bio = null;
                 String pronouns = null;
                 int xenforoId = 0;
                 int discordLinked = 0;
                 boolean isDiscordLinked = false;
+                int flaggedInt = 0;
+                boolean isFlagged = false;
 
                 PreparedStatement selectProfileStatement = connection.prepareStatement("SELECT * FROM " + Table.PROFILE.getName() + " WHERE uuid = ?");
                 selectProfileStatement.setString(1, uuid.toString());
                 ResultSet profileResultSet = selectProfileStatement.executeQuery();
 
                 if (profileResultSet.next()) {
-                    registrationDate = LocalDate.parse(profileResultSet.getString("join_date"));
+                    registrationDate = profileResultSet.getLong("join_date");
                     bio = profileResultSet.getString("bio");
                     pronouns = profileResultSet.getString("pronouns");
                     xenforoId = profileResultSet.getInt("xenforo_id"); // Replace with the actual column name
                     discordLinked = profileResultSet.getInt("discord_linked");
+                    flaggedInt = profileResultSet.getInt("is_flagged");
 
                     if (discordLinked != 0) {
                         isDiscordLinked = true;
                     }
-                    profile = new Profile(registrationDate, bio, pronouns, xenforoId, isDiscordLinked);
+                    isFlagged = (flaggedInt != 0);
+
+                    profile = new Profile(registrationDate, bio, pronouns, xenforoId, isDiscordLinked, isFlagged);
                 }
 
                 playerData = new PlayerData(uuid, username, rank, profile, new Coins(coins), channel, vanishState, Server.LOBBY);
@@ -446,28 +483,34 @@ public class PlayerDataManager {
                 }
 
                 // Query for profile data
-                LocalDate registrationDate = null;
+                Long registrationDate = null;
                 String bio = null;
                 String pronouns = null;
                 int xenforoId = 0;
                 int discordLinked = 0;
                 boolean isDiscordLinked = false;
+                int flaggedInt = 0;
+                boolean isFlagged = false;
 
                 PreparedStatement selectProfileStatement = connection.prepareStatement("SELECT * FROM " + Table.PROFILE.getName() + " WHERE uuid = ?");
                 selectProfileStatement.setString(1, uuid.toString());
                 ResultSet profileResultSet = selectProfileStatement.executeQuery();
 
                 if (profileResultSet.next()) {
-                    registrationDate = LocalDate.parse(profileResultSet.getString("join_date"));
+                    registrationDate = profileResultSet.getLong("join_date");
                     bio = profileResultSet.getString("bio");
                     pronouns = profileResultSet.getString("pronouns");
                     xenforoId = profileResultSet.getInt("xenforo_id"); // Replace with the actual column name
                     discordLinked = profileResultSet.getInt("discord_linked");
+                    flaggedInt = profileResultSet.getInt("is_flagged");
 
                     if (discordLinked != 0) {
                         isDiscordLinked = true;
                     }
-                    profile = new Profile(registrationDate, bio, pronouns, xenforoId, isDiscordLinked);
+
+                    isFlagged = (flaggedInt != 0);
+
+                    profile = new Profile(registrationDate, bio, pronouns, xenforoId, isDiscordLinked, isFlagged);
                 }
                 playerData = new PlayerData(uuid, username, rank, profile, new Coins(coins), channel, vanishState, Server.LOBBY);
             } else {
@@ -497,7 +540,7 @@ public class PlayerDataManager {
             insertPlayersStatement.execute();
 
             insertProfileStatement.setString(1, uuid.toString());
-            insertProfileStatement.setString(2, String.valueOf(LocalDate.now()));
+            insertProfileStatement.setString(2, String.valueOf(Instant.now().getEpochSecond()));
             insertProfileStatement.setString(3, null);
             insertProfileStatement.setString(4, null);
             insertProfileStatement.execute();
@@ -567,7 +610,6 @@ public class PlayerDataManager {
                     updateCaffeineCache(player, playerData);
                     logPlayerData(playerData);
                 }
-                return true;
             } else {
                 ServerUtil.log("Not in Redis, checking database", Level.WARNING, ServerState.DEBUG);
 
@@ -579,8 +621,8 @@ public class PlayerDataManager {
                 }
 
                 // Shouldn't reach here but just in case
-                return true;
             }
+            return true;
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -640,7 +682,7 @@ public class PlayerDataManager {
         // Create and return an empty Registry object with default values
         return new PlayerData(player.getUniqueId(), player.getName(),
                 new Rank(0, 0, 0, 0),
-                new Profile(null, null, null, 0, false),
+                new Profile(null, null, null, 0, false, false),
                 new Coins(36), Channel.NONE, VanishState.DISABLED, Server.LOBBY);
     }
 
@@ -648,7 +690,7 @@ public class PlayerDataManager {
         // Create and return an empty Registry object with default values
         return new PlayerData(uuid, username,
                 new Rank(0, 0, 0, 0),
-                new Profile(null, null, null, 0, false),
+                new Profile(null, null, null, 0, false, false),
                 new Coins(36), Channel.NONE, VanishState.DISABLED, Server.LOBBY);
     }
 
