@@ -10,6 +10,7 @@ import com.inferris.rank.Branch;
 import com.inferris.serialization.ViewlogSerializer;
 import com.inferris.server.*;
 import com.inferris.server.jedis.JedisChannel;
+import com.inferris.util.ServerUtil;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -24,6 +25,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 /**
  * The CommandViewlogs class represents a command used to view logs of a specific server in a game proxy.
@@ -51,10 +53,14 @@ public class CommandViewlogs extends Command {
                 return;
             }
 
+            // Generate callback ID
             UUID requestId = UUID.randomUUID();
+            Inferris.getInstance().getLogger().info("Generated requestId: " + requestId);
+
             callbacks.put(requestId, logData -> {
                 sender.sendMessage(new TextComponent(logData));
                 callbacks.remove(requestId);
+                Inferris.getInstance().getLogger().info("Callback executed and removed for requestId: " + requestId);
             });
 
             String requestedServer = args[0].toLowerCase();
@@ -64,9 +70,9 @@ public class CommandViewlogs extends Command {
             }
 
             try (Jedis jedis = Inferris.getJedisPool().getResource()) {
-                String payload = requestedServer + ":" + player.getUniqueId().toString() + ":" + requestId;
                 ViewlogMessage viewlogMessage = new ViewlogMessage(requestId, player.getUniqueId(), requestedServer, null, 0L, null);
-                Inferris.getInstance().getLogger().info("[CommandViewlogs] Publishing payload: " + payload);
+
+                Inferris.getInstance().getLogger().info("[CommandViewlogs] Publishing payload: " + ViewlogSerializer.serialize(viewlogMessage));
 
                 // remember: diff payloads
                 jedis.publish(JedisChannel.VIEW_LOGS_PROXY_TO_SPIGOT.getChannelName(), new EventPayload(player.getUniqueId(),
@@ -108,7 +114,9 @@ public class CommandViewlogs extends Command {
     }
 
     public void onLogReceived(String requestedServer, UUID requestId, UUID playerUuid, List<String> logData) {
+        ServerUtil.log("Callback size: " + callbacks.size(), Level.INFO, ServerState.DEBUG);
         if (callbacks.containsKey(requestId)) {
+            Inferris.getInstance().getLogger().warning("Contains key: onLogReceived");
             Consumer<String> callback = callbacks.get(requestId);
 
             ProxyServer.getInstance().getScheduler().runAsync(Inferris.getInstance(), () -> {
@@ -117,8 +125,6 @@ public class CommandViewlogs extends Command {
                     Inferris.getInstance().getLogger().info("Player with UUID " + playerUuid + " not found.");
                     return;
                 }
-
-                ObjectMapper objectMapper = new ObjectMapper();
 
                 StringBuilder formattedLogs = new StringBuilder();
                 if (logData.isEmpty()) {
@@ -130,14 +136,10 @@ public class CommandViewlogs extends Command {
                     }
                 }
 
-                if (ServerStateManager.getCurrentState() == ServerState.DEBUG) {
-                    Inferris.getInstance().getLogger().severe("================================");
-                    Inferris.getInstance().getLogger().severe("[Bungee] Viewlog Event has been received");
-                    Inferris.getInstance().getLogger().severe("================================");
-                }
-
                 callback.accept(formattedLogs.toString());
             });
+        } else {
+            Inferris.getInstance().getLogger().severe("Does not contain key: onLogReceived");
         }
     }
 
