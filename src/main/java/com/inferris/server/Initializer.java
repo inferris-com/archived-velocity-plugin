@@ -64,7 +64,7 @@ public class Initializer {
         pluginManager.registerCommand(instance, new CommandConvertTimezone("converttime"));
 
         CommandViewlogs commandViewlogs = new CommandViewlogs("viewlogs");
-        pluginManager.registerCommand(instance, new CommandViewlogs("viewlogs"));
+        pluginManager.registerCommand(instance, commandViewlogs);
 
         plugin.getProxy().registerChannel(BungeeChannel.STAFFCHAT.getName());
         plugin.getProxy().registerChannel(BungeeChannel.PLAYER_REGISTRY.getName());
