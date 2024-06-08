@@ -10,10 +10,10 @@ public class JedisEventDispatcher {
         eventHandlers.put(channel, handler);
     }
 
-    public void dispatch(String channel, String message) {
+    public void dispatch(String channel, String message, String senderId) {
         JedisEventHandler handler = eventHandlers.get(channel);
         if (handler != null) {
-            handler.handle(message);
+            handler.handle(message, senderId);
         } else {
             System.err.println("No handler registered for channel: " + channel);
         }
