@@ -7,6 +7,7 @@ import com.inferris.commands.cache.CommandJokeCache;
 import com.inferris.commands.cache.CommandMessageCache;
 import com.inferris.config.ConfigType;
 import com.inferris.events.redis.EventPayload;
+import com.inferris.events.redis.PlayerAction;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.server.jedis.JedisChannels;
@@ -96,8 +97,8 @@ public class CommandMessage extends Command implements TabExecutor {
         sender.sendMessage(new TextComponent(ChatColor.GREEN + "Message sent!"));
         sender.sendMessage(TextComponent.fromLegacyText(ChatColor.GRAY + "To " + receiverRank.getPrefix(true) + ChatColor.RESET + receiver.getName() + ": " + message));
         receiver.sendMessage(TextComponent.fromLegacyText(ChatColor.GRAY + "From " + playerRank.getPrefix(true) + ChatColor.RESET + sender.getName() + ": " + message));
-        EventPayload payload = new EventPayload(receiver.getUniqueId(), EventPayload.Action.NOTIFY, "ENTITY_CHICKEN_EGG");
-        JedisHelper.publish(JedisChannels.FLEX_EVENT, payload.toPayloadString());
+        EventPayload payload = new EventPayload(receiver.getUniqueId(), PlayerAction.NOTIFY, "ENTITY_CHICKEN_EGG", Inferris.getInstanceId());
+        JedisHelper.publish(JedisChannels.PLAYER_FLEX_EVENT, payload.toPayloadString());
     }
 
     @Override
