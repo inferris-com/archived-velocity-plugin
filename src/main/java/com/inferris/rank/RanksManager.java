@@ -169,7 +169,7 @@ public class RanksManager {
                      Redis data to see if it warrants front-end update mechanisms! Same with vanish
                      */
 
-                    PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData, JedisChannels.PLAYERDATA_UPDATE_TO_FRONTEND);
+                    PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData, JedisChannels.PLAYERDATA_UPDATE);
 
                     // What the fuck is this?
                     String payload = playerData.getCurrentServer().name() + ":" + json;

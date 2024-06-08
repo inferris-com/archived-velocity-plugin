@@ -11,7 +11,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 public class EventUpdateDataFromSpigot implements JedisEventHandler {
     @Override
-    public void handle(String message) {
+    public void handle(String message, String senderId) {
         Inferris.getInstance().getLogger().severe("Spigot updated Proxy cache");
 
         try {

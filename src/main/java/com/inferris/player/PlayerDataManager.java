@@ -7,6 +7,8 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.inferris.Inferris;
+import com.inferris.events.redis.EventPayload;
+import com.inferris.events.redis.PlayerAction;
 import com.inferris.player.friends.Friends;
 import com.inferris.player.friends.FriendsManager;
 import com.inferris.serialization.SerializationModule;
@@ -275,7 +277,11 @@ public class PlayerDataManager {
             updateCaffeineCache(player, playerData);
             Inferris.getInstance().getLogger().info("Updated all data and Redis information via Jedis. We let the front-end know, it has the cue!");
 
-            jedis.publish(JedisChannels.PLAYERDATA_UPDATE_TO_FRONTEND.getChannelName(), player.getUniqueId().toString());
+            //jedis.publish(JedisChannels.PLAYERDATA_UPDATE.getChannelName(), player.getUniqueId().toString());
+            jedis.publish(JedisChannels.PLAYERDATA_UPDATE.getChannelName(), new EventPayload(player.getUniqueId(),
+                    PlayerAction.UPDATE_PLAYER_DATA,
+                    null,
+                    Inferris.getInstanceId()).toPayloadString());
             Inferris.getInstance().getLogger().severe(player.getUniqueId().toString());
 
         } catch (JsonProcessingException e) {
@@ -306,7 +312,11 @@ public class PlayerDataManager {
 
             // Log update to Redis and publish the update
             Inferris.getInstance().getLogger().info("Updated all data and Redis information via Jedis. We let the front-end know, it has the cue!");
-            jedis.publish(JedisChannels.PLAYERDATA_UPDATE_TO_FRONTEND.getChannelName(), uuid.toString());
+            //jedis.publish(JedisChannels.PLAYERDATA_UPDATE.getChannelName(), uuid.toString());
+            jedis.publish(JedisChannels.PLAYERDATA_UPDATE.getChannelName(), new EventPayload(player.getUniqueId(),
+                    PlayerAction.UPDATE_PLAYER_DATA,
+                    null,
+                    Inferris.getInstanceId()).toPayloadString());
             Inferris.getInstance().getLogger().severe("Published update for UUID: " + uuid);
 
         } catch (JsonProcessingException e) {
@@ -321,9 +331,14 @@ public class PlayerDataManager {
             Inferris.getInstance().getLogger().info("Updated all data and Redis information via Jedis. We let the front-end know, it has the cue!");
 
             switch (jedisChannels) {
-                case PLAYERDATA_UPDATE_TO_FRONTEND:
+                case PLAYERDATA_UPDATE:
                 case PLAYERDATA_VANISH:
-                    jedis.publish(jedisChannels.getChannelName(), player.getUniqueId().toString());
+                    jedis.publish(jedisChannels.getChannelName(), new EventPayload(player.getUniqueId(),
+                                    PlayerAction.UPDATE_PLAYER_DATA,
+                                    null,
+                                    Inferris.getInstanceId()).toPayloadString());
+
+                    Inferris.getInstance().getLogger().severe("Instance ID: " + Inferris.getInstanceId());
                     //case PLAYERDATA_VANISH:jedis.publish(jedisChannels.getChannelName(), CacheSerializationUtils.serializePlayerData(playerData));
 
             }

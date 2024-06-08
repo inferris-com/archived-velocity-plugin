@@ -3,12 +3,18 @@ package com.inferris.events.redis;
 import com.inferris.Inferris;
 import com.inferris.commands.CommandViewlogs;
 import com.inferris.events.redis.dispatching.JedisEventHandler;
+import com.inferris.messaging.ViewlogMessage;
+import com.inferris.serialization.ViewlogSerializer;
 import com.inferris.server.ServerState;
 import com.inferris.server.ServerStateManager;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.util.UUID;
+
+/**
+ * THis is the final destination of viewlog. /viewlogs pubs to -> Spigot, collects the needed logs, and -> pubs to Backend -> we receive here
+ */
 
 public class EventViewlog implements JedisEventHandler {
     private final CommandViewlogs viewLogCommand;
@@ -18,19 +24,17 @@ public class EventViewlog implements JedisEventHandler {
     }
 
     @Override
-    public void handle(String message) {
+    public void handle(String message, String senderId) {
+        EventPayload payload = EventPayload.fromPayloadString(message);
+
         if (ServerStateManager.getCurrentState() == ServerState.DEBUG) {
             Inferris.getInstance().getLogger().warning("Executing processMessage: " + message); // Logging for debugging
         }
 
-        String[] parts = message.split(":", 4); // Split into four parts
-        String requestedServer = parts[0];
-        UUID uuid = UUID.fromString(parts[1]);
-        UUID requestUuid = UUID.fromString(parts[2]);
-        String json = parts[3];
+        // Deserialize logs into usable form
+        ViewlogMessage viewlogMessage = ViewlogSerializer.deserialize(payload.getData());
 
-        viewLogCommand.onLogReceived(requestedServer, requestUuid, uuid, json);
-
-        ProxiedPlayer player = ProxyServer.getInstance().getPlayer(uuid);
+        // Trigger received log method
+        viewLogCommand.onLogReceived(viewlogMessage.getRequestedServer(), viewlogMessage.getUniqueRequestId(), payload.getUuid(), viewlogMessage.getChatLogMessages());
     }
 }

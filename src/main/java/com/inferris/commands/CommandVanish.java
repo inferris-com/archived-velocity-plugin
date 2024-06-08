@@ -2,6 +2,8 @@ package com.inferris.commands;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.inferris.Inferris;
+import com.inferris.events.redis.EventPayload;
+import com.inferris.events.redis.PlayerAction;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.player.vanish.VanishState;
@@ -52,15 +54,21 @@ public class CommandVanish extends Command implements TabExecutor {
                     //BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_DATA, Subchannel.VANISH, Subchannel.FORWARD, VanishState.ENABLED.name());
                 }
 
-                if(args[0].equalsIgnoreCase("join")){
-                    try(Jedis jedis = Inferris.getJedisPool().getResource()){
-                        jedis.publish(JedisChannels.PLAYERDATA_VANISH.getChannelName(), player.getUniqueId().toString() + ":join");
+                if (args[0].equalsIgnoreCase("join")) {
+                    try (Jedis jedis = Inferris.getJedisPool().getResource()) {
+                        jedis.publish(JedisChannels.PLAYERDATA_VANISH.getChannelName(), new EventPayload(player.getUniqueId(),
+                                PlayerAction.VANISH,
+                                "join",
+                                Inferris.getInstanceId()).toPayloadString());
                     }
                 }
 
-                if(args[0].equalsIgnoreCase("quit")){
-                    try(Jedis jedis = Inferris.getJedisPool().getResource()){
-                        jedis.publish(JedisChannels.PLAYERDATA_VANISH.getChannelName(), player.getUniqueId().toString() + ":quit");
+                if (args[0].equalsIgnoreCase("quit")) {
+                    try (Jedis jedis = Inferris.getJedisPool().getResource()) {
+                        jedis.publish(JedisChannels.PLAYERDATA_VANISH.getChannelName(), new EventPayload(player.getUniqueId(),
+                                PlayerAction.VANISH,
+                                "quit",
+                                Inferris.getInstanceId()).toPayloadString());
                     }
                 }
             } else {

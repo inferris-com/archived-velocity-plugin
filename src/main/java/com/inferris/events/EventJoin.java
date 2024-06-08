@@ -5,6 +5,7 @@ import com.inferris.common.ColorType;
 import com.inferris.config.ConfigType;
 import com.inferris.config.ConfigurationHandler;
 import com.inferris.events.redis.EventPayload;
+import com.inferris.events.redis.PlayerAction;
 import com.inferris.server.jedis.JedisChannels;
 import com.inferris.server.jedis.JedisHelper;
 import com.inferris.tasks.PlayerTaskManager;
@@ -79,7 +80,7 @@ public class EventJoin implements Listener {
                 ProxyServer.getInstance().broadcast(TextComponent.fromLegacyText(ChatColor.YELLOW + "Let’s give a warm welcome to " + ChatColor.of(ColorType.BRAND_SECONDARY.getColor())
                         + player.getName() + ChatColor.YELLOW + " who has just joined us!"));
 
-                JedisHelper.publish(JedisChannels.FLEX_EVENT, new EventPayload(player.getUniqueId(), EventPayload.Action.WELCOME, null).toPayloadString());
+                JedisHelper.publish(JedisChannels.PLAYER_FLEX_EVENT, new EventPayload(player.getUniqueId(), PlayerAction.WELCOME, null, Inferris.getInstanceId()).toPayloadString());
             };
 
             Runnable welcomeRunnable2 = () -> {

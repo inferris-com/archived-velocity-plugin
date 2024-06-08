@@ -9,15 +9,21 @@ import com.inferris.serialization.StaffChatSerializer;
 import com.inferris.server.ServerState;
 import com.inferris.server.ServerStateManager;
 import com.inferris.util.ChatUtil;
+import net.md_5.bungee.api.ProxyServer;
 
 public class EventStaffchat implements JedisEventHandler {
     @Override
-    public void handle(String message) {
+    public void handle(String message, String senderId) {
+        EventPayload payload = EventPayload.fromPayloadString(message);
+        ProxyServer.getInstance().getLogger().severe("Payload: " + payload.toPayloadString());
+        if (ProxyServer.getInstance().getPlayer(payload.getUuid()) == null || senderId.equals(Inferris.getInstanceId())) {
+            return;
+        }
 
         if (ServerStateManager.getCurrentState() == ServerState.DEBUG)
             Inferris.getInstance().getLogger().severe("Triggered");
 
-        StaffChatMessage staffChatMessage = StaffChatSerializer.deserialize(message);
+        StaffChatMessage staffChatMessage = StaffChatSerializer.deserialize(payload.getData());
         assert staffChatMessage != null;
 
         Channel channel = staffChatMessage.getChannel();

@@ -1,11 +1,13 @@
 package com.inferris.commands;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.inferris.Inferris;
+import com.inferris.events.redis.EventPayload;
+import com.inferris.events.redis.PlayerAction;
+import com.inferris.messaging.ViewlogMessage;
 import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.Branch;
+import com.inferris.serialization.ViewlogSerializer;
 import com.inferris.server.*;
 import com.inferris.server.jedis.JedisChannels;
 import net.md_5.bungee.api.ChatColor;
@@ -63,9 +65,14 @@ public class CommandViewlogs extends Command {
 
             try (Jedis jedis = Inferris.getJedisPool().getResource()) {
                 String payload = requestedServer + ":" + player.getUniqueId().toString() + ":" + requestId;
+                ViewlogMessage viewlogMessage = new ViewlogMessage(requestId, player.getUniqueId(), requestedServer, null, 0L, null);
                 Inferris.getInstance().getLogger().info("[CommandViewlogs] Publishing payload: " + payload);
 
-                jedis.publish(JedisChannels.VIEW_LOGS_PROXY_TO_SPIGOT.getChannelName(), payload);
+                // remember: diff payloads
+                jedis.publish(JedisChannels.VIEW_LOGS_PROXY_TO_SPIGOT.getChannelName(), new EventPayload(player.getUniqueId(),
+                        PlayerAction.VIEW_LOGS,
+                        ViewlogSerializer.serialize(viewlogMessage),
+                        Inferris.getInstanceId()).toPayloadString());
 
                 ProxyServer.getInstance().getScheduler().schedule(Inferris.getInstance(), () -> {
                     if (callbacks.containsKey(requestId)) {
@@ -80,7 +87,7 @@ public class CommandViewlogs extends Command {
 
     @Override
     public boolean hasPermission(CommandSender sender) {
-        return PlayerDataManager.getInstance().getPlayerData((ProxiedPlayer) sender).getBranchValue(Branch.STAFF) >=3;
+        return PlayerDataManager.getInstance().getPlayerData((ProxiedPlayer) sender).getBranchValue(Branch.STAFF) >= 3;
     }
 
     /**
@@ -100,7 +107,7 @@ public class CommandViewlogs extends Command {
         return false;
     }
 
-    public void onLogReceived(String requestedServer, UUID requestId, UUID playerUuid, String logData) {
+    public void onLogReceived(String requestedServer, UUID requestId, UUID playerUuid, List<String> logData) {
         if (callbacks.containsKey(requestId)) {
             Consumer<String> callback = callbacks.get(requestId);
 
@@ -112,32 +119,24 @@ public class CommandViewlogs extends Command {
                 }
 
                 ObjectMapper objectMapper = new ObjectMapper();
-                try {
-                    List<String> chatMessages = objectMapper.readValue(logData, new TypeReference<List<String>>() {
-                    });
 
-                    StringBuilder formattedLogs = new StringBuilder();
-                    if (chatMessages.toString().equalsIgnoreCase("[]")) {
-                        formattedLogs.append(ChatColor.RED).append("No chat log messages available.");
-                    } else {
-                        formattedLogs.append(ChatColor.AQUA).append("Chat logs for ").append(requestedServer).append(":").append("\n");
-                        for (String chatMessage : chatMessages) {
-                            formattedLogs.append(formatChatMessage(chatMessage)).append("\n");
-                        }
+                StringBuilder formattedLogs = new StringBuilder();
+                if (logData.isEmpty()) {
+                    formattedLogs.append(ChatColor.RED).append("No chat log messages available.");
+                } else {
+                    formattedLogs.append(ChatColor.AQUA).append("Chat logs for ").append(requestedServer).append(":").append("\n");
+                    for (String chatMessage : logData) {
+                        formattedLogs.append(formatChatMessage(chatMessage)).append("\n");
                     }
-
-                    if (ServerStateManager.getCurrentState() == ServerState.DEBUG) {
-                        Inferris.getInstance().getLogger().severe("================================");
-                        Inferris.getInstance().getLogger().severe("[Bungee] Viewlog Event has been received");
-                        Inferris.getInstance().getLogger().severe("================================");
-                    }
-
-                    callback.accept(formattedLogs.toString());
-
-                } catch (JsonProcessingException e) {
-                    player.sendMessage(new TextComponent(ChatColor.RED + "Error processing chat log data."));
-                    Inferris.getInstance().getLogger().severe("Error processing chat log data: " + e.getMessage());
                 }
+
+                if (ServerStateManager.getCurrentState() == ServerState.DEBUG) {
+                    Inferris.getInstance().getLogger().severe("================================");
+                    Inferris.getInstance().getLogger().severe("[Bungee] Viewlog Event has been received");
+                    Inferris.getInstance().getLogger().severe("================================");
+                }
+
+                callback.accept(formattedLogs.toString());
             });
         }
     }
