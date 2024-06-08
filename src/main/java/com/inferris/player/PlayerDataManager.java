@@ -22,7 +22,7 @@ import com.inferris.rank.RanksManager;
 import com.inferris.server.Server;
 import com.inferris.server.ServerState;
 import com.inferris.server.ServerStateManager;
-import com.inferris.server.jedis.JedisChannels;
+import com.inferris.server.jedis.JedisChannel;
 import com.inferris.util.SerializationUtils;
 import com.inferris.util.DatabaseUtils;
 import com.inferris.util.ServerUtil;
@@ -278,7 +278,7 @@ public class PlayerDataManager {
             Inferris.getInstance().getLogger().info("Updated all data and Redis information via Jedis. We let the front-end know, it has the cue!");
 
             //jedis.publish(JedisChannels.PLAYERDATA_UPDATE.getChannelName(), player.getUniqueId().toString());
-            jedis.publish(JedisChannels.PLAYERDATA_UPDATE.getChannelName(), new EventPayload(player.getUniqueId(),
+            jedis.publish(JedisChannel.PLAYERDATA_UPDATE.getChannelName(), new EventPayload(player.getUniqueId(),
                     PlayerAction.UPDATE_PLAYER_DATA,
                     null,
                     Inferris.getInstanceId()).toPayloadString());
@@ -313,7 +313,7 @@ public class PlayerDataManager {
             // Log update to Redis and publish the update
             Inferris.getInstance().getLogger().info("Updated all data and Redis information via Jedis. We let the front-end know, it has the cue!");
             //jedis.publish(JedisChannels.PLAYERDATA_UPDATE.getChannelName(), uuid.toString());
-            jedis.publish(JedisChannels.PLAYERDATA_UPDATE.getChannelName(), new EventPayload(player.getUniqueId(),
+            jedis.publish(JedisChannel.PLAYERDATA_UPDATE.getChannelName(), new EventPayload(player.getUniqueId(),
                     PlayerAction.UPDATE_PLAYER_DATA,
                     null,
                     Inferris.getInstanceId()).toPayloadString());
@@ -324,7 +324,7 @@ public class PlayerDataManager {
         }
     }
 
-    public void updateAllDataAndPush(ProxiedPlayer player, PlayerData playerData, JedisChannels jedisChannels) {
+    public void updateAllDataAndPush(ProxiedPlayer player, PlayerData playerData, JedisChannel jedisChannels) {
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.hset("playerdata", player.getUniqueId().toString(), SerializationUtils.serializePlayerData(playerData));
             updateCaffeineCache(player, playerData);

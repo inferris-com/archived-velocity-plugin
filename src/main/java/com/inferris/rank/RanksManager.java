@@ -5,8 +5,7 @@ import com.inferris.Inferris;
 import com.inferris.database.DatabasePool;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
-import com.inferris.server.jedis.JedisChannels;
-import com.inferris.server.jedis.JedisHelper;
+import com.inferris.server.jedis.JedisChannel;
 import com.inferris.util.SerializationUtils;
 import com.inferris.util.DatabaseUtils;
 import net.md_5.bungee.api.ProxyServer;
@@ -169,7 +168,7 @@ public class RanksManager {
                      Redis data to see if it warrants front-end update mechanisms! Same with vanish
                      */
 
-                    PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData, JedisChannels.PLAYERDATA_UPDATE);
+                    PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData, JedisChannel.PLAYERDATA_UPDATE);
 
                     // What the fuck is this?
                     String payload = playerData.getCurrentServer().name() + ":" + json;

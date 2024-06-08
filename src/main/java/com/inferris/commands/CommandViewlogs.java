@@ -9,7 +9,7 @@ import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.Branch;
 import com.inferris.serialization.ViewlogSerializer;
 import com.inferris.server.*;
-import com.inferris.server.jedis.JedisChannels;
+import com.inferris.server.jedis.JedisChannel;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -69,7 +69,7 @@ public class CommandViewlogs extends Command {
                 Inferris.getInstance().getLogger().info("[CommandViewlogs] Publishing payload: " + payload);
 
                 // remember: diff payloads
-                jedis.publish(JedisChannels.VIEW_LOGS_PROXY_TO_SPIGOT.getChannelName(), new EventPayload(player.getUniqueId(),
+                jedis.publish(JedisChannel.VIEW_LOGS_PROXY_TO_SPIGOT.getChannelName(), new EventPayload(player.getUniqueId(),
                         PlayerAction.VIEW_LOGS,
                         ViewlogSerializer.serialize(viewlogMessage),
                         Inferris.getInstanceId()).toPayloadString());

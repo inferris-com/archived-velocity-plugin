@@ -9,7 +9,7 @@ import com.inferris.player.PlayerDataManager;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
 import com.inferris.server.Message;
-import com.inferris.server.jedis.JedisChannels;
+import com.inferris.server.jedis.JedisChannel;
 import com.inferris.util.SerializationUtils;
 import com.inferris.util.DatabaseUtils;
 import net.md_5.bungee.api.ChatColor;
@@ -56,7 +56,7 @@ public class CommandVanish extends Command implements TabExecutor {
 
                 if (args[0].equalsIgnoreCase("join")) {
                     try (Jedis jedis = Inferris.getJedisPool().getResource()) {
-                        jedis.publish(JedisChannels.PLAYERDATA_VANISH.getChannelName(), new EventPayload(player.getUniqueId(),
+                        jedis.publish(JedisChannel.PLAYERDATA_VANISH.getChannelName(), new EventPayload(player.getUniqueId(),
                                 PlayerAction.VANISH,
                                 "join",
                                 Inferris.getInstanceId()).toPayloadString());
@@ -65,7 +65,7 @@ public class CommandVanish extends Command implements TabExecutor {
 
                 if (args[0].equalsIgnoreCase("quit")) {
                     try (Jedis jedis = Inferris.getJedisPool().getResource()) {
-                        jedis.publish(JedisChannels.PLAYERDATA_VANISH.getChannelName(), new EventPayload(player.getUniqueId(),
+                        jedis.publish(JedisChannel.PLAYERDATA_VANISH.getChannelName(), new EventPayload(player.getUniqueId(),
                                 PlayerAction.VANISH,
                                 "quit",
                                 Inferris.getInstanceId()).toPayloadString());
@@ -93,7 +93,7 @@ public class CommandVanish extends Command implements TabExecutor {
     private void updatePlayerData(ProxiedPlayer player, VanishState vanishState) {
         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
         playerData.setVanishState(vanishState);
-        PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData, JedisChannels.PLAYERDATA_VANISH);
+        PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData, JedisChannel.PLAYERDATA_VANISH);
         String json;
         try {
             json = SerializationUtils.serializePlayerData(playerData);

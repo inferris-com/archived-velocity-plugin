@@ -29,7 +29,7 @@ public class JedisHelper {
         }
     }
 
-    public static void publish(JedisChannels channel, String message) {
+    public static void publish(JedisChannel channel, String message) {
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.publish(channel.getChannelName(), message);
         }

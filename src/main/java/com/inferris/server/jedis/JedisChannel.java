@@ -1,6 +1,6 @@
 package com.inferris.server.jedis;
 
-public enum JedisChannels {
+public enum JedisChannel {
     GENERIC_FLEX_EVENT("flex_event:generic"),
     PLAYER_FLEX_EVENT("flex_event:player"),
     PLAYERDATA_UPDATE("playerdata:update"),
@@ -16,7 +16,7 @@ public enum JedisChannels {
     TEST("test");
 
     private final String channelName;
-    JedisChannels(String channelName) {
+    JedisChannel(String channelName) {
         this.channelName = channelName;
     }
 
