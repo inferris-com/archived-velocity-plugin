@@ -7,10 +7,6 @@ import com.inferris.messaging.ViewlogMessage;
 import com.inferris.serialization.ViewlogSerializer;
 import com.inferris.server.ServerState;
 import com.inferris.server.ServerStateManager;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
-
-import java.util.UUID;
 
 /**
  * THis is the final destination of viewlog. /viewlogs pubs to -> Spigot, collects the needed logs, and -> pubs to Backend -> we receive here
@@ -35,6 +31,8 @@ public class EventViewlog implements JedisEventHandler {
         ViewlogMessage viewlogMessage = ViewlogSerializer.deserialize(payload.getData());
 
         // Trigger received log method
+
+        assert viewlogMessage != null;
         viewLogCommand.onLogReceived(viewlogMessage.getRequestedServer(), viewlogMessage.getUniqueRequestId(), payload.getUuid(), viewlogMessage.getChatLogMessages());
     }
 }
