@@ -2,10 +2,7 @@ package com.inferris.commands;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.inferris.player.Channel;
-import com.inferris.player.ChannelManager;
-import com.inferris.player.PlayerData;
-import com.inferris.player.PlayerDataManager;
+import com.inferris.player.*;
 import com.inferris.rank.Branch;
 import com.inferris.server.ErrorCode;
 import com.inferris.util.ChatUtil;
@@ -20,22 +17,22 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class CommandNuke extends Command {
-
+    private final PlayerDataService playerDataService;
     private static final String CONSOLE_IDENTIFIER = "console";
     private final Cache<String, Boolean> confirmationCache = Caffeine.newBuilder()
             .expireAfterWrite(1, TimeUnit.MINUTES) // Set TTL to 2 minutes
             .build();
 
-    public CommandNuke(String name) {
+    public CommandNuke(String name, PlayerDataService playerDataService) {
         super(name);
+        this.playerDataService = playerDataService;
     }
 
     @Override
     public boolean hasPermission(CommandSender sender) {
         if (sender instanceof ProxiedPlayer player) {
-            return PlayerDataManager.getInstance().getPlayerData(player).getBranchValue(Branch.STAFF) >= 3;
+            return playerDataService.getPlayerData(player.getUniqueId()).getRank().getBranchValue(Branch.STAFF) >= 3;
         }
-        // Allow console to execute the command
         return sender.getName().equalsIgnoreCase("CONSOLE");
     }
 
@@ -57,10 +54,10 @@ public class CommandNuke extends Command {
         String senderIdentifier = (sender instanceof ProxiedPlayer) ? ((ProxiedPlayer) sender).getUniqueId().toString() : CONSOLE_IDENTIFIER;
 
         UUID uuid;
-        PlayerData playerData;
+        PlayerData playerData; //todo
         try {
-            uuid = PlayerDataManager.getInstance().getUUIDByUsername(args[0]);
-            playerData = PlayerDataManager.getInstance().getPlayerDataFromDatabase(uuid);
+            uuid = playerDataService.fetchUUIDByUsername(args[0]);
+            playerData = playerDataService.fetchPlayerDataFromDatabase(uuid);
         } catch (Exception e) {
             sender.sendMessage(new TextComponent(ChatColor.RED + "An error occurred while retrieving player data: " + e.getMessage()));
             return;
@@ -80,11 +77,15 @@ public class CommandNuke extends Command {
 
 
         if(sender instanceof ProxiedPlayer player) {
-            ChannelManager.sendStaffChatMessage(Channel.STAFF, PlayerDataManager.getInstance().getPlayerData(player).getByBranch().getPrefix(true)
-            + ChatColor.RESET + player.getName() + ChatColor.YELLOW + " completely erased " + playerData.getByBranch().getPrefix(true)
+            PlayerDataService dataService = ServiceLocator.getPlayerDataService();
+            PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), dataService);
+            ChannelManager.sendStaffChatMessage(Channel.STAFF, playerContext.getRank().getByBranch().getPrefix(true)
+            + ChatColor.RESET + player.getName() + ChatColor.YELLOW + " completely erased " + playerContext.getRank().getByBranch().getPrefix(true)
             + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + "'s data", ChannelManager.StaffChatMessageType.NOTIFICATION);
         }else{
-            ChannelManager.sendStaffChatMessage(Channel.STAFF, ChatColor.RED + sender.getName() + ChatColor.YELLOW + " completely erased " + playerData.getByBranch().getPrefix(true)
+            PlayerContext playerContext = PlayerContextFactory.create(uuid, playerDataService);
+            ChannelManager.sendStaffChatMessage(Channel.STAFF, ChatColor.RED + sender.getName() + ChatColor.YELLOW + " completely erased "
+                    + playerContext.getRank().getByBranch().getPrefix(true)
                     + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + "'s data", ChannelManager.StaffChatMessageType.NOTIFICATION);
         }
 

@@ -1,6 +1,7 @@
 package com.inferris.commands;
 
 import com.inferris.player.PlayerDataManager;
+import com.inferris.player.PlayerDataService;
 import com.inferris.rank.Branch;
 import com.inferris.server.ServerState;
 import com.inferris.server.ServerStateManager;
@@ -18,9 +19,11 @@ import java.util.Collections;
 import java.util.List;
 
 public class CommandServerState extends Command implements TabExecutor {
+    private final PlayerDataService playerDataService;
 
-    public CommandServerState(String name) {
+    public CommandServerState(String name, PlayerDataService playerDataService) {
         super(name);
+        this.playerDataService = playerDataService;
     }
 
     @Override
@@ -65,7 +68,10 @@ public class CommandServerState extends Command implements TabExecutor {
 
     @Override
     public boolean hasPermission(CommandSender sender) {
-        return PlayerDataManager.getInstance().getPlayerData((ProxiedPlayer) sender).getBranchValue(Branch.STAFF) >= 3;
+        if (sender instanceof ProxiedPlayer player) {
+            return playerDataService.getPlayerData(player.getUniqueId()).getRank().getBranchValue(Branch.STAFF) >= 3;
+        }
+        return sender.getName().equalsIgnoreCase("CONSOLE");
     }
 
     @Override

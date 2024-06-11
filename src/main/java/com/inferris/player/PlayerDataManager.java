@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -69,11 +70,13 @@ public class PlayerDataManager {
     private final ObjectMapper objectMapper;
     private final Cache<UUID, PlayerData> caffeineCache;
     private final Logger logger = Inferris.getInstance().getLogger();
+    private final FetchPlayer fetchPlayer;
 
     private PlayerDataManager() {
         jedisPool = Inferris.getJedisPool(); // Set Redis server details
         objectMapper = SerializationUtils.createObjectMapper(new SerializationModule());
         caffeineCache = Caffeine.newBuilder().build();
+        fetchPlayer = new FetchPlayer(ServiceLocator.getPlayerDataService());
     }
 
     public static PlayerDataManager getInstance() {
@@ -82,6 +85,7 @@ public class PlayerDataManager {
         }
         return instance;
     }
+
 
     /**
      * Retrieves the player data for the specified player. The method first checks if the data is available in the
@@ -96,19 +100,21 @@ public class PlayerDataManager {
         if (caffeineCache.getIfPresent(player.getUniqueId()) != null) {
             return caffeineCache.asMap().get(player.getUniqueId());
         } else {
-            Inferris.getInstance().getLogger().severe("Trying getRedisData");
+            Inferris.getInstance().getLogger().severe("getPlayerData failed, trying getRedisData");
             return getRedisData(player);
         }
     }
 
     public PlayerData getPlayerData(UUID uuid) {
-        if (caffeineCache.getIfPresent(uuid) != null) {
-            return caffeineCache.asMap().get(uuid);
+        PlayerData cachedData = caffeineCache.getIfPresent(uuid);
+
+        if (cachedData != null) {
+            return cachedData;
         } else {
-            Inferris.getInstance().getLogger().severe("Trying getRedisData");
             return getRedisData(uuid);
         }
     }
+
 
     // TODO DEBUG, REMOVE
     public PlayerData getPlayerData(ProxiedPlayer player, String debugOnly) {
@@ -132,7 +138,30 @@ public class PlayerDataManager {
         // If not found in cache, fetch from Redis asynchronously
         return CompletableFuture.supplyAsync(() -> {
             Inferris.getInstance().getLogger().severe("Fetching data from Redis for: " + player.getName());
-            return getRedisData(player);
+            return getPlayerData(player);
+        }, Inferris.getInstance().getExecutorService());  // Assuming you have an Executor for async tasks
+    }
+
+    public CompletableFuture<PlayerData> getPlayerDataAsync(UUID uuid) {
+
+        // Check the caffeine cache first
+        PlayerData cachedData = caffeineCache.getIfPresent(uuid);
+        if (cachedData != null) {
+            return CompletableFuture.completedFuture(cachedData);
+        }
+
+        // If not found in cache, fetch from Redis asynchronously
+        return CompletableFuture.supplyAsync(() -> {
+            // Get the current stack trace
+            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+            // Log the details of the calling method (the element at index 2 should be the caller)
+            if (stackTrace.length > 2) {
+                StackTraceElement caller = stackTrace[2];
+                String logMessage = String.format("Method called from: %s.%s(%s:%d)",
+                        caller.getClassName(), caller.getMethodName(), caller.getFileName(), caller.getLineNumber());
+                Inferris.getInstance().getLogger().log(Level.SEVERE, logMessage);
+            }
+            return getPlayerData(uuid);
         }, Inferris.getInstance().getExecutorService());  // Assuming you have an Executor for async tasks
     }
 
@@ -149,7 +178,8 @@ public class PlayerDataManager {
             if (json != null) {
                 return SerializationUtils.deserializePlayerData(json);
             } else {
-                return this.getPlayerDataFromDatabase(player.getUniqueId());
+                Inferris.getInstance().getLogger().severe("Trying getPlayerDataFromDatabase");
+                return fetchPlayer.getPlayerDataFromDatabase(player.getUniqueId());
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
@@ -163,13 +193,12 @@ public class PlayerDataManager {
                 return SerializationUtils.deserializePlayerData(json);
             } else {
                 Inferris.getInstance().getLogger().severe("Trying getPlayerDataFromDatabase");
-                return this.getPlayerDataFromDatabase(uuid);
+                return fetchPlayer.getPlayerDataFromDatabase(uuid);
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
-
     /**
      * Retrieves the player data from the Redis server for the specified player, or returns null if no data is found.
      *
@@ -213,48 +242,6 @@ public class PlayerDataManager {
     }
 
     /**
-     * Retrieves the UUID associated with a given username from player data stored in Redis.
-     *
-     * @param username The username to search for.
-     * @return The UUID corresponding to the provided username, or null if no match is found.
-     */
-    public UUID getUUIDByUsername(String username) {
-        UUID uuid;
-        PlayerData playerData = null;
-
-        try (Jedis jedis = jedisPool.getResource()) {
-            String playerDataJson = jedis.hget("playerdata", username);
-
-            if (playerDataJson != null) {
-                JsonElement jsonElement = new Gson().fromJson(playerDataJson, JsonElement.class);
-                String uuidStr = jsonElement.getAsJsonObject().get("uuid").getAsString();
-                return UUID.fromString(uuidStr);
-            } else {
-                // Not found in Jedis, retrieve from the database
-                String condition = "`username` = '" + username + "'";
-                try (Connection connection = DatabasePool.getConnection()) {
-                    ResultSet resultSet = DatabaseUtils.queryData(connection, Table.PLAYER_DATA.getName(), new String[]{"uuid"}, condition);
-                    if (resultSet.next()) {
-                        uuid = UUID.fromString(resultSet.getString("uuid"));
-                        playerData = getPlayerDataFromDatabase(uuid);
-                    }
-                } catch (SQLException e) {
-                    Inferris.getInstance().getLogger().severe(e.getMessage());
-                }
-                if (playerData != null) {
-                    return playerData.getUuid();
-                }
-            }
-            return null; // Not found in both Jedis and the database
-        }
-    }
-
-    public boolean hasUUIDByUsername(String username) {
-        UUID uuid = getUUIDByUsername(username);
-        return uuid != null;
-    }
-
-    /**
      * Updates the player data for the specified player in the Redis server.
      *
      * @param player     The ProxiedPlayer object representing the player.
@@ -264,6 +251,16 @@ public class PlayerDataManager {
     public void updateAllData(ProxiedPlayer player, PlayerData playerData) {
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.hset("playerdata", player.getUniqueId().toString(), SerializationUtils.serializePlayerData(playerData));
+            updateCaffeineCache(player, playerData);
+            Inferris.getInstance().getLogger().info("Updated all data and Redis information via Jedis. Caches updated!");
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void updateAllData(UUID player, PlayerData playerData) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            jedis.hset("playerdata", player.toString(), SerializationUtils.serializePlayerData(playerData));
             updateCaffeineCache(player, playerData);
             Inferris.getInstance().getLogger().info("Updated all data and Redis information via Jedis. Caches updated!");
         } catch (JsonProcessingException e) {
@@ -348,6 +345,39 @@ public class PlayerDataManager {
         }
     }
 
+    public void updatePlayerDataTable(PlayerData playerData) {
+        String[] columnNames = {"username", "coins", "channel", "vanished"};
+        boolean isVanished = playerData.getVanishState() == VanishState.ENABLED;
+        Object[] values = {playerData.getUsername(), playerData.getCoins(), playerData.getChannel().name(), isVanished};
+        String whereClause = "uuid = ?";
+        try (Connection connection = DatabasePool.getConnection()) {
+            DatabaseUtils.updateData(connection, "player_data", columnNames, values, whereClause);
+        } catch (SQLException e) {
+            Inferris.getInstance().getLogger().warning("Failed to update player_data in the database: " + e.getMessage());
+        }
+    }
+    public void updateRankTable(Rank rank, UUID uuid) {
+        String[] columnNames = {"staff", "builder", "donor", "other"};
+        Object[] values = {rank.getStaff(), rank.getBuilder(), rank.getDonor(), rank.getOther()};
+        String whereClause = "uuid = ?";
+        try (Connection connection = DatabasePool.getConnection()) {
+            DatabaseUtils.updateData(connection, "rank", columnNames, values, whereClause);
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to update rank in the database", e);
+        }
+    }
+
+    public void updateProfileTable(Profile profile, UUID uuid) {
+        String[] columnNames = {"join_date", "bio", "pronouns", "xenforo_id", "discord_linked", "is_flagged"};
+        Object[] values = {profile.getRegistrationDate(), profile.getBio(), profile.getPronouns(), profile.getXenforoId(), profile.isDiscordLinked(), profile.isFlagged()};
+        String whereClause = "uuid = ?";
+        try (Connection connection = DatabasePool.getConnection()) {
+            DatabaseUtils.updateData(connection, "profile", columnNames, values, whereClause);
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to update profile in the database", e);
+        }
+    }
+
     public void updateRedisData(ProxiedPlayer player, PlayerData playerData) {
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.hset("playerdata", player.getUniqueId().toString(), SerializationUtils.serializePlayerData(playerData));
@@ -380,167 +410,6 @@ public class PlayerDataManager {
         }
     }
 
-    // todo player data might be null on an offline ca;;, fix asap
-    public PlayerData getPlayerDataFromDatabase(UUID uuid) {
-        PlayerData playerData = null;
-        Profile profile = null;
-        String username;
-
-        try (Connection connection = DatabasePool.getConnection();
-             PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM " + Table.PLAYER_DATA.getName() + " WHERE uuid = ?")) {
-
-            queryStatement.setString(1, uuid.toString());
-            ResultSet resultSet = queryStatement.executeQuery();
-
-            if (resultSet.next()) {
-                username = resultSet.getString("username");
-                int coins = resultSet.getInt("coins");
-                Channel channel = Channel.valueOf(resultSet.getString("channel"));
-                int vanished = resultSet.getInt("vanished");
-
-                VanishState vanishState;
-
-                if (vanished == 1) {
-                    vanishState = VanishState.ENABLED;
-                } else {
-                    vanishState = VanishState.DISABLED;
-                }
-
-                // Load ranks
-                Rank rank = RanksManager.getInstance().loadRanks(uuid, connection);
-
-                if (ProxyServer.getInstance().getPlayer(uuid) != null) {
-                    ProxiedPlayer player = ProxyServer.getInstance().getPlayer(uuid);
-                    if (!username.equals(player.getName())) {
-                        username = player.getName();
-                        playerData = this.getPlayerData(player, "#getPlayerFromDatabase");
-                        playerData.setUsername(player.getName());
-                        updateAllData(player, playerData);
-                    }
-                }
-
-                // Query for profile data
-                Long registrationDate = null;
-                String bio = null;
-                String pronouns = null;
-                int xenforoId = 0;
-                int discordLinked = 0;
-                boolean isDiscordLinked = false;
-                int flaggedInt = 0;
-                boolean isFlagged = false;
-
-                PreparedStatement selectProfileStatement = connection.prepareStatement("SELECT * FROM " + Table.PROFILE.getName() + " WHERE uuid = ?");
-                selectProfileStatement.setString(1, uuid.toString());
-                ResultSet profileResultSet = selectProfileStatement.executeQuery();
-
-                if (profileResultSet.next()) {
-                    registrationDate = profileResultSet.getLong("join_date");
-                    bio = profileResultSet.getString("bio");
-                    pronouns = profileResultSet.getString("pronouns");
-                    xenforoId = profileResultSet.getInt("xenforo_id"); // Replace with the actual column name
-                    discordLinked = profileResultSet.getInt("discord_linked");
-                    flaggedInt = profileResultSet.getInt("is_flagged");
-
-                    if (discordLinked != 0) {
-                        isDiscordLinked = true;
-                    }
-                    isFlagged = (flaggedInt != 0);
-
-                    profile = new Profile(registrationDate, bio, pronouns, xenforoId, isDiscordLinked, isFlagged);
-                }
-
-                playerData = new PlayerData(uuid, username, rank, profile, new Coins(coins), channel, vanishState, Server.LOBBY);
-            }
-        } catch (SQLException e) {
-            Inferris.getInstance().getLogger().warning(e.getMessage());
-        }
-
-        return playerData;
-    }
-
-    // PlayerData. It returns null if not in database
-    // PlayerData playerData = getPlayerDataFromDatabase(player.getUniqueId(), player.getName(), true);
-    // todo, return type
-    public PlayerData getPlayerDataFromDatabase(UUID uuid, String username, boolean insertData) {
-        PlayerData playerData = null;
-        Profile profile = null;
-
-        try (Connection connection = DatabasePool.getConnection();
-             PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM " + Table.PLAYER_DATA.getName() + " WHERE uuid = ?")) {
-
-            queryStatement.setString(1, uuid.toString());
-            ResultSet resultSet = queryStatement.executeQuery();
-
-            if (resultSet.next()) {
-                username = resultSet.getString("username");
-                int coins = resultSet.getInt("coins");
-                Channel channel = Channel.valueOf(resultSet.getString("channel"));
-                int vanished = resultSet.getInt("vanished");
-
-                VanishState vanishState;
-
-                if (vanished == 1) {
-                    vanishState = VanishState.ENABLED;
-                } else {
-                    vanishState = VanishState.DISABLED;
-                }
-
-                Rank rank = RanksManager.getInstance().loadRanks(uuid, connection);
-
-                if (ProxyServer.getInstance().getPlayer(uuid) != null) {
-                    ProxiedPlayer player = ProxyServer.getInstance().getPlayer(uuid);
-                    if (!username.equals(player.getName())) {
-                        username = player.getName();
-                        playerData = this.getPlayerData(player);
-                        playerData.setUsername(player.getName());
-                        updateAllData(player, playerData);
-                    }
-                }
-
-                // Query for profile data
-                Long registrationDate = null;
-                String bio = null;
-                String pronouns = null;
-                int xenforoId = 0;
-                int discordLinked = 0;
-                boolean isDiscordLinked = false;
-                int flaggedInt = 0;
-                boolean isFlagged = false;
-
-                PreparedStatement selectProfileStatement = connection.prepareStatement("SELECT * FROM " + Table.PROFILE.getName() + " WHERE uuid = ?");
-                selectProfileStatement.setString(1, uuid.toString());
-                ResultSet profileResultSet = selectProfileStatement.executeQuery();
-
-                if (profileResultSet.next()) {
-                    registrationDate = profileResultSet.getLong("join_date");
-                    bio = profileResultSet.getString("bio");
-                    pronouns = profileResultSet.getString("pronouns");
-                    xenforoId = profileResultSet.getInt("xenforo_id"); // Replace with the actual column name
-                    discordLinked = profileResultSet.getInt("discord_linked");
-                    flaggedInt = profileResultSet.getInt("is_flagged");
-
-                    if (discordLinked != 0) {
-                        isDiscordLinked = true;
-                    }
-
-                    isFlagged = (flaggedInt != 0);
-
-                    profile = new Profile(registrationDate, bio, pronouns, xenforoId, isDiscordLinked, isFlagged);
-                }
-                playerData = new PlayerData(uuid, username, rank, profile, new Coins(coins), channel, vanishState, Server.LOBBY);
-            } else {
-                // Insert into database if insertData is true
-                if (insertData) {
-                    this.insertPlayerDataToDatabase(connection, uuid, username);
-                    playerData = getPlayerData(uuid);
-                    Inferris.getInstance().getLogger().severe("Debug: " + playerData.toString());
-                }
-            }
-        } catch (SQLException e) {
-            Inferris.getInstance().getLogger().warning(e.getMessage());
-        }
-        return playerData;
-    }
 
     // Insert a new player into the database - default values
     public void insertPlayerDataToDatabase(Connection connection, UUID uuid, String username) {
@@ -573,7 +442,7 @@ public class PlayerDataManager {
      * @param username The username of the player.
      * @return true if the player data was inserted, false if it already exists.
      */
-    private boolean insertPlayerDataIfNotExists(UUID uuid, String username) {
+    public boolean insertPlayerDataIfNotExists(UUID uuid, String username) {
         boolean inserted = false;
         try (Connection connection = DatabasePool.getConnection()) {
             // Check if the player data exists in the database
@@ -588,7 +457,7 @@ public class PlayerDataManager {
             }
 
             // Retrieve the player data
-            PlayerData playerData = getPlayerDataFromDatabase(uuid, username, false);
+            PlayerData playerData = fetchPlayer.getPlayerDataFromDatabase(uuid, username, false);
 
             // Cache the player data and update Redis
             String playerDataJson = SerializationUtils.serializePlayerData(playerData);
@@ -602,46 +471,6 @@ public class PlayerDataManager {
         return inserted;
     }
 
-    /**
-     * Checks if the provided player has joined before by looking up their data in Redis and caching within Caffeine if necessary.
-     *
-     * @param player The ProxiedPlayer object representing the player to check.
-     */
-    public boolean checkJoinedBefore(ProxiedPlayer player) {
-        ServerUtil.log("Checking Jedis #checkJoinedBefore", Level.WARNING, ServerState.DEBUG);
-
-        UUID playerUUID = player.getUniqueId();
-        String playerUUIDString = playerUUID.toString();
-
-        try (Jedis jedis = getJedisPool().getResource()) {
-            // Check if player data exists in Redis
-            if (jedis.hexists("playerdata", playerUUIDString)) {
-                ServerUtil.log("Exists in Jedis", Level.WARNING, ServerState.DEBUG);
-
-                // Cache data in Caffeine if not present
-                if (caffeineCache.getIfPresent(playerUUID) == null) {
-                    String playerDataJson = jedis.hget("playerdata", playerUUIDString);
-                    PlayerData playerData = SerializationUtils.deserializePlayerData(playerDataJson);
-                    updateCaffeineCache(player, playerData);
-                    logPlayerData(playerData);
-                }
-            } else {
-                ServerUtil.log("Not in Redis, checking database", Level.WARNING, ServerState.DEBUG);
-
-                // Check and insert player data into the database
-                boolean wasInserted = insertPlayerDataIfNotExists(playerUUID, player.getName());
-                if (wasInserted) {
-                    ServerUtil.log("Inserted into database and Jedis", Level.WARNING, ServerState.DEBUG);
-                    return false;
-                }
-
-                // Shouldn't reach here but just in case
-            }
-            return true;
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     public void deletePlayerData(PlayerData playerData) {
         UUID playerUUID = playerData.getUuid();
@@ -684,12 +513,12 @@ public class PlayerDataManager {
      *
      * @param playerData The PlayerData object to log.
      */
-    private void logPlayerData(PlayerData playerData) {
+    public void logPlayerData(PlayerData playerData) {
         if (ServerStateManager.getCurrentState() == ServerState.DEBUG || ServerStateManager.getCurrentState() == ServerState.DEV) {
             Inferris.getInstance().getLogger().severe(String.valueOf(playerData.getRank().getBranchID(Branch.STAFF)));
             Inferris.getInstance().getLogger().severe(String.valueOf(playerData.getVanishState()));
             Inferris.getInstance().getLogger().severe(String.valueOf(playerData.getChannel()));
-            Inferris.getInstance().getLogger().severe(String.valueOf(playerData.getCoins().getBalance()));
+            Inferris.getInstance().getLogger().severe(String.valueOf(playerData.getCoins()));
         }
     }
 
@@ -698,7 +527,7 @@ public class PlayerDataManager {
         return new PlayerData(player.getUniqueId(), player.getName(),
                 new Rank(0, 0, 0, 0),
                 new Profile(null, null, null, 0, false, false),
-                new Coins(36), Channel.NONE, VanishState.DISABLED, Server.LOBBY);
+                36, Channel.NONE, VanishState.DISABLED, Server.LOBBY);
     }
 
     private PlayerData createEmpty(UUID uuid, String username) {
@@ -706,7 +535,7 @@ public class PlayerDataManager {
         return new PlayerData(uuid, username,
                 new Rank(0, 0, 0, 0),
                 new Profile(null, null, null, 0, false, false),
-                new Coins(36), Channel.NONE, VanishState.DISABLED, Server.LOBBY);
+                36, Channel.NONE, VanishState.DISABLED, Server.LOBBY);
     }
 
     public void invalidateRedisEntry(ProxiedPlayer player) {

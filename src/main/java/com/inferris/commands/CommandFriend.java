@@ -1,5 +1,6 @@
 package com.inferris.commands;
 
+import com.inferris.player.PlayerDataService;
 import com.inferris.server.Message;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
@@ -18,8 +19,10 @@ import net.md_5.bungee.api.plugin.TabExecutor;
 import java.util.*;
 
 public class CommandFriend extends Command implements TabExecutor {
-    public CommandFriend(String name) {
+    protected final PlayerDataService playerDataService;
+    public CommandFriend(String name, PlayerDataService playerDataService) {
         super(name);
+        this.playerDataService = playerDataService;
     }
 
     @Override
@@ -64,7 +67,7 @@ public class CommandFriend extends Command implements TabExecutor {
                     friendsManager.listFriends(player.getUniqueId(), index);
                     return;
                 }
-                UUID targetUUID = PlayerDataManager.getInstance().getUUIDByUsername(args[1]);
+                UUID targetUUID = playerDataService.fetchUUIDByUsername(args[1]);
                 if (targetUUID == null) {
                     player.sendMessage(new TextComponent(Message.PLAYER_NOT_IN_SYSTEM.getMessage()));
                     return;
@@ -118,7 +121,7 @@ public class CommandFriend extends Command implements TabExecutor {
                 List<String> playerNames = new ArrayList<>();
                 PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
                 for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                    if (PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getVanishState() == VanishState.DISABLED || playerData.getBranchValue(Branch.STAFF) >= 3) {
+                    if (PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getVanishState() == VanishState.DISABLED || playerData.getRank().getBranchValue(Branch.STAFF) >= 3) {
                         String playerName = proxiedPlayers.getName();
                         if (playerName.toLowerCase().startsWith(partialPlayerName.toLowerCase())) {
                             playerNames.add(playerName);

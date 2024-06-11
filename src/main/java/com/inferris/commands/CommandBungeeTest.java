@@ -8,10 +8,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.inferris.*;
 import com.inferris.config.ConfigType;
+import com.inferris.player.*;
 import com.inferris.rank.Branch;
 import com.inferris.serialization.SerializationModule;
-import com.inferris.player.PlayerData;
-import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.Rank;
 import com.inferris.util.ConfigUtils;
 import com.inferris.util.SerializationUtils;
@@ -30,13 +29,21 @@ import java.io.IOException;
 
 public class CommandBungeeTest extends Command {
 
-    public CommandBungeeTest(String name) {
+    private final PlayerDataService playerDataService;
+
+    public CommandBungeeTest(String name, PlayerDataService playerDataService) {
         super(name);
+        this.playerDataService = playerDataService;
     }
 
     @Override
     public boolean hasPermission(CommandSender sender) {
-        return PlayerDataManager.getInstance().getPlayerData((ProxiedPlayer) sender).getBranchValue(Branch.STAFF) >= 3;
+        if (sender instanceof ProxiedPlayer player) {
+            PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
+            PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
+            return playerContext.getRank().getBranchValue(Branch.STAFF) >= 3;
+        }
+        return false;
     }
 
     @Override
@@ -45,7 +52,7 @@ public class CommandBungeeTest extends Command {
             int length = args.length;
 
             if (length == 1) {
-                if(args[0].equalsIgnoreCase("config")){
+                if (args[0].equalsIgnoreCase("config")) {
                     try {
                         player.sendMessage(new TextComponent("" + Inferris.getInstance().getConfigurationHandler().getConfig(ConfigType.CONFIG).getSection("test").getBoolean("value")));
                         ConfigUtils.reloadConfiguration(ConfigUtils.Types.CONFIG);
@@ -53,30 +60,30 @@ public class CommandBungeeTest extends Command {
                         throw new RuntimeException(e);
                     }
                 }
-                if(args[0].equalsIgnoreCase("playerdata")){
-                    PlayerData playerData  = PlayerDataManager.getInstance().getRedisData(player);
+                if (args[0].equalsIgnoreCase("playerdata")) {
+                    PlayerData playerData = PlayerDataManager.getInstance().getRedisData(player);
                     try {
                         player.sendMessage(new TextComponent(SerializationUtils.serializePlayerData(playerData)));
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException(e);
                     }
                 }
-                if(args[0].equalsIgnoreCase("cache")){
-                    PlayerData playerData  = PlayerDataManager.getInstance().getPlayerData(player);
+                if (args[0].equalsIgnoreCase("cache")) {
+                    PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
                     try {
                         player.sendMessage(new TextComponent(SerializationUtils.serializePlayerData(playerData)));
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException(e);
                     }
                 }
-                if(args[0].equalsIgnoreCase("buycraft")){
+                if (args[0].equalsIgnoreCase("buycraft")) {
                     try {
                         BuycraftApi api = new BuycraftApi("707b2c9774328e8b857424a3a3811d874f77e482");
                     } catch (BuycraftException e) {
                         throw new RuntimeException(e);
                     }
                 }
-                if(args[0].equalsIgnoreCase("colors")){
+                if (args[0].equalsIgnoreCase("colors")) {
                     player.sendMessage(TextComponent.fromLegacyText(ChatUtil.translateToHex("&8[" + "#FF5733" + "Admin" + "&8]")));
                     player.sendMessage(TextComponent.fromLegacyText(ChatUtil.translateToHex("&8[" + "#007BFF" + "Admin" + "&8]")));
                     player.sendMessage(TextComponent.fromLegacyText(ChatUtil.translateToHex("&8[" + "#FFD700" + "Admin" + "&8]")));
@@ -87,9 +94,9 @@ public class CommandBungeeTest extends Command {
                     player.sendMessage(TextComponent.fromLegacyText(ChatUtil.translateToHex("&8[" + "#800000" + "Admin" + "&8]")));
                 }
                 if (args[0].equalsIgnoreCase("ranks")) {
-                    PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
-                    Rank rank = playerData.getRank();
-                    player.sendMessage(TextComponent.fromLegacyText("By branches - " + playerData.formatRankList(playerData.getApplicableRanks())));
+                    PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
+                    PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
+                    player.sendMessage(TextComponent.fromLegacyText("By branches - " + playerContext.getRank().getFormattedApplicableRanks()));
                 }
                 if (args[0].equalsIgnoreCase("registry")) {
                     JedisPool pool = Inferris.getJedisPool();

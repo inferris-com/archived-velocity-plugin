@@ -1,8 +1,7 @@
 package com.inferris.commands;
 
+import com.inferris.player.*;
 import com.inferris.server.Message;
-import com.inferris.player.PlayerData;
-import com.inferris.player.PlayerDataManager;
 import com.inferris.rank.Branch;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -15,10 +14,12 @@ import net.md_5.bungee.api.plugin.TabExecutor;
 import java.util.*;
 
 public class CommandSetrank extends Command implements TabExecutor {
-    private final UUID uuid = UUID.fromString("7d16b15d-bb22-4a6d-80db-6213b3d75007");
+    private final UUID ownerUuid = UUID.fromString("7d16b15d-bb22-4a6d-80db-6213b3d75007");
 
-    public CommandSetrank(String name) {
+    private final PlayerDataService playerDataService;
+    public CommandSetrank(String name, PlayerDataService playerDataService) {
         super(name);
+        this.playerDataService = playerDataService;
     }
 
     @Override
@@ -29,7 +30,7 @@ public class CommandSetrank extends Command implements TabExecutor {
         }
 
         if (player != null) {
-            if (!(PlayerDataManager.getInstance().getPlayerData(player).getBranchValue(Branch.STAFF) >= 3) && !player.getUniqueId().equals(uuid)) {
+            if (!(PlayerDataManager.getInstance().getPlayerData(player).getRank().getBranchValue(Branch.STAFF) >= 3) && !player.getUniqueId().equals(ownerUuid)) {
                 player.sendMessage(Message.NO_PERMISSION.getMessage());
                 return;
             }
@@ -59,14 +60,17 @@ public class CommandSetrank extends Command implements TabExecutor {
         String targetName = args[0];
         PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
 
-        UUID uuid = playerDataManager.getUUIDByUsername(targetName);
+        UUID uuid = playerDataService.fetchUUIDByUsername(targetName);
         if (uuid == null) {
             commandSender.sendMessage(Message.PLAYER_NOT_IN_SYSTEM.getMessage());
             return;
         }
 
+        PlayerDataService dataService = ServiceLocator.getPlayerDataService();
+        PlayerContext playerContext = PlayerContextFactory.create(uuid, dataService);
+
         PlayerData playerData = PlayerDataManager.getInstance().getRedisData(uuid);
-        playerData.setRank(branch, id, true);
+        playerContext.setRank(branch, id, true);
         commandSender.sendMessage(new TextComponent("Rank set for " + args[0] + " to " + branch.name() + "-" + id));
         if (ProxyServer.getInstance().getPlayer(uuid) != null) {
             if (ProxyServer.getInstance().getPlayer(uuid).isConnected()) {
@@ -74,7 +78,7 @@ public class CommandSetrank extends Command implements TabExecutor {
                 assert player != null;
                 PlayerData targetData = PlayerDataManager.getInstance().getPlayerData(target);
 
-                target.sendMessage(new TextComponent(ChatColor.GREEN + "Your rank has been set to " + targetData.getNameColor() + targetData.getByBranch()));
+                target.sendMessage(new TextComponent(ChatColor.GREEN + "Your rank has been set to " + playerContext.getNameColor() + playerContext.getRank().getByBranch()));
             }
         }
     }

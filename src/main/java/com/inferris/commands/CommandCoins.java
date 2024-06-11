@@ -1,7 +1,6 @@
 package com.inferris.commands;
 
-import com.inferris.player.PlayerData;
-import com.inferris.player.PlayerDataManager;
+import com.inferris.player.*;
 import com.inferris.rank.Branch;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -14,27 +13,31 @@ import net.md_5.bungee.api.plugin.TabExecutor;
 import java.util.*;
 
 public class CommandCoins extends Command implements TabExecutor {
-    public CommandCoins(String name) {
+    private final PlayerDataService playerDataService;
+
+    public CommandCoins(String name, PlayerDataService playerDataService) {
         super(name);
+        this.playerDataService = playerDataService;
     }
 
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (sender instanceof ProxiedPlayer player) {
-            PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
+            PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
+            PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
             int length = args.length;
             if (length == 0) {
-                int coins = playerData.getCoins().getBalance();
+                int coins = playerContext.getCoins();
                 player.sendMessage(new TextComponent(ChatColor.GRAY + "Coin balance: " + ChatColor.YELLOW + coins));
                 return;
             }
 
-            if (length == 3 && playerData.getBranchValue(Branch.STAFF) >= 3) {
+            if (length == 3 && playerContext.getRank().getBranchValue(Branch.STAFF) >= 3) {
                 if (args[0].equalsIgnoreCase("set")) {
 
                     // TODO: Target
                     ProxiedPlayer target = ProxyServer.getInstance().getPlayer(args[1]);
-                    UUID uuid = PlayerDataManager.getInstance().getUUIDByUsername(args[1]);
+                    UUID uuid = playerDataService.fetchUUIDByUsername(args[1]);
                     if (uuid == null) {
                         player.sendMessage(new TextComponent(ChatColor.RED + "Player does not exist in our system."));
                         return;
@@ -46,7 +49,7 @@ public class CommandCoins extends Command implements TabExecutor {
                         return;
                     }
 
-                    targetData.setCoins(Integer.parseInt(args[2]));
+                    targetData.setCoins(Integer.parseInt(args[2])); // TODO change to new method
                     player.sendMessage(new TextComponent("Coins set for " + targetData.getUsername() + " to " + ChatColor.AQUA + args[2]));
                 }
             }

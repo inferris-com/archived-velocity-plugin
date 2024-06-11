@@ -2,6 +2,8 @@ package com.inferris.commands;
 
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
+import com.inferris.player.PlayerDataService;
+import com.inferris.player.ServiceLocator;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
 import com.inferris.server.Message;
@@ -17,31 +19,36 @@ import java.util.Collections;
 import java.util.List;
 
 public class CommandTrollkick extends Command implements TabExecutor {
-    public CommandTrollkick(String name) {
+    private final PlayerDataService playerDataService;
+
+    public CommandTrollkick(String name, PlayerDataService playerDataService) {
         super(name);
+        this.playerDataService = playerDataService;
     }
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        ProxiedPlayer player = null;
+        ProxiedPlayer player;
         int length = args.length;
 
         if (sender instanceof ProxiedPlayer) {
             player = (ProxiedPlayer) sender;
-            PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
+            PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
+            playerDataService.getPlayerData(player.getUniqueId(), playerData -> {
 
-            if (playerData.getBranchValue(Branch.STAFF) < 2) {
-                // Insufficient permissions, send NO_PERMISSION message and exit
-                player.sendMessage(Message.NO_PERMISSION.getMessage());
-                return;
-            }
-
-            if (length == 1) {
-                ProxiedPlayer target = ProxyServer.getInstance().getPlayer(args[0]);
-                if (playerData.getBranchValue(Branch.STAFF) >= 2) {
-                    target.disconnect(new TextComponent(""));
+                if (playerData.getRank().getBranchValue(Branch.STAFF) < 2) {
+                    // Insufficient permissions, send NO_PERMISSION message and exit
+                    player.sendMessage(Message.NO_PERMISSION.getMessage());
+                    return;
                 }
-            }
+
+                if (length == 1) {
+                    ProxiedPlayer target = ProxyServer.getInstance().getPlayer(args[0]);
+                    if (playerData.getRank().getBranchValue(Branch.STAFF) >= 2) {
+                        target.disconnect(new TextComponent(""));
+                    }
+                }
+            });
         }
     }
 
@@ -49,12 +56,14 @@ public class CommandTrollkick extends Command implements TabExecutor {
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
 
         if (args.length == 1 && sender instanceof ProxiedPlayer player) {
-            PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
-            if (playerData.getBranchValue(Branch.STAFF) >= 2) {
+            PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
+            PlayerData playerData = playerDataService.getPlayerData(player.getUniqueId());
+
+            if (playerData.getRank().getBranchValue(Branch.STAFF) >= 2) {
                 String partialPlayerName = args[0];
                 List<String> playerNames = new ArrayList<>();
                 for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                    if (PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getVanishState() == VanishState.DISABLED || playerData.getBranchValue(Branch.STAFF) >= 3) {
+                    if (PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getVanishState() == VanishState.DISABLED || playerData.getRank().getBranchValue(Branch.STAFF) >= 3) {
                         String playerName = proxiedPlayers.getName();
                         if (playerName.toLowerCase().startsWith(partialPlayerName.toLowerCase())) {
                             playerNames.add(playerName);

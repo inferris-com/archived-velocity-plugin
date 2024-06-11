@@ -1,8 +1,7 @@
 package com.inferris.commands;
 
 import com.inferris.Inferris;
-import com.inferris.player.PlayerData;
-import com.inferris.player.PlayerDataManager;
+import com.inferris.player.*;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.server.ReportPayload;
 import com.inferris.server.Tag;
@@ -39,8 +38,11 @@ import static com.inferris.util.ChatUtil.*;
 
 public class CommandReport extends Command implements TabExecutor {
     private final List<String> possibleReasons = List.of("spamming", "harassment", "inappropriate_behavior", "cheating", "exploiting_bugs", "impersonation", "scamming", "advertisement", "other");
-    public CommandReport(String name) {
+    private final PlayerDataService playerDataService;
+
+    public CommandReport(String name, PlayerDataService playerDataService) {
         super(name);
+        this.playerDataService = playerDataService;
     }
 
     @Override
@@ -74,20 +76,21 @@ public class CommandReport extends Command implements TabExecutor {
                     return;
                 }
 
-                UUID uuid = PlayerDataManager.getInstance().getUUIDByUsername(args[0]);
-                if (uuid == null) {
+                UUID targetUuid = playerDataService.fetchUUIDByUsername(args[0]);
+                if (targetUuid == null) {
                     player.sendMessage(new TextComponent(ChatColor.RED + "That player does not exist."));
                     return;
                 }
 
                 String stringBuilder = reason.substring(0, 1).toUpperCase() + reason.substring(1);
 
-                PlayerData playerData = PlayerDataManager.getInstance().getRedisData(player.getUniqueId());
-                PlayerData targetPlayerData = PlayerDataManager.getInstance().getRedisData(uuid);
+                PlayerData playerData = playerDataService.getPlayerData(player.getUniqueId());
+                PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
+                PlayerData targetPlayerData = playerDataService.getPlayerData(targetUuid);
                 String username = targetPlayerData.getUsername();
 
                 ReportPayload reportPayload = new ReportPayload(
-                        playerData.getByBranch().getPrefix(true) + playerData.getNameColor() + player.getName(),
+                        playerData.getRank().getByBranch().getPrefix(true) + playerContext.getNameColor() + player.getName(),
                         targetPlayerData.getUsername(), stringBuilder,
                         player.getServer().getInfo().getName());
 
@@ -134,7 +137,8 @@ public class CommandReport extends Command implements TabExecutor {
                 fullMessage.addExtra(logs);
 
                 for (ProxiedPlayer staffPlayer : ProxyServer.getInstance().getPlayers()) {
-                    if (PlayerDataManager.getInstance().getPlayerData(staffPlayer).isStaff()) {
+                    PlayerContext staffContext = PlayerContextFactory.create(staffPlayer.getUniqueId(), playerDataService);
+                    if (staffContext.isStaff()) {
                         staffPlayer.sendMessage(fullMessage);
                     }
                 }

@@ -37,7 +37,7 @@ public class RanksManager {
     // Now deprecated - remove?
     @Deprecated
     public Rank loadRanks(ProxiedPlayer player, Connection connection) {
-        Inferris.getInstance().getLogger().warning("Loading ranks");
+        Inferris.getInstance().getLogger().warning("Deprecated method used! WARNING");
         try (PreparedStatement statement = connection.prepareStatement("SELECT staff, builder, donor, other FROM `rank` WHERE `uuid` = ?")) {
             statement.setString(1, String.valueOf(player.getUniqueId()));
             ResultSet rs = statement.executeQuery();

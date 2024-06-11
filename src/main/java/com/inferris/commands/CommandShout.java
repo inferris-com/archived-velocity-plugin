@@ -1,7 +1,7 @@
 package com.inferris.commands;
 
 import com.inferris.Inferris;
-import com.inferris.player.PlayerDataManager;
+import com.inferris.player.*;
 import com.inferris.rank.Branch;
 import com.inferris.util.ChatUtil;
 import net.md_5.bungee.api.ChatColor;
@@ -12,8 +12,10 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
 public class CommandShout extends Command {
-    public CommandShout(String name) {
+    private final PlayerDataService playerDataService;
+    public CommandShout(String name, PlayerDataService playerDataService) {
         super(name);
+        this.playerDataService = playerDataService;
     }
 
     @Override
@@ -37,8 +39,10 @@ public class CommandShout extends Command {
 
     @Override
     public boolean hasPermission(CommandSender sender) {
-        if (sender instanceof ProxiedPlayer) {
-            return PlayerDataManager.getInstance().getPlayerData((ProxiedPlayer) sender).getBranchValue(Branch.STAFF) >= 3;
+        if (sender instanceof ProxiedPlayer player) {
+            PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
+            PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
+            return playerContext.getRank().getBranchValue(Branch.STAFF) >= 3;
         }
         return true;
     }

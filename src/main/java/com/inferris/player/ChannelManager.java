@@ -16,6 +16,7 @@ import java.sql.SQLException;
 import java.util.UUID;
 
 public class ChannelManager {
+    private static final PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
 
     public static void setChannel(ProxiedPlayer player, Channel channel, boolean sendMessage){
         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player, "#setChannel, ChannelManager");
@@ -69,10 +70,12 @@ public class ChannelManager {
         switch (chatMessageType) {
             case PLAYER:
                 ProxiedPlayer player = ProxyServer.getInstance().getPlayer(senderUuid);
-                PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(senderUuid);
-                RankRegistry rank = playerData.getByBranch();
+                UUID uuid = player.getUniqueId();
+                PlayerContext playerContext = PlayerContextFactory.create(uuid, playerDataService);
+
+                RankRegistry rank = playerDataService.getPlayerData(uuid).getRank().getByBranch();
                 formattedMessage = channel.getTag(true) +
-                        rank.getPrefix(true) + playerData.getNameColor() + player.getName() +
+                        rank.getPrefix(true) + playerContext.getNameColor() + player.getName() +
                         ChatColor.RESET + ": " + message;
                 break;
             case CONSOLE:
@@ -99,13 +102,13 @@ public class ChannelManager {
         } else {
             // Handle message sending for players
             ChatUtil.sendGlobalMessage(player -> {
-                PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player.getUniqueId());
+                PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
                 switch (channel) {
                     case STAFF -> {
-                        return playerData.getBranchValue(Branch.STAFF) >= 1;
+                        return playerContext.getRank().getBranchValue(Branch.STAFF) >= 1;
                     }
                     case ADMIN -> {
-                        return playerData.getBranchValue(Branch.STAFF) >= 3;
+                        return playerContext.getRank().getBranchValue(Branch.STAFF) >= 3;
                     }
                     default -> {
                         return false;

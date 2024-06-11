@@ -5,7 +5,7 @@ import com.inferris.Inferris;
 import com.inferris.events.redis.EventPayload;
 import com.inferris.events.redis.PlayerAction;
 import com.inferris.messaging.ViewlogMessage;
-import com.inferris.player.PlayerDataManager;
+import com.inferris.player.*;
 import com.inferris.rank.Branch;
 import com.inferris.serialization.ViewlogSerializer;
 import com.inferris.server.*;
@@ -38,8 +38,10 @@ import java.util.logging.Level;
  */
 
 public class CommandViewlogs extends Command {
-    public CommandViewlogs(String name) {
+    private final PlayerDataService playerDataService;
+    public CommandViewlogs(String name, PlayerDataService playerDataService) {
         super(name);
+        this.playerDataService = playerDataService;
     }
 
     private final Map<UUID, Consumer<String>> callbacks = new ConcurrentHashMap<>();
@@ -93,7 +95,12 @@ public class CommandViewlogs extends Command {
 
     @Override
     public boolean hasPermission(CommandSender sender) {
-        return PlayerDataManager.getInstance().getPlayerData((ProxiedPlayer) sender).getBranchValue(Branch.STAFF) >= 3;
+        if (sender instanceof ProxiedPlayer player) {
+            PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
+            return playerContext.getRank().getBranchValue(Branch.STAFF) >= 2;
+        }
+        // Allow console to execute the command
+        return sender.getName().equalsIgnoreCase("CONSOLE");
     }
 
     /**

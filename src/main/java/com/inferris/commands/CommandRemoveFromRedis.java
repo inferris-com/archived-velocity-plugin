@@ -1,10 +1,7 @@
 package com.inferris.commands;
 
 import com.inferris.Inferris;
-import com.inferris.player.Channel;
-import com.inferris.player.ChannelManager;
-import com.inferris.player.PlayerData;
-import com.inferris.player.PlayerDataManager;
+import com.inferris.player.*;
 import com.inferris.rank.Branch;
 import com.inferris.util.ChatUtil;
 import net.md_5.bungee.api.ChatColor;
@@ -18,13 +15,19 @@ import redis.clients.jedis.Jedis;
 import java.util.UUID;
 
 public class CommandRemoveFromRedis extends Command {
-    public CommandRemoveFromRedis(String name) {
+    private final PlayerDataService playerDataService;
+
+    public CommandRemoveFromRedis(String name, PlayerDataService playerDataService) {
         super(name);
+        this.playerDataService = playerDataService;
     }
 
     @Override
     public boolean hasPermission(CommandSender sender) {
-        return PlayerDataManager.getInstance().getPlayerData((ProxiedPlayer) sender).getBranchValue(Branch.STAFF) >= 3;
+        if (sender instanceof ProxiedPlayer player) {
+            return playerDataService.getPlayerData(player.getUniqueId()).getRank().getBranchValue(Branch.STAFF) >= 3;
+        }
+        return sender.getName().equalsIgnoreCase("CONSOLE");
     }
 
     @Override
@@ -45,8 +48,8 @@ public class CommandRemoveFromRedis extends Command {
         UUID uuid;
         PlayerData playerData;
         try {
-            uuid = PlayerDataManager.getInstance().getUUIDByUsername(args[0]);
-            playerData = PlayerDataManager.getInstance().getPlayerDataFromDatabase(uuid);
+            uuid = playerDataService.fetchUUIDByUsername(args[0]);
+            playerData = playerDataService.fetchPlayerDataFromDatabase(uuid);
         } catch (Exception e) {
             sender.sendMessage(new TextComponent(ChatColor.RED + "An error occurred while retrieving player data: " + e.getMessage()));
             return;
@@ -61,10 +64,10 @@ public class CommandRemoveFromRedis extends Command {
             jedis.hdel("playerdata", uuid.toString());
 
             if (sender instanceof ProxiedPlayer player) {
-                ChannelManager.sendStaffChatMessage(Channel.STAFF, player.getName() + ChatColor.YELLOW + " removed " + playerData.getByBranch().getPrefix(true)
+                ChannelManager.sendStaffChatMessage(Channel.STAFF, player.getName() + ChatColor.YELLOW + " removed " + playerData.getRank().getByBranch().getPrefix(true)
                         + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + " from Redis keystore", ChannelManager.StaffChatMessageType.NOTIFICATION);
             } else {
-                ChannelManager.sendStaffChatMessage(Channel.STAFF, ChatColor.RED + sender.getName() + ChatColor.YELLOW + " removed " + playerData.getByBranch().getPrefix(true)
+                ChannelManager.sendStaffChatMessage(Channel.STAFF, ChatColor.RED + sender.getName() + ChatColor.YELLOW + " removed " + playerData.getRank().getByBranch().getPrefix(true)
                         + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + " from Redis keystore", ChannelManager.StaffChatMessageType.NOTIFICATION);
             }
 

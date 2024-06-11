@@ -2,9 +2,11 @@ package com.inferris.events;
 
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
+import com.inferris.player.PlayerDataService;
 import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
 import com.inferris.rank.RankRegistry;
+import com.inferris.server.PlayerSessionManager;
 import com.inferris.server.Tag;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
@@ -15,12 +17,15 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
 public class EventQuit implements Listener {
-
+    private PlayerDataService playerDataService;
+    public EventQuit(PlayerDataService playerDataService){
+        this.playerDataService = playerDataService;
+    }
     @EventHandler
     public void onQuit(PlayerDisconnectEvent event) {
         ProxiedPlayer player = event.getPlayer();
-        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
-        RankRegistry rankRegistry = playerData.getByBranch();
+        PlayerData playerData = playerDataService.getPlayerData(player.getUniqueId());
+        RankRegistry rankRegistry = playerData.getRank().getByBranch();
         Rank rank = playerData.getRank();
 
         if (rank.getBranchID(Branch.STAFF) >= 1) {
@@ -32,5 +37,6 @@ public class EventQuit implements Listener {
             }
         }
         PlayerDataManager.getInstance().invalidateCache(player);
+        PlayerSessionManager.clearPlayerSession(player.getUniqueId());
     }
 }

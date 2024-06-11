@@ -3,10 +3,10 @@ package com.inferris.commands;
 import com.inferris.Inferris;
 import com.inferris.database.Database;
 import com.inferris.database.DatabasePool;
-import com.inferris.player.PlayerData;
-import com.inferris.player.PlayerDataManager;
+import com.inferris.player.*;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
+import com.inferris.rank.Rank;
 import com.inferris.util.DatabaseUtils;
 import com.inferris.util.MessageUtil;
 import com.inferris.server.Tag;
@@ -28,13 +28,18 @@ import java.util.List;
 import java.util.UUID;
 
 public class CommandAccount extends Command implements TabExecutor {
-    public CommandAccount(String name) {
+    protected final PlayerDataService playerDataService;
+    public CommandAccount(String name, PlayerDataService playerDataService) {
         super(name);
+        this.playerDataService = playerDataService;
     }
 
     @Override
     public boolean hasPermission(CommandSender sender) {
-        return PlayerDataManager.getInstance().getPlayerData((ProxiedPlayer) sender).getBranchValue(Branch.STAFF) >= 1;
+        if (sender instanceof ProxiedPlayer player) {
+            return ServiceLocator.getPlayerDataService().getPlayerData(player.getUniqueId()).getRank().getBranchValue(Branch.STAFF) >= 1;
+        }
+        return false;
     }
 
     @Override
@@ -49,9 +54,11 @@ public class CommandAccount extends Command implements TabExecutor {
             if (length == 1) {
                 String targetName = args[0];
                 PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
+                PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
 
-                UUID uuid = playerDataManager.getUUIDByUsername(args[0]);
-                PlayerData playerData = playerDataManager.getPlayerData(uuid);
+                UUID uuid = playerDataService.fetchUUIDByUsername(args[0]);
+                PlayerContext playerContext = PlayerContextFactory.create(uuid, playerDataService);
+                Rank rank = playerContext.getRank();
                 String tag = Tag.STAFF.getName(true);
                 ChatColor reset = ChatColor.RESET;
 
@@ -60,19 +67,19 @@ public class CommandAccount extends Command implements TabExecutor {
                 header.setBold(true);
 
                 TextComponent username = new TextComponent(ChatColor.YELLOW + "Username: ");
-                username.addExtra(playerData.getNameColor() + playerData.getUsername());
+                username.addExtra(playerContext.getNameColor() + playerContext.getUsername());
                 username.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to copy username")));
-                username.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, playerData.getUsername()));
+                username.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, playerContext.getUsername()));
 
-                TextComponent prefix = new TextComponent(TextComponent.fromLegacyText("Ranks: " + playerData.formatRankList(playerData.getApplicableRanks())));
+                TextComponent prefix = new TextComponent(TextComponent.fromLegacyText("Ranks: " + rank.getFormattedApplicableRanks()));
                 prefix.setColor(ChatColor.YELLOW);
 
                 TextComponent registration_date = new TextComponent(ChatColor.YELLOW + "Registration date: " + reset
-                        + playerData.getProfile().getFormattedRegistrationDate("MMMM dd, yyyy") + " at " + playerData.getProfile().getRegistrationTimeOnly());
+                        + playerContext.getProfile().getFormattedRegistrationDate("MMMM dd, yyyy") + " at " + playerContext.getProfile().getRegistrationTimeOnly());
 
                 String xenforoUsername = ChatColor.YELLOW + "XenForo username: " + ChatColor.RESET;
                 try (Connection connection = DatabasePool.getConnection(Database.XENFORO);
-                     ResultSet resultSet = DatabaseUtils.executeQuery(connection, "xf_user", new String[]{"username"}, "`user_id` = ?", playerData.getProfile().getXenforoId())) {
+                     ResultSet resultSet = DatabaseUtils.executeQuery(connection, "xf_user", new String[]{"username"}, "`user_id` = ?", playerContext.getProfile().getXenforoId())) {
 
                     if (resultSet.next()) {
                         xenforoUsername = xenforoUsername + resultSet.getString(1);
@@ -81,34 +88,34 @@ public class CommandAccount extends Command implements TabExecutor {
                     Inferris.getInstance().getLogger().severe(e.getMessage());
                 }
 
-                TextComponent verified = new TextComponent(ChatColor.YELLOW + "XenForo ID: " + ChatColor.RESET + playerData.getProfile().getXenforoId());
+                TextComponent verified = new TextComponent(ChatColor.YELLOW + "XenForo ID: " + ChatColor.RESET + playerContext.getProfile().getXenforoId());
 
-                TextComponent channel = new TextComponent(ChatColor.YELLOW + "Current channel: " + reset + playerData.getChannel().getTag());
+                TextComponent channel = new TextComponent(ChatColor.YELLOW + "Current channel: " + reset + playerContext.getChannel().getTag());
 
                 TextComponent vanished;
-                if (playerData.getVanishState() == VanishState.ENABLED) {
-                    vanished = new TextComponent(ChatColor.YELLOW + "Vanish state: " + reset + ChatColor.GREEN + playerData.getVanishState());
+                if (playerContext.getVanishState() == VanishState.ENABLED) {
+                    vanished = new TextComponent(ChatColor.YELLOW + "Vanish state: " + reset + ChatColor.GREEN + playerContext.getVanishState());
                 } else {
-                    vanished = new TextComponent(ChatColor.YELLOW + "Vanish state: " + reset + ChatColor.RED + playerData.getVanishState());
+                    vanished = new TextComponent(ChatColor.YELLOW + "Vanish state: " + reset + ChatColor.RED + playerContext.getVanishState());
                 }
 
                 TextComponent divider = new TextComponent("-------------------------------");
                 divider.setColor(ChatColor.GOLD);
 
-                TextComponent uuidText = new TextComponent(ChatColor.YELLOW + "UUID: " + reset + playerData.getUuid());
+                TextComponent uuidText = new TextComponent(ChatColor.YELLOW + "UUID: " + reset + playerContext.getUuid());
                 uuidText.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to copy UUID")));
-                uuidText.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, playerData.getUuid().toString()));
+                uuidText.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, playerContext.getUuid().toString()));
 
-                TextComponent coins = new TextComponent(ChatColor.YELLOW + "Coins: " + reset + playerData.getCoins().getBalance());
+                TextComponent coins = new TextComponent(ChatColor.YELLOW + "Coins: " + reset + playerContext.getCoins());
                 TextComponent staff;
                 TextComponent misc = new TextComponent(ChatColor.GOLD + "\nProfile info");
-                TextComponent bio = new TextComponent(ChatColor.YELLOW + "Bio: " + reset + playerData.getProfile().getBio());
-                TextComponent pronouns = new TextComponent(ChatColor.YELLOW + "Pronouns: " + reset + playerData.getProfile().getPronouns());
+                TextComponent bio = new TextComponent(ChatColor.YELLOW + "Bio: " + reset + playerContext.getProfile().getBio());
+                TextComponent pronouns = new TextComponent(ChatColor.YELLOW + "Pronouns: " + reset + playerContext.getProfile().getPronouns());
 
-                if(playerData.isStaff()) {
-                    staff = new TextComponent(ChatColor.YELLOW + "Staff: " + ChatColor.AQUA + playerData.isStaff());
+                if(playerContext.isStaff()) {
+                    staff = new TextComponent(ChatColor.YELLOW + "Staff: " + ChatColor.AQUA + playerContext.isStaff());
                 }else{
-                    staff = new TextComponent(ChatColor.YELLOW + "Staff: " + reset + playerData.isStaff());
+                    staff = new TextComponent(ChatColor.YELLOW + "Staff: " + reset + playerContext.isStaff());
                 }
 
                 player.sendMessage(header);
@@ -118,7 +125,7 @@ public class CommandAccount extends Command implements TabExecutor {
                 MessageUtil.sendMessage(player, uuidText);
                 MessageUtil.sendMessage(player, registration_date);
                 MessageUtil.sendMessage(player, coins);
-                if(playerData.getProfile().getXenforoId() > 0){
+                if(playerContext.getProfile().getXenforoId() > 0){
                     MessageUtil.sendMessage(player, xenforoUsername);
                     MessageUtil.sendMessage(player, verified);
                 }

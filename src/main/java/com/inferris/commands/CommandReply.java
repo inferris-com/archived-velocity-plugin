@@ -1,11 +1,11 @@
 package com.inferris.commands;
 
 import com.inferris.commands.cache.CommandMessageCache;
-import com.inferris.player.PlayerData;
-import com.inferris.player.PlayerDataManager;
+import com.inferris.player.*;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
 import com.inferris.server.Message;
+import com.inferris.util.MessageUtil;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -18,8 +18,10 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class CommandReply extends Command implements TabExecutor {
-    public CommandReply(String name) {
+    private final PlayerDataService playerDataService;
+    public CommandReply(String name, PlayerDataService playerDataService) {
         super(name, null, "r");
+        this.playerDataService = playerDataService;
     }
 
     @Override
@@ -47,7 +49,8 @@ public class CommandReply extends Command implements TabExecutor {
 
             UUID targetUUID = cache.getCache().asMap().get(senderUUID);
             ProxiedPlayer target = ProxyServer.getInstance().getPlayer(targetUUID);
-            PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
+            PlayerData playerData = playerDataService.getPlayerData(player.getUniqueId());
+            PlayerContext playerContext = PlayerContextFactory.create(senderUUID, playerDataService);
 
             if (target == null) {
                 player.sendMessage(new TextComponent(Message.COULD_NOT_FIND_PLAYER.getMessage()));
@@ -56,15 +59,15 @@ public class CommandReply extends Command implements TabExecutor {
 
             // Check if the target player is vanished
             if (PlayerDataManager.getInstance().getPlayerData(target).getVanishState() == VanishState.ENABLED) {
-                if (playerData.getBranchValue(Branch.STAFF) < 3) {
+                if (playerContext.getRank().getBranchValue(Branch.STAFF) < 3) {
                     player.sendMessage(new TextComponent(Message.COULD_NOT_FIND_PLAYER.getMessage()));
-                    target.sendMessage(new TextComponent(ChatColor.GRAY + "Notice: " + playerData.getByBranch() + " " + player.getName() + ChatColor.GRAY
+                    target.sendMessage(new TextComponent(ChatColor.GRAY + "Notice: " + playerContext.getRank().getByBranch() + " " + player.getName() + ChatColor.GRAY
                             + " attempted to message you: " + message));
                     return;
                 }
             }
 
-            CommandMessage.sendMessage(player, target, message);
+            MessageUtil.sendMessage(player, target, message);
             CommandMessage.getCacheReplyHandler().invalidate(targetUUID);
             CommandMessageCache targetCache = CommandMessage.getCacheReplyHandler().asMap().computeIfAbsent(targetUUID,
                     uuid -> new CommandMessageCache(target, player, 5L, TimeUnit.MINUTES));

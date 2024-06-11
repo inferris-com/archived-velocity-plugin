@@ -2,6 +2,7 @@ package com.inferris.commands;
 
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
+import com.inferris.player.PlayerDataService;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
 import net.md_5.bungee.api.ChatColor;
@@ -15,20 +16,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CommandWhoIsVanished extends Command {
-    public CommandWhoIsVanished(String name) {
+    private final PlayerDataService playerDataService;
+
+    public CommandWhoIsVanished(String name, PlayerDataService playerDataService) {
         super(name);
+        this.playerDataService = playerDataService;
     }
 
     @Override
     public boolean hasPermission(CommandSender sender) {
-        if(sender instanceof ProxiedPlayer player){
-            if(PlayerDataManager.getInstance().getPlayerData(player).getBranchValue(Branch.STAFF) >=3){
-                return true;
-            }else{
-                return false;
-            }
+        if (sender instanceof ProxiedPlayer player) {
+            return playerDataService.getPlayerData(player.getUniqueId()).getRank().getBranchValue(Branch.STAFF) >= 3;
         }
-        return true;
+        return sender.getName().equalsIgnoreCase("CONSOLE");
     }
 
     @Override
@@ -39,7 +39,7 @@ public class CommandWhoIsVanished extends Command {
         // Collect vanished players
         List<ProxiedPlayer> vanishedPlayers = new ArrayList<>();
         for (ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
-            PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
+            PlayerData playerData = playerDataService.getPlayerData(player.getUniqueId());
             if (playerData.getVanishState() == VanishState.ENABLED) {
                 vanishedPlayers.add(player);
             }
@@ -48,8 +48,8 @@ public class CommandWhoIsVanished extends Command {
         // Append vanished players to the stringBuilder
         for (int i = 0; i < vanishedPlayers.size(); i++) {
             ProxiedPlayer player = vanishedPlayers.get(i);
-            PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
-            stringBuilder.append(playerData.getByBranch().getPrefix(true)).append(ChatColor.RESET).append(player.getName());
+            PlayerData playerData = playerDataService.getPlayerData(player.getUniqueId());
+            stringBuilder.append(playerData.getRank().getByBranch().getPrefix(true)).append(ChatColor.RESET).append(player.getName());
             stringBuilder.append(ChatColor.DARK_GRAY + " - " + ChatColor.GREEN + playerData.getCurrentServer());
 
             // Add comma and space except for the last player

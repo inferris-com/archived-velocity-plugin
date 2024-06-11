@@ -8,8 +8,7 @@ import com.inferris.commands.cache.CommandMessageCache;
 import com.inferris.config.ConfigType;
 import com.inferris.events.redis.EventPayload;
 import com.inferris.events.redis.PlayerAction;
-import com.inferris.player.PlayerData;
-import com.inferris.player.PlayerDataManager;
+import com.inferris.player.*;
 import com.inferris.server.jedis.JedisChannel;
 import com.inferris.server.jedis.JedisHelper;
 import com.inferris.tasks.PlayerTaskManager;
@@ -17,6 +16,7 @@ import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
 import com.inferris.rank.RankRegistry;
 import com.inferris.server.Message;
+import com.inferris.util.MessageUtil;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -31,6 +31,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class CommandMessage extends Command implements TabExecutor {
+    private final PlayerDataService playerDataService;
     private static Cache<UUID, CommandJokeCache> cacheJokeHandler;
     private static Cache<UUID, CommandMessageCache> cacheReplyHandler;
     private final boolean JOKE_ALLOWED;
@@ -39,8 +40,9 @@ public class CommandMessage extends Command implements TabExecutor {
         JOKE_ALLOWED = Inferris.getInstance().getConfigurationHandler().getConfig(ConfigType.CONFIG).getSection("command.features").getBoolean("message-joke");
     }
 
-    public CommandMessage(String name) {
+    public CommandMessage(String name, PlayerDataService playerDataService) {
         super(name, null, "msg", "dm", "pm");
+        this.playerDataService = playerDataService;
 
         if (cacheReplyHandler == null) {
             cacheReplyHandler = Caffeine.newBuilder().build();
@@ -59,7 +61,9 @@ public class CommandMessage extends Command implements TabExecutor {
             String receiverName = args[0];
             ProxiedPlayer receiver = ProxyServer.getInstance().getPlayer(receiverName);
             String message = String.join(" ", Arrays.copyOfRange(args, 1, length));
-            PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
+
+            PlayerDataService dataService = ServiceLocator.getPlayerDataService();
+            PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), dataService);
 
             if (receiver == null) {
                 player.sendMessage(new TextComponent(Message.COULD_NOT_FIND_PLAYER.getMessage()));
@@ -72,16 +76,16 @@ public class CommandMessage extends Command implements TabExecutor {
             }
 
             // Check if the receiver is in a vanished state
-            if (PlayerDataManager.getInstance().getPlayerData(receiver).getVanishState() == VanishState.ENABLED) {
-                if (playerData.getBranchValue(Branch.STAFF) < 3) {
+            if (dataService.getPlayerData(receiver.getUniqueId()).getVanishState() == VanishState.ENABLED) {
+                if (playerContext.getRank().getBranchValue(Branch.STAFF) < 3) {
                     player.sendMessage(new TextComponent(Message.COULD_NOT_FIND_PLAYER.getMessage()));
-                    receiver.sendMessage(new TextComponent(ChatColor.GRAY + "Notice: " + playerData.getByBranch() + " " + player.getName() + ChatColor.GRAY
+                    receiver.sendMessage(new TextComponent(ChatColor.GRAY + "Notice: " + playerContext.getRank().getByBranch() + " " + player.getName() + ChatColor.GRAY
                             + " attempted to message you: " + message));
                     return;
                 }
             }
 
-            sendMessage(player, receiver, message);
+            MessageUtil.sendMessage(player, receiver, message);
 
             // Update the reply cache
             cacheReplyHandler.invalidate(receiver.getUniqueId());
@@ -90,26 +94,15 @@ public class CommandMessage extends Command implements TabExecutor {
             cache.add();
         }
     }
-
-    protected static void sendMessage(ProxiedPlayer sender, ProxiedPlayer receiver, String message) {
-        RankRegistry playerRank = PlayerDataManager.getInstance().getPlayerData(sender).getByBranch();
-        RankRegistry receiverRank = PlayerDataManager.getInstance().getPlayerData(receiver).getByBranch();
-        sender.sendMessage(new TextComponent(ChatColor.GREEN + "Message sent!"));
-        sender.sendMessage(TextComponent.fromLegacyText(ChatColor.GRAY + "To " + receiverRank.getPrefix(true) + ChatColor.RESET + receiver.getName() + ": " + message));
-        receiver.sendMessage(TextComponent.fromLegacyText(ChatColor.GRAY + "From " + playerRank.getPrefix(true) + ChatColor.RESET + sender.getName() + ": " + message));
-        EventPayload payload = new EventPayload(receiver.getUniqueId(), PlayerAction.NOTIFY, "ENTITY_CHICKEN_EGG", Inferris.getInstanceId());
-        JedisHelper.publish(JedisChannel.PLAYER_FLEX_EVENT, payload.toPayloadString());
-    }
-
     @Override
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
 
         if (args.length == 1 && sender instanceof ProxiedPlayer player) {
             String partialPlayerName = args[0];
             List<String> playerNames = new ArrayList<>();
-            PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
+            PlayerData playerData = playerDataService.getPlayerData(player.getUniqueId());
             for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                if (PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getVanishState() == VanishState.DISABLED || playerData.getBranchValue(Branch.STAFF) >=3) {
+                if (playerDataService.getPlayerData(proxiedPlayers.getUniqueId()).getVanishState() == VanishState.DISABLED|| playerData.getRank().getBranchValue(Branch.STAFF) >=3) {
                     String playerName = proxiedPlayers.getName();
                     if (playerName.toLowerCase().startsWith(partialPlayerName.toLowerCase())) {
                         playerNames.add(playerName);
@@ -146,7 +139,7 @@ public class CommandMessage extends Command implements TabExecutor {
                     receiver.sendMessage(new TextComponent(ChatColor.YELLOW + randomMessage));
                 } else {
                     receiver.sendMessage(new TextComponent(ChatColor.RED + "OKAYYY! Okay."));
-                    RankRegistry receiverRank = PlayerDataManager.getInstance().getPlayerData(receiver).getByBranch();
+                    RankRegistry receiverRank = playerDataService.getPlayerData(receiver.getUniqueId()).getRank().getByBranch();
                     BaseComponent[] components = new ComponentBuilder().create();
 
                     PlayerTaskManager taskManager = new PlayerTaskManager(ProxyServer.getInstance().getScheduler());

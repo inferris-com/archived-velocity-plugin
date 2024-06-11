@@ -2,6 +2,7 @@ package com.inferris.commands;
 
 import com.inferris.Inferris;
 import com.inferris.player.PlayerDataManager;
+import com.inferris.player.PlayerDataService;
 import com.inferris.rank.Branch;
 import com.inferris.util.ConfigUtils;
 import net.md_5.bungee.api.ChatColor;
@@ -13,13 +14,19 @@ import net.md_5.bungee.api.plugin.Command;
 import java.io.IOException;
 
 public class CommandConfig extends Command {
-    public CommandConfig(String name) {
+    private final PlayerDataService playerDataService;
+
+    public CommandConfig(String name, PlayerDataService playerDataService) {
         super(name);
+        this.playerDataService = playerDataService;
     }
 
     @Override
     public boolean hasPermission(CommandSender sender) {
-        return PlayerDataManager.getInstance().getPlayerData((ProxiedPlayer) sender).getBranchValue(Branch.STAFF) >= 3;
+        if (sender instanceof ProxiedPlayer player) {
+            return playerDataService.getPlayerData(player.getUniqueId()).getRank().getBranchValue(Branch.STAFF) >= 3;
+        }
+        return sender.getName().equalsIgnoreCase("CONSOLE");
     }
 
     @Override
@@ -27,7 +34,7 @@ public class CommandConfig extends Command {
         ProxiedPlayer player = (ProxiedPlayer) sender;
         int length = args.length;
 
-        if(length == 2) {
+        if (length == 2) {
             if (args[0].equalsIgnoreCase("reload")) {
                 ConfigUtils.Types type = ConfigUtils.Types.valueOf(args[1].toUpperCase());
                 try {
@@ -41,7 +48,7 @@ public class CommandConfig extends Command {
                         ConfigUtils.reloadConfiguration(ConfigUtils.Types.PROPERTIES);
                         player.sendMessage(new TextComponent(ChatColor.GREEN + "Config reloaded! " + Inferris.getInstance()));
                     }
-                }catch(IOException e){
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }

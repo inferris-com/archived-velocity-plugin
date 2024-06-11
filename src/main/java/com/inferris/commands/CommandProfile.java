@@ -1,8 +1,6 @@
 package com.inferris.commands;
 
-import com.inferris.player.PlayerData;
-import com.inferris.player.PlayerDataManager;
-import com.inferris.player.Profile;
+import com.inferris.player.*;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.util.DatabaseUtils;
 import net.md_5.bungee.api.ChatColor;
@@ -22,8 +20,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class CommandProfile extends Command implements TabExecutor {
-    public CommandProfile(String name) {
+    protected final PlayerDataService playerDataService;
+    public CommandProfile(String name, PlayerDataService playerDataService) {
         super(name);
+        this.playerDataService = playerDataService;
     }
 
     @Override
@@ -47,7 +47,7 @@ public class CommandProfile extends Command implements TabExecutor {
                     player.sendMessage(new TextComponent(ChatColor.YELLOW + "/profile unset bio"));
                     return;
                 }
-                UUID uuid = PlayerDataManager.getInstance().getUUIDByUsername(args[0]);
+                UUID uuid = playerDataService.fetchUUIDByUsername(args[0]);
                 if (uuid == null) {
                     player.sendMessage(new TextComponent(ChatColor.RED + "That player is not in our system."));
                     return;
@@ -177,19 +177,21 @@ public class CommandProfile extends Command implements TabExecutor {
 
 
     private void sendPlayerProfile(ProxiedPlayer player, UUID targetUUID) {
-        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(targetUUID);
-        Profile profile = playerData.getProfile();
-        ChatColor reset = ChatColor.RESET;
+        PlayerDataService service = ServiceLocator.getPlayerDataService();
+        PlayerContext context = PlayerContextFactory.create(targetUUID, service);
+        service.getPlayerData(targetUUID, playerData -> {
+            Profile profile = playerData.getProfile();
+            ChatColor reset = ChatColor.RESET;
 
-        player.sendMessage(new TextComponent(ChatColor.YELLOW + "Profile of " + playerData.getNameColor() + playerData.getUsername()));
-        player.sendMessage(new TextComponent(""));
-        player.sendMessage(TextComponent.fromLegacyText(ChatColor.GRAY + "Rank: " + playerData.getByBranch().getPrefix()));
-        if (profile.getPronouns() != null)
-            player.sendMessage(new TextComponent(ChatColor.GRAY + "Pronouns: " + reset + profile.getPronouns()));
-        player.sendMessage(new TextComponent(ChatColor.GRAY + "Registration date: " + reset + profile.getFormattedRegistrationDate("MMMM dd, yyyy")));
-        if (profile.getBio() != null)
-            player.sendMessage(new TextComponent(ChatColor.GRAY + "Bio: " + reset + ChatColor.translateAlternateColorCodes('&', profile.getBio())));
-        player.sendMessage(new TextComponent(""));
-
+            player.sendMessage(new TextComponent(ChatColor.YELLOW + "Profile of " + context.getNameColor() + playerData.getUsername()));
+            player.sendMessage(new TextComponent(""));
+            player.sendMessage(TextComponent.fromLegacyText(ChatColor.GRAY + "Rank: " + playerData.getRank().getByBranch().getPrefix()));
+            if (profile.getPronouns() != null)
+                player.sendMessage(new TextComponent(ChatColor.GRAY + "Pronouns: " + reset + profile.getPronouns()));
+            player.sendMessage(new TextComponent(ChatColor.GRAY + "Registration date: " + reset + profile.getFormattedRegistrationDate("MMMM dd, yyyy")));
+            if (profile.getBio() != null)
+                player.sendMessage(new TextComponent(ChatColor.GRAY + "Bio: " + reset + ChatColor.translateAlternateColorCodes('&', profile.getBio())));
+            player.sendMessage(new TextComponent(""));
+        });
     }
 }

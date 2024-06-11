@@ -1,8 +1,7 @@
 package com.inferris.commands;
 
 import com.inferris.database.DatabasePool;
-import com.inferris.player.PlayerData;
-import com.inferris.player.PlayerDataManager;
+import com.inferris.player.*;
 import com.inferris.rank.Branch;
 import com.inferris.util.ChatUtil;
 import com.inferris.util.DatabaseUtils;
@@ -22,14 +21,18 @@ import java.time.Instant;
 import java.util.UUID;
 
 public class CommandFlagPlayer extends Command {
-    public CommandFlagPlayer(String name) {
+    private final PlayerDataService playerDataService;
+
+    public CommandFlagPlayer(String name, PlayerDataService playerDataService) {
         super(name);
+        this.playerDataService = playerDataService;
     }
 
     @Override
     public boolean hasPermission(CommandSender sender) {
         if (sender instanceof ProxiedPlayer player) {
-            return PlayerDataManager.getInstance().getPlayerData(player).getBranchValue(Branch.STAFF) >= 2;
+            PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
+            return playerContext.getRank().getBranchValue(Branch.STAFF) >= 2;
         }
         // Allow console to execute the command
         return sender.getName().equalsIgnoreCase("CONSOLE");
@@ -37,6 +40,8 @@ public class CommandFlagPlayer extends Command {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
+        PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
+
         if (args.length < 1) {
             sender.sendMessage(new TextComponent(ChatColor.RED + "Usage: /flag <add|remove> <player> [reason]"));
             return;
@@ -70,7 +75,7 @@ public class CommandFlagPlayer extends Command {
             targetUuid = targetPlayer.getUniqueId();
             targetPlayerData = PlayerDataManager.getInstance().getPlayerData(targetUuid);
         } else {
-            targetUuid = PlayerDataManager.getInstance().getUUIDByUsername(playerName);
+            targetUuid = playerDataService.fetchUUIDByUsername(playerName);
             if (targetUuid != null) {
                 targetPlayerData = PlayerDataManager.getInstance().getPlayerData(targetUuid);
             }
@@ -164,7 +169,7 @@ public class CommandFlagPlayer extends Command {
 
                 PlayerData targetPlayerData = PlayerDataManager.getInstance().getPlayerData(uuid);
                 PlayerData moderatorPlayerData = PlayerDataManager.getInstance().getPlayerData(flaggedByUuid);
-                String moderatorRank = PlayerDataManager.getInstance().getPlayerData(flaggedByUuid).getByBranch().getPrefix(true);
+                String moderatorRank = PlayerDataManager.getInstance().getPlayerData(flaggedByUuid).getRank().getByBranch().getPrefix(true);
 
                 TextComponent clickableUsername = ChatUtil.createClickableTextComponent(
                         ChatColor.RED + targetPlayerData.getUsername(),
@@ -199,7 +204,7 @@ public class CommandFlagPlayer extends Command {
             long timestamp = resultSet.getLong("date");
 
             PlayerData moderatorPlayerData = PlayerDataManager.getInstance().getPlayerData(flaggedByUuid);
-            String moderatorRank = PlayerDataManager.getInstance().getPlayerData(flaggedByUuid).getByBranch().getPrefix(true);
+            String moderatorRank = PlayerDataManager.getInstance().getPlayerData(flaggedByUuid).getRank().getByBranch().getPrefix(true);
 
             TextComponent textComponent = new TextComponent();
             textComponent.addExtra(new TextComponent(ChatColor.GRAY + "Username: " + ChatColor.RESET + targetPlayerData.getUsername() + "\n"));
@@ -211,7 +216,7 @@ public class CommandFlagPlayer extends Command {
             textComponent.addExtra(new TextComponent(ChatColor.GRAY + "----------------------------"));
 
             sender.sendMessage(textComponent);
-        }else{
+        } else {
             sender.sendMessage(new TextComponent(ChatColor.RED + "Error: That player is not flagged!"));
         }
     }

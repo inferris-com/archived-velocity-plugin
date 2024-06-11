@@ -6,6 +6,7 @@ import com.inferris.events.redis.EventPayload;
 import com.inferris.events.redis.PlayerAction;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
+import com.inferris.player.PlayerDataService;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
 import com.inferris.server.Message;
@@ -27,17 +28,20 @@ import java.util.Collections;
 import java.util.List;
 
 public class CommandVanish extends Command implements TabExecutor {
-    public CommandVanish(String name) {
+    private final PlayerDataService playerDataService;
+
+    public CommandVanish(String name, PlayerDataService playerDataService) {
         super(name);
+        this.playerDataService = playerDataService;
     }
 
     @Override
     public void execute(CommandSender sender, String[] args) {
         int length = args.length;
         if (sender instanceof ProxiedPlayer player) {
-            PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
+            PlayerData playerData = playerDataService.getPlayerData(player.getUniqueId());
 
-            if (playerData.getBranchValue(Branch.STAFF) >= 3) {
+            if (playerData.getRank().getBranchValue(Branch.STAFF) >= 3) {
                 if (length == 0 || length > 1) {
                     player.sendMessage(new TextComponent(ChatColor.RED + "Usage: /vanish <on:off>"));
                     return;
@@ -91,7 +95,7 @@ public class CommandVanish extends Command implements TabExecutor {
     }
 
     private void updatePlayerData(ProxiedPlayer player, VanishState vanishState) {
-        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
+        PlayerData playerData = playerDataService.getPlayerData(player.getUniqueId());
         playerData.setVanishState(vanishState);
         PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData, JedisChannel.PLAYERDATA_VANISH);
         String json;
@@ -105,7 +109,7 @@ public class CommandVanish extends Command implements TabExecutor {
 
     @Override
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
-        if (args.length == 1 && sender instanceof ProxiedPlayer player) {
+        if (args.length == 1 && sender instanceof ProxiedPlayer) {
             String partialOption = args[0].toLowerCase();
             List<String> options = new ArrayList<>();
 

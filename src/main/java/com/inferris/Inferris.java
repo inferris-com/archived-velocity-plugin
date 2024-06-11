@@ -3,8 +3,7 @@ package com.inferris;
 import com.inferris.config.ConfigType;
 import com.inferris.config.ConfigurationHandler;
 import com.inferris.database.DatabasePool;
-import com.inferris.player.PlayerData;
-import com.inferris.player.PlayerDataManager;
+import com.inferris.player.*;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.server.*;
 import net.md_5.bungee.api.ProxyServer;
@@ -37,6 +36,9 @@ public class Inferris extends Plugin {
         }
 
         jedisPool = new JedisPool(configurationHandler.getProperties(ConfigType.PROPERTIES).getProperty("address"), Port.JEDIS.getPort());
+        PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
+        PlayerDataService playerDataService = new PlayerDataServiceImpl(playerDataManager);
+        ServiceLocator.setPlayerDataService(playerDataService);
         Initializer.initialize(this);
 
         try {

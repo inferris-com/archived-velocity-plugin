@@ -7,6 +7,7 @@ import com.inferris.config.ConfigType;
 import com.inferris.database.DatabasePool;
 import com.inferris.player.PlayerData;
 import com.inferris.player.PlayerDataManager;
+import com.inferris.player.PlayerDataService;
 import com.inferris.util.CodeGenerator;
 import com.inferris.util.ContentTypes;
 import com.inferris.util.DatabaseUtils;
@@ -38,8 +39,11 @@ public class CommandVerify extends Command implements TabExecutor {
     private String code = null;
     private String recipient_id = null;
 
-    public CommandVerify(String name) {
+    private final PlayerDataService playerDataService;
+
+    public CommandVerify(String name, PlayerDataService playerDataService) {
         super(name);
+        this.playerDataService = playerDataService;
     }
 
 
@@ -152,7 +156,7 @@ public class CommandVerify extends Command implements TabExecutor {
 
     private String getForumData(String username, String field) {
 
-        try(RestClientManager restClientManager = new RestClientManager()){
+        try (RestClientManager restClientManager = new RestClientManager()) {
             Response response = restClientManager.sendRequest(API_BASE_URL + "users/find-name/?username=" + username, RestClientManager.Method.GET,
                     API_KEY);
 
@@ -177,7 +181,7 @@ public class CommandVerify extends Command implements TabExecutor {
                     return "Did you mean " + recommendationName + "?";
                 }
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             Inferris.getInstance().getLogger().severe(e.getMessage());
         }
         return null;
@@ -206,20 +210,20 @@ public class CommandVerify extends Command implements TabExecutor {
 
         try (Connection connection = DatabasePool.getConnection();
 
-            ResultSet resultSet = DatabaseUtils.queryData(connection, "verification_sessions", new String[]{"mc_username", "recipient_id"}, "uuid = '" + player.getUniqueId() + "'")){
-            if(resultSet.next()){
+             ResultSet resultSet = DatabaseUtils.queryData(connection, "verification_sessions", new String[]{"mc_username", "recipient_id"}, "uuid = '" + player.getUniqueId() + "'")) {
+            if (resultSet.next()) {
                 usernameMC = resultSet.getString(1);
                 recipient_id = resultSet.getInt(2);
 
 
-            String tableName = "verification";
-            String[] columnNames = {"uuid", "xenforo_id"};
-            Object[] values = {player.getUniqueId().toString(), recipient_id};
+                String tableName = "verification";
+                String[] columnNames = {"uuid", "xenforo_id"};
+                Object[] values = {player.getUniqueId().toString(), recipient_id};
 
-            String whereClause = "uuid = '" + player.getUniqueId() + "'";
-            DatabaseUtils.removeData(connection, "verification_sessions", whereClause);
+                String whereClause = "uuid = '" + player.getUniqueId() + "'";
+                DatabaseUtils.removeData(connection, "verification_sessions", whereClause);
 
-            DatabaseUtils.insertData(connection, tableName, columnNames, values);
+                DatabaseUtils.insertData(connection, tableName, columnNames, values);
             }//*
         } catch (SQLException e) {
             Inferris.getInstance().getLogger().severe(e.getMessage());
@@ -227,14 +231,14 @@ public class CommandVerify extends Command implements TabExecutor {
 
         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
         playerData.getProfile().setXenforoId(recipient_id);
-        PlayerDataManager.getInstance().updateAllData(player, playerData);
+        PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData);
 
         try (RestClientManager restClientManager = new RestClientManager()) {
-            restClientManager.sendRequest(API_BASE_URL + "users/" + + recipient_id + "/?=&custom_fields[minecraft]=" + usernameMC,
+            restClientManager.sendRequest(API_BASE_URL + "users/" + +recipient_id + "/?=&custom_fields[minecraft]=" + usernameMC,
                     RestClientManager.Method.POST, API_KEY, MediaType.parse(ContentTypes.PLAIN.getType()), "");
             restClientManager.sendRequest(API_BASE_URL + "users/" + recipient_id + "/?=&custom_fields[uuid]=" + player.getUniqueId(),
                     RestClientManager.Method.POST, API_KEY, MediaType.parse(ContentTypes.PLAIN.getType()), "");
-        }catch(Exception e){
+        } catch (Exception e) {
             Inferris.getInstance().getLogger().severe(e.getMessage());
         }
     }
@@ -246,7 +250,7 @@ public class CommandVerify extends Command implements TabExecutor {
         return timestamp.getTime() < fifteenMinutesAgo;
     }
 
-    public static void setGroups(ProxiedPlayer player){
+    public static void setGroups(ProxiedPlayer player) {
     }
 
     @Override

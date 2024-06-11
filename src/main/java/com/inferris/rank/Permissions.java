@@ -2,8 +2,7 @@ package com.inferris.rank;
 
 import com.inferris.Inferris;
 import com.inferris.config.ConfigType;
-import com.inferris.player.PlayerData;
-import com.inferris.player.PlayerDataManager;
+import com.inferris.player.*;
 import com.inferris.server.ServerState;
 import com.inferris.util.ServerUtil;
 import net.md_5.bungee.api.ChatColor;
@@ -16,10 +15,12 @@ import java.util.List;
 import java.util.logging.Level;
 
 public class Permissions {
+    private static final PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
 
     public static void attachPermissions(ProxiedPlayer player) {
+        PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
         PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player, "attachPermissions");
-        List<RankRegistry> ranks = playerData.getApplicableRanks();
+        List<RankRegistry> ranks = playerData.getRank().getApplicableRanks();
 
         Configuration permissionsConfig = Inferris.getInstance().getConfigurationHandler().getConfig(ConfigType.PERMISSIONS);
         Configuration ranksSection = permissionsConfig.getSection("ranks");
@@ -46,7 +47,7 @@ public class Permissions {
             }
         }
 
-        RankRegistry rank = playerData.getByBranch();
+        RankRegistry rank = playerData.getRank().getByBranch();
         for(Permission permission : Permission.values()){
             for(RankRegistry permissionRank : permission.getRanks()){
                 if(permissionRank == rank){
@@ -57,8 +58,8 @@ public class Permissions {
     }
 
     public static void listPermissions(ProxiedPlayer player) {
-        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
-        List<RankRegistry> ranks = playerData.getApplicableRanks();
+        PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
+        List<RankRegistry> ranks = playerContext.getRank().getApplicableRanks();
         Configuration permissionsConfig = Inferris.getInstance().getConfigurationHandler().getConfig(ConfigType.PERMISSIONS);
         Configuration ranksSection = permissionsConfig.getSection("ranks");
 
@@ -80,6 +81,3 @@ public class Permissions {
     }
 
 }
-
-
-// TODO

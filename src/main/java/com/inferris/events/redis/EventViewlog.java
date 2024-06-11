@@ -14,7 +14,6 @@ import com.inferris.server.ServerStateManager;
 
 public class EventViewlog implements JedisEventHandler {
     private final CommandViewlogs viewLogCommand;
-
     public EventViewlog(CommandViewlogs viewLogCommand) {
         this.viewLogCommand = viewLogCommand;
     }

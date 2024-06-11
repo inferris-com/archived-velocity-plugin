@@ -23,10 +23,10 @@ public class CoinsManager {
 
         } catch (SQLException e) {
             e.printStackTrace();
-        }
+    }
 
         PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(uuid);
-        playerData.getCoins().setBalance(amount);
+        //playerData.getCoins().setBalance(amount); todo
 
         //jedis.hset("playerdata", uuid.toString(), json);
         if (!isNull) {

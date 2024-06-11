@@ -6,9 +6,8 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.inferris.Inferris;
 import com.inferris.config.ConfigType;
+import com.inferris.player.*;
 import com.inferris.serialization.SerializationModule;
-import com.inferris.player.PlayerData;
-import com.inferris.player.PlayerDataManager;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.util.SerializationUtils;
 import net.md_5.bungee.api.ChatColor;
@@ -29,16 +28,18 @@ public class FriendsManager {
     private final JedisPool jedisPool;
     private final ObjectMapper objectMapper;
     private final Cache<UUID, Friends> caffeineCache;
+    private final PlayerDataService playerDataService;
 
-    private FriendsManager() {
+    private FriendsManager(PlayerDataService playerDataService) {
         jedisPool = Inferris.getJedisPool(); // Set Redis server details
         objectMapper = SerializationUtils.createObjectMapper(new SerializationModule());
         caffeineCache = Caffeine.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build();
+        this.playerDataService = playerDataService;
     }
 
     public static synchronized FriendsManager getInstance() {
         if (instance == null) {
-            instance = new FriendsManager();
+            instance = new FriendsManager(ServiceLocator.getPlayerDataService());
         }
         return instance;
     }
@@ -94,7 +95,7 @@ public class FriendsManager {
                 if (targetPlayer != null) {
                     PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(playerUUID);
                     targetPlayer.sendMessage(new TextComponent(ChatColor.GREEN + "You received a friend request from " +
-                            playerData.getByBranch().getPrefix(true) + playerData.getUsername()));
+                            playerDataService.getPlayerData(playerUUID).getRank().getByBranch().getPrefix(true) + playerData.getUsername()));
                 }
             } catch (IllegalArgumentException e) {
                 ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerUUID);
@@ -136,7 +137,7 @@ public class FriendsManager {
                 playerFriends.removeFriend(targetUUID);
                 targetFriends.removeFriend(playerUUID);
                 ProxyServer.getInstance().getPlayer(playerUUID).sendMessage(new TextComponent(ChatColor.GREEN + "You have removed "
-                        + targetData.getByBranch().getPrefix(true) + targetData.getUsername() + ChatColor.GREEN + " as a friend"));
+                        + playerDataService.getPlayerData(targetUUID).getRank().getByBranch().getPrefix(true) + targetData.getUsername() + ChatColor.GREEN + " as a friend"));
             } catch (IllegalArgumentException e) {
                 ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerUUID);
                 if (player != null) {
@@ -226,7 +227,7 @@ public class FriendsManager {
             ProxiedPlayer friendPlayer = ProxyServer.getInstance().getPlayer(friendUUID);
 
             String playerName = playerData.getUsername();
-            String prefix = playerData.getByBranch().getPrefix(true);
+            String prefix = playerDataService.getPlayerData(friendUUID).getRank().getByBranch().getPrefix(true);
             String playerStr = ChatColor.YELLOW + "Player ";
             String is = ChatColor.YELLOW + " is";
 

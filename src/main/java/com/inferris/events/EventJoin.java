@@ -6,12 +6,12 @@ import com.inferris.config.ConfigType;
 import com.inferris.config.ConfigurationHandler;
 import com.inferris.events.redis.EventPayload;
 import com.inferris.events.redis.PlayerAction;
+import com.inferris.player.*;
+import com.inferris.server.PlayerSessionManager;
 import com.inferris.server.jedis.JedisChannel;
 import com.inferris.server.jedis.JedisHelper;
 import com.inferris.tasks.PlayerTaskManager;
 import com.inferris.server.Message;
-import com.inferris.player.PlayerData;
-import com.inferris.player.PlayerDataManager;
 import com.inferris.player.friends.Friends;
 import com.inferris.player.friends.FriendsManager;
 import com.inferris.rank.*;
@@ -31,9 +31,15 @@ import net.md_5.bungee.event.EventPriority;
 import java.awt.*;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 public class EventJoin implements Listener {
+    private PlayerDataService playerDataService;
+
+    public EventJoin(PlayerDataService playerDataService) {
+        this.playerDataService = playerDataService;
+    }
 
     /**
      * This is responsible for any server switch events
@@ -48,6 +54,7 @@ public class EventJoin implements Listener {
         sendHeader(player);
 
         PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
+
         FriendsManager friendsManager = FriendsManager.getInstance();
         Friends friends = friendsManager.getFriendsData(player.getUniqueId());
         friendsManager.updateCache(player.getUniqueId(), friends);
@@ -63,8 +70,7 @@ public class EventJoin implements Listener {
                     joinMessage)));
         }
 
-        // Important implementation
-        if (playerDataManager.checkJoinedBefore(player)) {
+        if (playerDataService.hasJoinedBefore(player.getUniqueId())) {
             Runnable task2 = () -> {
                 player.sendMessage(TextComponent.fromLegacyText(ChatColor.YELLOW + generateRandomMessage(messageList())));
             };
@@ -113,13 +119,10 @@ public class EventJoin implements Listener {
             taskManager.addTaskForPlayer(player, welcomeRunnable4, 8, TimeUnit.SECONDS);
         }
 
-        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player, "onSwitch"); // Grabs the Redis cache
-        Permissions.attachPermissions(player);
-
-        playerData.setCurrentServer(ServerUtil.getServerType(player));
-
-        playerDataManager.updateAllData(player, playerData); //new, so that it updates the bungee cache too;
-
+        playerDataService.updatePlayerDataWithoutPush(player.getUniqueId(), playerData -> {
+            Permissions.attachPermissions(player);
+            playerData.setCurrentServer(ServerUtil.getServerType(player));
+        });
     }
 
     /**
@@ -130,23 +133,25 @@ public class EventJoin implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPostLogin(PostLoginEvent event) {
         ProxiedPlayer player = event.getPlayer();
+        PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
+        playerDataService.getPlayerDataAsync(player.getUniqueId()).thenAccept(playerData -> {
+            PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
 
-        PlayerDataManager.getInstance().getPlayerDataAsync(player).thenAccept(playerData -> {
             Rank rank = playerData.getRank();
-            RankRegistry rankRegistry = playerData.getByBranch();
+            RankRegistry rankRegistry = playerData.getRank().getByBranch();
 
             if (rank.getBranchID(Branch.STAFF) >= 1) {
                 for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                    if (PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getRank().getBranchID(Branch.STAFF) >= 1) {
+                    if (playerData.getRank().getBranchID(Branch.STAFF) >= 1) {
                         proxiedPlayers.sendMessage(TextComponent.fromLegacyText(Tag.STAFF.getName(true) + rankRegistry.getPrefix(true) + rankRegistry.getColor() + player.getName() + ChatColor.YELLOW + " connected"));
                     }
                 }
             }
 
-            if (!playerData.isStaff()) {
+            if (!playerContext.isStaff()) {
                 if (playerData.getProfile().isFlagged()) {
                     for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                        if (PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getRank().getBranchID(Branch.STAFF) >= 1) {
+                        if (playerData.getRank().getBranchID(Branch.STAFF) >= 1) {
                             proxiedPlayers.sendMessage(TextComponent.fromLegacyText(Tag.STAFF.getName(true)
                                     + Tag.POI.getName(true)
                                     + rankRegistry.getPrefix(true) + rankRegistry.getColor() + player.getName() + ChatColor.YELLOW + " connected"));

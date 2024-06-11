@@ -1,8 +1,6 @@
 package com.inferris.commands;
 
-import com.inferris.player.Channel;
-import com.inferris.player.ChannelManager;
-import com.inferris.player.PlayerDataManager;
+import com.inferris.player.*;
 import com.inferris.util.ChatUtil;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -10,8 +8,10 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
 public class CommandStaffchatShortcut extends Command {
-    public CommandStaffchatShortcut(String name) {
+    private final PlayerDataService playerDataService;
+    public CommandStaffchatShortcut(String name, PlayerDataService playerDataService) {
         super(name, null, "s");
+        this.playerDataService = playerDataService;
     }
 
     @Override
@@ -33,7 +33,9 @@ public class CommandStaffchatShortcut extends Command {
     @Override
     public boolean hasPermission(CommandSender sender) {
         if (sender instanceof ProxiedPlayer player) {
-            return PlayerDataManager.getInstance().getPlayerData(player).isStaff();
+            PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
+            PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
+            return playerContext.isStaff();
         }
         return true;
     }
