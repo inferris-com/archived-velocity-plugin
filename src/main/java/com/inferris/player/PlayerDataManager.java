@@ -70,13 +70,13 @@ public class PlayerDataManager {
     private final ObjectMapper objectMapper;
     private final Cache<UUID, PlayerData> caffeineCache;
     private final Logger logger = Inferris.getInstance().getLogger();
-    private final FetchPlayer fetchPlayer;
+    private final PlayerDataRepository playerDataRepository;
 
     private PlayerDataManager() {
         jedisPool = Inferris.getJedisPool(); // Set Redis server details
         objectMapper = SerializationUtils.createObjectMapper(new SerializationModule());
         caffeineCache = Caffeine.newBuilder().build();
-        fetchPlayer = new FetchPlayer(ServiceLocator.getPlayerDataService());
+        playerDataRepository = new PlayerDataRepository();
     }
 
     public static PlayerDataManager getInstance() {
@@ -179,7 +179,7 @@ public class PlayerDataManager {
                 return SerializationUtils.deserializePlayerData(json);
             } else {
                 Inferris.getInstance().getLogger().severe("Trying getPlayerDataFromDatabase");
-                return fetchPlayer.getPlayerDataFromDatabase(player.getUniqueId());
+                return playerDataRepository.getPlayerDataFromDatabase(player.getUniqueId());
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
@@ -193,7 +193,7 @@ public class PlayerDataManager {
                 return SerializationUtils.deserializePlayerData(json);
             } else {
                 Inferris.getInstance().getLogger().severe("Trying getPlayerDataFromDatabase");
-                return fetchPlayer.getPlayerDataFromDatabase(uuid);
+                return playerDataRepository.getPlayerDataFromDatabase(uuid);
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
@@ -345,39 +345,6 @@ public class PlayerDataManager {
         }
     }
 
-    public void updatePlayerDataTable(PlayerData playerData) {
-        String[] columnNames = {"username", "coins", "channel", "vanished"};
-        boolean isVanished = playerData.getVanishState() == VanishState.ENABLED;
-        Object[] values = {playerData.getUsername(), playerData.getCoins(), playerData.getChannel().name(), isVanished};
-        String whereClause = "uuid = ?";
-        try (Connection connection = DatabasePool.getConnection()) {
-            DatabaseUtils.updateData(connection, "player_data", columnNames, values, whereClause);
-        } catch (SQLException e) {
-            Inferris.getInstance().getLogger().warning("Failed to update player_data in the database: " + e.getMessage());
-        }
-    }
-    public void updateRankTable(Rank rank, UUID uuid) {
-        String[] columnNames = {"staff", "builder", "donor", "other"};
-        Object[] values = {rank.getStaff(), rank.getBuilder(), rank.getDonor(), rank.getOther()};
-        String whereClause = "uuid = ?";
-        try (Connection connection = DatabasePool.getConnection()) {
-            DatabaseUtils.updateData(connection, "rank", columnNames, values, whereClause);
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to update rank in the database", e);
-        }
-    }
-
-    public void updateProfileTable(Profile profile, UUID uuid) {
-        String[] columnNames = {"join_date", "bio", "pronouns", "xenforo_id", "discord_linked", "is_flagged"};
-        Object[] values = {profile.getRegistrationDate(), profile.getBio(), profile.getPronouns(), profile.getXenforoId(), profile.isDiscordLinked(), profile.isFlagged()};
-        String whereClause = "uuid = ?";
-        try (Connection connection = DatabasePool.getConnection()) {
-            DatabaseUtils.updateData(connection, "profile", columnNames, values, whereClause);
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to update profile in the database", e);
-        }
-    }
-
     public void updateRedisData(ProxiedPlayer player, PlayerData playerData) {
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.hset("playerdata", player.getUniqueId().toString(), SerializationUtils.serializePlayerData(playerData));
@@ -407,103 +374,6 @@ public class PlayerDataManager {
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
-        }
-    }
-
-
-    // Insert a new player into the database - default values
-    public void insertPlayerDataToDatabase(Connection connection, UUID uuid, String username) {
-        try (PreparedStatement insertPlayersStatement = connection.prepareStatement("INSERT INTO " + Table.PLAYER_DATA.getName() + " (uuid, username, coins, channel, vanished) VALUES (?, ?, ?, ?, ?)");
-             PreparedStatement insertProfileStatement = connection.prepareStatement("INSERT INTO " + Table.PROFILE.getName() + " (uuid, join_date, bio, pronouns) VALUES (?, ?, ?, ?)")) {
-
-            insertPlayersStatement.setString(1, uuid.toString());
-            insertPlayersStatement.setString(2, username);
-            insertPlayersStatement.setInt(3, PlayerDefault.COIN_BALANCE.getValue());
-            insertPlayersStatement.setString(4, String.valueOf(Channel.NONE));
-            insertPlayersStatement.setInt(5, 0);
-            insertPlayersStatement.execute();
-
-            insertProfileStatement.setString(1, uuid.toString());
-            insertProfileStatement.setString(2, String.valueOf(Instant.now().getEpochSecond()));
-            insertProfileStatement.setString(3, null);
-            insertProfileStatement.setString(4, null);
-            insertProfileStatement.execute();
-
-            //RanksManager.getInstance().loadRanks(uuid, connection); todo remove
-        } catch (SQLException e) {
-            Inferris.getInstance().getLogger().warning(e.getMessage());
-        }
-    }
-
-    /**
-     * Inserts the player data into the database if it does not already exist.
-     *
-     * @param uuid     The UUID of the player.
-     * @param username The username of the player.
-     * @return true if the player data was inserted, false if it already exists.
-     */
-    public boolean insertPlayerDataIfNotExists(UUID uuid, String username) {
-        boolean inserted = false;
-        try (Connection connection = DatabasePool.getConnection()) {
-            // Check if the player data exists in the database
-            PreparedStatement queryStatement = connection.prepareStatement("SELECT COUNT(*) FROM " + Table.PLAYER_DATA.getName() + " WHERE uuid = ?");
-            queryStatement.setString(1, uuid.toString());
-            ResultSet resultSet = queryStatement.executeQuery();
-
-            if (resultSet.next() && resultSet.getInt(1) == 0) {
-                // Insert the player data if it doesn't exist
-                insertPlayerDataToDatabase(connection, uuid, username);
-                inserted = true;
-            }
-
-            // Retrieve the player data
-            PlayerData playerData = fetchPlayer.getPlayerDataFromDatabase(uuid, username, false);
-
-            // Cache the player data and update Redis
-            String playerDataJson = SerializationUtils.serializePlayerData(playerData);
-            try (Jedis jedis = jedisPool.getResource()) {
-                jedis.hset("playerdata", uuid.toString(), playerDataJson);
-                updateCaffeineCache(uuid, playerData);
-            }
-        } catch (SQLException | JsonProcessingException e) {
-            Inferris.getInstance().getLogger().warning(e.getMessage());
-        }
-        return inserted;
-    }
-
-
-    public void deletePlayerData(PlayerData playerData) {
-        UUID playerUUID = playerData.getUuid();
-
-        // Step 1: Fetch the list of friends
-        FriendsManager friendsManager = FriendsManager.getInstance();
-        Friends playerFriends = friendsManager.getFriendsData(playerUUID);
-        List<UUID> friendsList = new ArrayList<>(playerFriends.getFriendsList());
-
-        // Step 2: Update each friend's data
-        for (UUID friendUUID : friendsList) {
-            Friends friendData = friendsManager.getFriendsData(friendUUID);
-            friendData.removeFriend(playerUUID);
-            friendsManager.updateCache(friendUUID, friendData);
-            friendsManager.updateRedisData(friendUUID, friendData);
-        }
-
-        // Step 3: Remove the player's data from all necessary tables
-        try (Connection connection = DatabasePool.getConnection()) {
-            DatabaseUtils.removeData(connection, Table.PLAYER_DATA.getName(), "`uuid` = '" + playerData.getUuid().toString() + "'");
-            DatabaseUtils.removeData(connection, "`rank`", "`uuid` = '" + playerData.getUuid().toString() + "'");
-            DatabaseUtils.removeData(connection, Table.PROFILE.getName(), "`uuid` = '" + playerData.getUuid().toString() + "'");
-            DatabaseUtils.removeData(connection, Table.VERIFICATION.getName(), "`uuid` = '" + playerData.getUuid().toString() + "'");
-            DatabaseUtils.removeData(connection, Table.VERIFICATION_SESSIONS.getName(), "`uuid` = '" + playerData.getUuid().toString() + "'");
-        } catch (SQLException e) {
-            logger.severe(e.getMessage());
-        }
-
-        // Step 4: Remove the player's data from Redis and cache
-        try (Jedis jedis = getJedisPool().getResource()) {
-            jedis.hdel("playerdata", playerData.getUuid().toString());
-            jedis.hdel("friends", playerData.getUuid().toString());
-            friendsManager.getCaffeineCache().invalidate(playerUUID);
         }
     }
 
