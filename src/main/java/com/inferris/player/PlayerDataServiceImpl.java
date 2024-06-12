@@ -1,28 +1,10 @@
 package com.inferris.player;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.inferris.Inferris;
-import com.inferris.player.vanish.VanishState;
-import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
-import com.inferris.rank.RankRegistry;
-import com.inferris.rank.RanksManager;
-import com.inferris.server.Server;
-import com.inferris.server.ServerState;
-import com.inferris.util.SerializationUtils;
-import com.inferris.util.ServerUtil;
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
-import redis.clients.jedis.Jedis;
 
-import java.lang.reflect.Proxy;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import java.util.logging.Level;
 
 /**
  * Implementation of the PlayerDataService interface for accessing and updating player data.
@@ -41,10 +23,12 @@ import java.util.logging.Level;
 public class PlayerDataServiceImpl implements PlayerDataService {
     private final PlayerDataManager playerDataManager;
     private final FetchPlayer fetchPlayer;
+    private final PlayerDataRepository playerDataRepository;
 
     public PlayerDataServiceImpl(PlayerDataManager playerDataManager) {
         this.playerDataManager = playerDataManager;
-        this.fetchPlayer = new FetchPlayer(this);
+        playerDataRepository = new PlayerDataRepository();
+        this.fetchPlayer = new FetchPlayer(this, playerDataRepository);
     }
     @Override
     public void getPlayerData(UUID uuid, Consumer<PlayerData> operation) {
@@ -65,7 +49,7 @@ public class PlayerDataServiceImpl implements PlayerDataService {
     public void updatePlayerData(UUID uuid, Consumer<PlayerData> updateFunction) {
         PlayerData playerData = playerDataManager.getPlayerData(uuid);
         updateFunction.accept(playerData);
-        playerDataManager.updatePlayerDataTable(playerData);
+        playerDataRepository.updatePlayerDataTable(playerData);
         playerDataManager.updateAllDataAndPush(uuid, playerData);
     }
 
@@ -80,7 +64,7 @@ public class PlayerDataServiceImpl implements PlayerDataService {
     public void updateProfileField(UUID uuid, Consumer<Profile> updateFunction) {
         PlayerData playerData = playerDataManager.getPlayerData(uuid);
         updateFunction.accept(playerData.getProfile());
-        playerDataManager.updateProfileTable(playerData.getProfile(), playerData.getUuid());
+        playerDataRepository.updateProfileTable(playerData.getProfile(), playerData.getUuid());
         playerDataManager.updateAllDataAndPush(uuid, playerData);
     }
 
@@ -88,7 +72,7 @@ public class PlayerDataServiceImpl implements PlayerDataService {
     public void updateRankField(UUID uuid, Consumer<Rank> updateFunction) {
         PlayerData playerData = playerDataManager.getPlayerData(uuid);
         updateFunction.accept(playerData.getRank());
-        playerDataManager.updateRankTable(playerData.getRank(), playerData.getUuid());
+        playerDataRepository.updateRankTable(playerData.getRank(), playerData.getUuid());
         playerDataManager.updateAllDataAndPush(uuid, playerData);
     }
 
@@ -104,53 +88,26 @@ public class PlayerDataServiceImpl implements PlayerDataService {
 
     @Override
     public PlayerData fetchPlayerDataFromDatabase(UUID uuid) {
-        return fetchPlayer.getPlayerDataFromDatabase(uuid);
+        return playerDataRepository.getPlayerDataFromDatabase(uuid);
+    }
+
+    @Override
+    public void nukePlayerData(UUID uuid) {
+        playerDataRepository.deletePlayerData(uuid);
     }
 
     @Override
     public PlayerData fetchPlayerDataFromDatabase(UUID uuid, String username, boolean insertData) {
-        return fetchPlayer.getPlayerDataFromDatabase(uuid, username, insertData);
+        return playerDataRepository.getPlayerDataFromDatabase(uuid, username, insertData);
     }
 
     /**
      * Checks if the provided player has joined before by looking up their data in Redis and caching within Caffeine if necessary.
      *
-     * @param player The ProxiedPlayer object representing the player to check.
+     * @param uuid The ProxiedPlayer object representing the player to check.
      */
     @Override
     public boolean hasJoinedBefore(UUID uuid) {
-        ProxiedPlayer player = ProxyServer.getInstance().getPlayer(uuid);
-        ServerUtil.log("Checking Jedis #checkJoinedBefore", Level.WARNING, ServerState.DEBUG);
-        String playerUUIDString = uuid.toString();
-        PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
-
-        try (Jedis jedis = Inferris.getJedisPool().getResource()) {
-            // Check if player data exists in Redis
-            if (jedis.hexists("playerdata", playerUUIDString)) {
-                ServerUtil.log("Exists in Jedis", Level.WARNING, ServerState.DEBUG);
-
-                // Cache data in Caffeine if not present
-                if (playerDataManager.getCache().getIfPresent(uuid) == null) {
-                    String playerDataJson = jedis.hget("playerdata", playerUUIDString);
-                    PlayerData playerData = SerializationUtils.deserializePlayerData(playerDataJson);
-                    playerDataManager.updateCaffeineCache(uuid, playerData);
-                    playerDataManager.logPlayerData(playerData);
-                }
-            } else {
-                ServerUtil.log("Not in Redis, checking database", Level.WARNING, ServerState.DEBUG);
-
-                // Check and insert player data into the database
-                boolean wasInserted = playerDataManager.insertPlayerDataIfNotExists(uuid, player.getName());
-                if (wasInserted) {
-                    ServerUtil.log("Inserted into database and Jedis", Level.WARNING, ServerState.DEBUG);
-                    return false;
-                }
-
-                // Shouldn't reach here but just in case
-            }
-            return true;
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        return playerDataRepository.hasJoinedBefore(uuid);
     }
 }
