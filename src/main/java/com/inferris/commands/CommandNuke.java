@@ -90,7 +90,8 @@ public class CommandNuke extends Command {
         }
 
         // Proceed with deletion
-        PlayerDataManager.getInstance().deletePlayerData(playerData);
+
+        playerDataService.nukePlayerData(uuid);
         sender.sendMessage(new TextComponent(ChatColor.GREEN + "Player data has been successfully deleted."));
 
         ProxiedPlayer target = ProxyServer.getInstance().getPlayer(uuid);
