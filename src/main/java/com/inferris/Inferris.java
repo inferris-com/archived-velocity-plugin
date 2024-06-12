@@ -6,10 +6,12 @@ import com.inferris.database.DatabasePool;
 import com.inferris.player.*;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.server.*;
+import com.inferris.util.JedisBuilder;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 
 import java.io.*;
 import java.sql.Connection;
@@ -35,7 +37,13 @@ public class Inferris extends Plugin {
             throw new RuntimeException(e);
         }
 
-        jedisPool = new JedisPool(configurationHandler.getProperties(ConfigType.PROPERTIES).getProperty("address"), Port.JEDIS.getPort());
+        String redisAddress = configurationHandler.getProperties(ConfigType.PROPERTIES).getProperty("address");
+        String redisPassword = configurationHandler.getProperties(ConfigType.PROPERTIES).getProperty("redis.password");
+        int redisPort = Port.JEDIS.getPort();
+        JedisBuilder jedisBuilder = new JedisBuilder(redisAddress, redisPort);
+        jedisBuilder.setPassword(redisPassword);
+        jedisPool = jedisBuilder.build();
+
         PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
         PlayerDataService playerDataService = new PlayerDataServiceImpl(playerDataManager);
         ServiceLocator.setPlayerDataService(playerDataService);
