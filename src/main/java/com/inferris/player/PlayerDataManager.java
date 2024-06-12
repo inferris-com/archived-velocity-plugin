@@ -69,23 +69,30 @@ public class PlayerDataManager {
     private final JedisPool jedisPool;
     private final ObjectMapper objectMapper;
     private final Cache<UUID, PlayerData> caffeineCache;
-    private final Logger logger = Inferris.getInstance().getLogger();
+    private final Logger logger;
     private final PlayerDataRepository playerDataRepository;
 
-    private PlayerDataManager() {
-        jedisPool = Inferris.getJedisPool(); // Set Redis server details
-        objectMapper = SerializationUtils.createObjectMapper(new SerializationModule());
-        caffeineCache = Caffeine.newBuilder().build();
-        playerDataRepository = new PlayerDataRepository();
+
+    private PlayerDataManager(JedisPool jedisPool, ObjectMapper objectMapper, Cache<UUID, PlayerData> caffeineCache, Logger logger, PlayerDataRepository playerDataRepository) {
+        this.jedisPool = jedisPool;
+        this.objectMapper = objectMapper;
+        this.caffeineCache = caffeineCache;
+        this.logger = logger;
+        this.playerDataRepository = playerDataRepository;
     }
 
-    public static PlayerDataManager getInstance() {
+    public static synchronized PlayerDataManager getInstance() {
         if (instance == null) {
-            instance = new PlayerDataManager();
+            instance = new PlayerDataManager(
+                    Inferris.getJedisPool(),
+                    SerializationUtils.createObjectMapper(new SerializationModule()),
+                    Caffeine.newBuilder().build(),
+                    Inferris.getInstance().getLogger(),
+                    new PlayerDataRepository()
+            );
         }
         return instance;
     }
-
 
     /**
      * Retrieves the player data for the specified player. The method first checks if the data is available in the

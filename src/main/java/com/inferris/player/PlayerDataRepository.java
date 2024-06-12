@@ -26,11 +26,14 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 
 public class PlayerDataRepository {
     private final PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
-    private final PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
+    private final ExecutorService executorService = Executors.newCachedThreadPool();
+
 
     public void updatePlayerDataTable(PlayerData playerData) {
         String[] columnNames = {"username", "coins", "channel", "vanished"};
@@ -105,14 +108,14 @@ public class PlayerDataRepository {
                 }
 
                 // Query for profile data
-                Long registrationDate = null;
-                String bio = null;
-                String pronouns = null;
-                int xenforoId = 0;
-                int discordLinked = 0;
+                long registrationDate;
+                String bio;
+                String pronouns;
+                int xenforoId;
+                int discordLinked;
                 boolean isDiscordLinked = false;
                 int flaggedInt = 0;
-                boolean isFlagged = false;
+                boolean isFlagged;
 
                 PreparedStatement selectProfileStatement = connection.prepareStatement("SELECT * FROM " + Table.PROFILE.getName() + " WHERE uuid = ?");
                 selectProfileStatement.setString(1, uuid.toString());
@@ -183,14 +186,14 @@ public class PlayerDataRepository {
                 }
 
                 // Query for profile data
-                Long registrationDate = null;
-                String bio = null;
-                String pronouns = null;
-                int xenforoId = 0;
-                int discordLinked = 0;
+                long registrationDate;
+                String bio;
+                String pronouns;
+                int xenforoId;
+                int discordLinked;
                 boolean isDiscordLinked = false;
-                int flaggedInt = 0;
-                boolean isFlagged = false;
+                int flaggedInt;
+                boolean isFlagged;
 
                 PreparedStatement selectProfileStatement = connection.prepareStatement("SELECT * FROM " + Table.PROFILE.getName() + " WHERE uuid = ?");
                 selectProfileStatement.setString(1, uuid.toString());
@@ -280,8 +283,6 @@ public class PlayerDataRepository {
             insertProfileStatement.setString(3, null);
             insertProfileStatement.setString(4, null);
             insertProfileStatement.execute();
-
-            //RanksManager.getInstance().loadRanks(uuid, connection); todo remove
         } catch (SQLException e) {
             Inferris.getInstance().getLogger().warning(e.getMessage());
         }
@@ -333,11 +334,11 @@ public class PlayerDataRepository {
                 ServerUtil.log("Exists in Jedis", Level.WARNING, ServerState.DEBUG);
 
                 // Cache data in Caffeine if not present
-                if (playerDataManager.getCache().getIfPresent(uuid) == null) {
+                if (PlayerDataManager.getInstance().getCache().getIfPresent(uuid) == null) {
                     String playerDataJson = jedis.hget("playerdata", playerUUIDString);
                     PlayerData playerData = SerializationUtils.deserializePlayerData(playerDataJson);
-                    playerDataManager.updateCaffeineCache(uuid, playerData);
-                    playerDataManager.logPlayerData(playerData);
+                    PlayerDataManager.getInstance().updateCaffeineCache(uuid, playerData);
+                    PlayerDataManager.getInstance().logPlayerData(playerData);
                 }
             } else {
                 ServerUtil.log("Not in Redis, checking database", Level.WARNING, ServerState.DEBUG);
