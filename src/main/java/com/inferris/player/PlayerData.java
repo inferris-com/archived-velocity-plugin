@@ -1,21 +1,11 @@
 package com.inferris.player;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.inferris.player.coins.Coins;
-import com.inferris.player.coins.CoinsManager;
 import com.inferris.player.vanish.VanishState;
-import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
-import com.inferris.rank.RankRegistry;
-import com.inferris.rank.RanksManager;
 import com.inferris.server.Server;
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -32,7 +22,6 @@ public class PlayerData implements Serializable {
     private Channel channel;
     private VanishState vanishState;
     private Server currentServer;
-    private boolean isVanished;
 
     public PlayerData(UUID uuid, String username, Rank rank, Profile profile, int coins, Channel channel, VanishState vanishState, Server currentServer) {
         this.uuid = uuid;
@@ -95,9 +84,5 @@ public class PlayerData implements Serializable {
 
     public void setCurrentServer(Server currentServer) {
         this.currentServer = currentServer;
-    }
-
-    public void setVanished(boolean vanished) {
-        isVanished = vanished;
     }
 }
