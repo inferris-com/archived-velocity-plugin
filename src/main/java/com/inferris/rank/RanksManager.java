@@ -67,7 +67,6 @@ public class RanksManager {
     public Rank loadRanks(UUID uuid, Connection connection) {
         Inferris.getInstance().getLogger().warning("Loading ranks");
         try (PreparedStatement statement = connection.prepareStatement("SELECT staff, builder, donor, other FROM `rank` WHERE `uuid` = ?")) {
-            ProxyServer.getInstance().getLogger().severe(uuid.toString());
             statement.setString(1, uuid.toString());
             ResultSet rs = statement.executeQuery();
 
