@@ -1,17 +1,14 @@
-package com.inferris.rank;
+package com.inferris.player.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.inferris.Inferris;
 import com.inferris.database.DatabasePool;
 import com.inferris.player.PlayerData;
-import com.inferris.player.PlayerDataManager;
+import com.inferris.rank.Branch;
+import com.inferris.rank.Rank;
 import com.inferris.server.jedis.JedisChannel;
-import com.inferris.util.SerializationUtils;
 import com.inferris.util.DatabaseUtils;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -21,10 +18,8 @@ import java.util.UUID;
 
 public class RanksManager {
     private static RanksManager instance;
-    private final JedisPool jedisPool;
 
     private RanksManager() {
-        jedisPool = Inferris.getJedisPool(); // Set Redis server details
     }
 
     public static RanksManager getInstance() {
@@ -32,36 +27,6 @@ public class RanksManager {
             instance = new RanksManager();
         }
         return instance;
-    }
-
-    // Now deprecated - remove?
-    @Deprecated
-    public Rank loadRanks(ProxiedPlayer player, Connection connection) {
-        Inferris.getInstance().getLogger().warning("Deprecated method used! WARNING");
-        try (PreparedStatement statement = connection.prepareStatement("SELECT staff, builder, donor, other FROM `rank` WHERE `uuid` = ?")) {
-            statement.setString(1, String.valueOf(player.getUniqueId()));
-            ResultSet rs = statement.executeQuery();
-
-            if (rs.next()) {
-                int staff = rs.getInt("staff");
-                int builder = rs.getInt("builder");
-                int donor = rs.getInt("donor");
-                int other = rs.getInt("other");
-                return new Rank(staff, builder, donor, other);
-            }else{
-                String[] columnNames = {"uuid", "staff", "builder", "donor", "other"};
-                Object[] values = {player.getUniqueId().toString(), 0, 0, 0, 0};
-
-                DatabaseUtils.insertData(connection, "`rank`", columnNames, values);
-
-                Inferris.getInstance().getLogger().info("Loading ranks");
-                Inferris.getInstance().getLogger().info("Loading ranks");
-                Inferris.getInstance().getLogger().info("Loading ranks");
-            }
-        } catch (SQLException e) {
-            Inferris.getInstance().getLogger().severe("Fatal error with loading ranks: " + e.getMessage());
-        }
-        return new Rank(0, 0, 0, 0);
     }
 
     public Rank loadRanks(UUID uuid, Connection connection) {
@@ -76,7 +41,7 @@ public class RanksManager {
                 int donor = rs.getInt("donor");
                 int other = rs.getInt("other");
                 return new Rank(staff, builder, donor, other);
-            }else{
+            } else {
                 String[] columnNames = {"uuid", "staff", "builder", "donor", "other"};
                 Object[] values = {uuid.toString(), 0, 0, 0, 0};
 
@@ -134,59 +99,27 @@ public class RanksManager {
             switch (branch) {
                 case STAFF -> {
                     rank.setStaff(id);
-                    break;
                 }
                 case BUILDER -> {
                     rank.setBuilder(id);
-                    break;
                 }
                 case DONOR -> {
                     rank.setDonor(id);
-                    break;
                 }
                 case OTHER -> {
                     rank.setOther(id);
-                    break;
-
                 }
                 default -> {
                     Inferris.getInstance().getLogger().warning("Invalid rank branch specified");
                     return;
                 }
             }
-
-            /*
-            Caching, updating, and Jedis publishing
-             */
-
-            try (Jedis jedis = jedisPool.getResource()) {
-                String json = SerializationUtils.serializePlayerData(playerData);
-
-                if (!isNull) {
-                    /* In the future, we can check current Caffeine cache against new incoming
-                     Redis data to see if it warrants front-end update mechanisms! Same with vanish
-                     */
-
-                    PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData, JedisChannel.PLAYERDATA_UPDATE);
-
-                    // What the fuck is this?
-                    String payload = playerData.getCurrentServer().name() + ":" + json;
-                }
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
+            // Update Player Data and push
+            if (!isNull) {
+                PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData, JedisChannel.PLAYERDATA_UPDATE);
             }
-
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-    }
-
-    private Rank createEmpty(ProxiedPlayer player) {
-        // Create and return an empty Registry object with default values
-        return new Rank(0, 0, 0, 0);
-    }
-
-    public JedisPool getJedisPool() {
-        return jedisPool;
     }
 }
