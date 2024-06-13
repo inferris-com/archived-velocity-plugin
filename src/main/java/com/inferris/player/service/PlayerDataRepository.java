@@ -1,0 +1,353 @@
+package com.inferris.player.service;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.inferris.Inferris;
+import com.inferris.database.DatabasePool;
+import com.inferris.database.Table;
+import com.inferris.player.*;
+import com.inferris.player.channel.Channel;
+import com.inferris.player.friends.Friends;
+import com.inferris.player.friends.FriendsManager;
+import com.inferris.player.vanish.VanishState;
+import com.inferris.rank.Rank;
+import com.inferris.server.Server;
+import com.inferris.server.ServerState;
+import com.inferris.server.jedis.JedisHelper;
+import com.inferris.util.DatabaseUtils;
+import com.inferris.util.SerializationUtils;
+import com.inferris.util.ServerUtil;
+import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
+import redis.clients.jedis.Jedis;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.logging.Level;
+
+public class PlayerDataRepository {
+    private PlayerDataService playerDataService;
+    private final ExecutorService executorService = Executors.newCachedThreadPool();
+
+    public void setPlayerDataService(PlayerDataService playerDataService) {
+        this.playerDataService = playerDataService;
+    }
+
+    public PlayerDataService getPlayerDataService() {
+        return playerDataService;
+    }
+
+    public void updatePlayerDataTable(PlayerData playerData) {
+        try{
+            updatePlayerDataTableAsync(playerData).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public CompletableFuture<Void> updatePlayerDataTableAsync(PlayerData playerData) {
+        return CompletableFuture.runAsync(() -> {
+            String[] columnNames = {"username", "coins", "channel", "vanished"};
+            boolean isVanished = playerData.getVanishState() == VanishState.ENABLED;
+            Object[] values = {playerData.getUsername(), playerData.getCoins(), playerData.getChannel().name(), isVanished};
+            String whereClause = "uuid = ?";
+            try (Connection connection = DatabasePool.getConnection()) {
+                DatabaseUtils.updateData(connection, "player_data", columnNames, values, whereClause);
+            } catch (SQLException e) {
+                Inferris.getInstance().getLogger().warning("Failed to update player_data in the database: " + e.getMessage());
+            }
+        }, executorService);
+    }
+
+    public CompletableFuture<Void> updateRankTable(Rank rank, UUID uuid) {
+        return CompletableFuture.runAsync(() -> {
+            String[] columnNames = {"staff", "builder", "donor", "other"};
+            Object[] values = {rank.getStaff(), rank.getBuilder(), rank.getDonor(), rank.getOther()};
+            String whereClause = "uuid = ?";
+            try (Connection connection = DatabasePool.getConnection()) {
+                DatabaseUtils.updateData(connection, "rank", columnNames, values, whereClause);
+            } catch (SQLException e) {
+                throw new RuntimeException("Failed to update rank in the database", e);
+            }
+        }, executorService);
+    }
+
+    public CompletableFuture<Void> updateProfileTable(Profile profile, UUID uuid) {
+        return CompletableFuture.runAsync(() -> {
+            String[] columnNames = {"join_date", "bio", "pronouns", "xenforo_id", "discord_linked", "is_flagged"};
+            Object[] values = {profile.getRegistrationDate(), profile.getBio(), profile.getPronouns(), profile.getXenforoId(), profile.isDiscordLinked(), profile.isFlagged()};
+            String whereClause = "uuid = ?";
+            try (Connection connection = DatabasePool.getConnection()) {
+                DatabaseUtils.updateData(connection, "profile", columnNames, values, whereClause);
+            } catch (SQLException e) {
+                throw new RuntimeException("Failed to update profile in the database", e);
+            }
+        }, executorService);
+    }
+
+    public PlayerData getPlayerDataFromDatabase(UUID uuid) {
+        try {
+            return getPlayerDataFromDatabaseAsync(uuid).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public PlayerData getPlayerDataFromDatabase(UUID uuid, String initialUsername, boolean insertData) {
+        try {
+            return getPlayerDataFromDatabaseAsync(uuid, initialUsername, insertData).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean hasJoinedBefore(UUID uuid) {
+        try {
+            return hasJoinedBeforeAsync(uuid).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // Asynchronous method to get player data from database
+    public CompletableFuture<PlayerData> getPlayerDataFromDatabaseAsync(UUID uuid) {
+        return CompletableFuture.supplyAsync(() -> {
+            PlayerData playerData = null;
+            try (Connection connection = DatabasePool.getConnection();
+                 PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM " + Table.PLAYER_DATA.getName() + " WHERE uuid = ?")) {
+
+                queryStatement.setString(1, uuid.toString());
+                ResultSet resultSet = queryStatement.executeQuery();
+
+                if (resultSet.next()) {
+                    playerData = mapResultSetToPlayerData(resultSet, uuid, connection);
+                }
+            } catch (SQLException e) {
+                Inferris.getInstance().getLogger().warning(e.getMessage());
+            }
+            return playerData;
+        }, executorService);
+    }
+
+    // Asynchronous method to get or insert player data from/to the database
+    public CompletableFuture<PlayerData> getPlayerDataFromDatabaseAsync(UUID uuid, String initialUsername, boolean insertData) {
+        return CompletableFuture.supplyAsync(() -> {
+            PlayerData playerData = null;
+            try (Connection connection = DatabasePool.getConnection();
+                 PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM " + Table.PLAYER_DATA.getName() + " WHERE uuid = ?")) {
+
+                queryStatement.setString(1, uuid.toString());
+                ResultSet resultSet = queryStatement.executeQuery();
+
+                if (resultSet.next()) {
+                    playerData = mapResultSetToPlayerData(resultSet, uuid, connection);
+                } else if (insertData) {
+                    insertPlayerDataToDatabase(connection, uuid, initialUsername).join();
+                    playerData = playerDataService.getPlayerData(uuid);
+                }
+            } catch (SQLException e) {
+                Inferris.getInstance().getLogger().warning(e.getMessage());
+            }
+            return playerData;
+        }, executorService);
+    }
+
+    // Helper method to map ResultSet to PlayerData
+    private PlayerData mapResultSetToPlayerData(ResultSet resultSet, UUID uuid, Connection connection) throws SQLException {
+        String username = resultSet.getString("username");
+        int coins = resultSet.getInt("coins");
+        Channel channel = Channel.valueOf(resultSet.getString("channel"));
+        int vanished = resultSet.getInt("vanished");
+
+        VanishState vanishState = (vanished == 1) ? VanishState.ENABLED : VanishState.DISABLED;
+        Rank rank = RanksManager.getInstance().loadRanks(uuid, connection);
+
+        if (ProxyServer.getInstance().getPlayer(uuid) != null) {
+            ProxiedPlayer player = ProxyServer.getInstance().getPlayer(uuid);
+            if (!username.equals(player.getName())) {
+                username = player.getName();
+                playerDataService.updateLocalPlayerData(player.getUniqueId(), pdToUpdate -> pdToUpdate.setUsername(player.getName()));
+            }
+        }
+
+        Profile profile = loadProfile(uuid, connection);
+        return new PlayerData(uuid, username, rank, profile, coins, channel, vanishState, Server.LOBBY);
+    }
+
+    // Helper method to load Profile from the database
+    private Profile loadProfile(UUID uuid, Connection connection) throws SQLException {
+        Profile profile = null;
+        try (PreparedStatement selectProfileStatement = connection.prepareStatement("SELECT * FROM " + Table.PROFILE.getName() + " WHERE uuid = ?")) {
+            selectProfileStatement.setString(1, uuid.toString());
+            ResultSet profileResultSet = selectProfileStatement.executeQuery();
+
+            if (profileResultSet.next()) {
+                long registrationDate = profileResultSet.getLong("join_date");
+                String bio = profileResultSet.getString("bio");
+                String pronouns = profileResultSet.getString("pronouns");
+                int xenforoId = profileResultSet.getInt("xenforo_id");
+                int discordLinked = profileResultSet.getInt("discord_linked");
+                boolean isDiscordLinked = (discordLinked != 0);
+                int flaggedInt = profileResultSet.getInt("is_flagged");
+                boolean isFlagged = (flaggedInt != 0);
+
+                profile = new Profile(registrationDate, bio, pronouns, xenforoId, isDiscordLinked, isFlagged);
+            }
+        }
+        return profile;
+    }
+
+    public CompletableFuture<Boolean> insertPlayerDataIfNotExists(UUID uuid, String username) {
+        Inferris.getInstance().getLogger().warning("Attempting to call: insertPlayerDataIfNotExists");
+        return CompletableFuture.supplyAsync(() -> {
+            boolean inserted = false;
+            try (Connection connection = DatabasePool.getConnection()) {
+                // Check if the player data exists in the database
+                PreparedStatement queryStatement = connection.prepareStatement("SELECT COUNT(*) FROM " + Table.PLAYER_DATA.getName() + " WHERE uuid = ?");
+                queryStatement.setString(1, uuid.toString());
+                ResultSet resultSet = queryStatement.executeQuery();
+
+                if (resultSet.next() && resultSet.getInt(1) == 0) {
+                    // Insert the player data if it doesn't exist
+                    Inferris.getInstance().getLogger().warning("Attempting to insert (211)");
+                    insertPlayerDataToDatabase(connection, uuid, username).join();
+                    inserted = true;
+                }
+            } catch (SQLException e) {
+                Inferris.getInstance().getLogger().warning(e.getMessage());
+            }
+
+            return inserted;
+        }, executorService).thenCompose(inserted -> {
+            // Retrieve the player data asynchronously. Returns Player Data object that we need
+            return getPlayerDataFromDatabaseAsync(uuid, username, false)
+                    .thenApply(playerData -> {
+                        if (playerData != null) {
+                            try (Jedis jedis = Inferris.getJedisPool().getResource()) {
+                                // Cache the player data and update Redis
+                                String playerDataJson = SerializationUtils.serializePlayerData(playerData);
+                                if (playerDataJson != null) {
+                                    jedis.hset("playerdata", uuid.toString(), playerDataJson);
+                                    PlayerDataManager.getInstance().updateCaffeineCache(uuid, playerData);
+                                } else {
+                                    Inferris.getInstance().getLogger().warning("Serialized player data is null for UUID: " + uuid);
+                                }
+                            } catch (JsonProcessingException e) {
+                                Inferris.getInstance().getLogger().warning(e.getMessage());
+                            }
+                        } else {
+                            Inferris.getInstance().getLogger().warning("Player data is null for UUID: " + uuid);
+                            Inferris.getInstance().getLogger().info("Attempting to remove Redis entry");
+                            JedisHelper.hdel("playerdata", uuid.toString());
+                        }
+                        return inserted;
+                    });
+        });
+    }
+
+    public CompletableFuture<Void> insertPlayerDataToDatabase(Connection connection, UUID uuid, String username) {
+        return CompletableFuture.runAsync(() -> {
+            Inferris.getInstance().getLogger().warning("#insertPlayerDataToDatabase, 234, works good");
+            try (PreparedStatement insertPlayersStatement = connection.prepareStatement("INSERT INTO " + Table.PLAYER_DATA.getName() + " (uuid, username, coins, channel, vanished) VALUES (?, ?, ?, ?, ?)");
+                 PreparedStatement insertProfileStatement = connection.prepareStatement("INSERT INTO " + Table.PROFILE.getName() + " (uuid, join_date, bio, pronouns) VALUES (?, ?, ?, ?)")) {
+
+                insertPlayersStatement.setString(1, uuid.toString());
+                insertPlayersStatement.setString(2, username);
+                insertPlayersStatement.setInt(3, PlayerDefault.COIN_BALANCE.getValue());
+                insertPlayersStatement.setString(4, String.valueOf(Channel.NONE));
+                insertPlayersStatement.setInt(5, 0);
+                insertPlayersStatement.execute();
+
+                insertProfileStatement.setString(1, uuid.toString());
+                insertProfileStatement.setString(2, String.valueOf(Instant.now().getEpochSecond()));
+                insertProfileStatement.setString(3, null);
+                insertProfileStatement.setString(4, null);
+                insertProfileStatement.execute();
+            } catch (SQLException e) {
+                Inferris.getInstance().getLogger().warning(e.getMessage());
+            }
+        }, executorService);
+    }
+
+    public void deletePlayerData(UUID uuid) {
+        ProxyServer.getInstance().getPlayer(uuid).sendMessage("deletePlayerData debug: " + playerDataService.getPlayerData(uuid).getUsername());
+        PlayerData playerData = playerDataService.getPlayerData(uuid);
+
+        // Step 1: Fetch the list of friends
+        FriendsManager friendsManager = FriendsManager.getInstance();
+        Friends playerFriends = friendsManager.getFriendsData(uuid);
+        List<UUID> friendsList = new ArrayList<>(playerFriends.getFriendsList());
+
+        // Step 2: Update each friend's data
+        for (UUID friendUUID : friendsList) {
+            Friends friendData = friendsManager.getFriendsData(friendUUID);
+            friendData.removeFriend(uuid);
+            friendsManager.updateCache(friendUUID, friendData);
+            friendsManager.updateRedisData(friendUUID, friendData);
+        }
+
+        // Step 3: Remove the player's data from all necessary tables
+        try (Connection connection = DatabasePool.getConnection()) {
+            DatabaseUtils.removeData(connection, Table.PLAYER_DATA.getName(), "`uuid` = '" + playerData.getUuid().toString() + "'");
+            DatabaseUtils.removeData(connection, "`rank`", "`uuid` = '" + playerData.getUuid().toString() + "'");
+            DatabaseUtils.removeData(connection, Table.PROFILE.getName(), "`uuid` = '" + playerData.getUuid().toString() + "'");
+            DatabaseUtils.removeData(connection, Table.VERIFICATION.getName(), "`uuid` = '" + playerData.getUuid().toString() + "'");
+            DatabaseUtils.removeData(connection, Table.VERIFICATION_SESSIONS.getName(), "`uuid` = '" + playerData.getUuid().toString() + "'");
+        } catch (SQLException e) {
+            Inferris.getInstance().getLogger().severe(e.getMessage());
+        }
+
+        // Step 4: Remove the player's data from Redis and cache
+        try (Jedis jedis = Inferris.getJedisPool().getResource()) {
+            jedis.hdel("playerdata", playerData.getUuid().toString());
+            jedis.hdel("friends", playerData.getUuid().toString());
+            friendsManager.getCaffeineCache().invalidate(uuid);
+        }
+    }
+
+    public CompletableFuture<Boolean> hasJoinedBeforeAsync(UUID uuid) {
+        return CompletableFuture.supplyAsync(() -> {
+            ProxiedPlayer player = ProxyServer.getInstance().getPlayer(uuid);
+            ServerUtil.log("Checking Jedis #checkJoinedBefore", Level.WARNING, ServerState.DEBUG);
+            String playerUUIDString = uuid.toString();
+
+            try (Jedis jedis = Inferris.getJedisPool().getResource()) {
+                // Check if player data exists in Redis
+                if (jedis.hexists("playerdata", playerUUIDString)) {
+                    ServerUtil.log("Exists in Jedis", Level.WARNING, ServerState.DEBUG);
+
+                    // Cache data in Caffeine if not present
+                    if (PlayerDataManager.getInstance().getCache().getIfPresent(uuid) == null) {
+                        String playerDataJson = jedis.hget("playerdata", playerUUIDString);
+                        PlayerData playerData = SerializationUtils.deserializePlayerData(playerDataJson);
+                        PlayerDataManager.getInstance().updateCaffeineCache(uuid, playerData);
+                        PlayerDataManager.getInstance().logPlayerData(playerData);
+                    }
+                } else {
+                    ServerUtil.log("Not in Redis, checking database", Level.WARNING, ServerState.DEBUG);
+
+                    // Check and insert player data into the database
+                    boolean wasInserted = insertPlayerDataIfNotExists(uuid, player.getName()).join();
+                    if (wasInserted) {
+                        ServerUtil.log("Inserted into database and Jedis", Level.WARNING, ServerState.DEBUG);
+                        return false;
+                    }
+
+                    // Shouldn't reach here but just in case
+                }
+                return true;
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        }, executorService);
+    }
+}
