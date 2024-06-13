@@ -1,6 +1,9 @@
 package com.inferris.commands;
 
 import com.inferris.player.*;
+import com.inferris.player.context.PlayerContext;
+import com.inferris.player.context.PlayerContextFactory;
+import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -43,14 +46,10 @@ public class CommandCoins extends Command implements TabExecutor {
                         return;
                     }
 
-                    PlayerData targetData = PlayerDataManager.getInstance().getRedisDataOrNull(uuid);
-                    if (targetData == null) {
-                        player.sendMessage(new TextComponent(ChatColor.RED + "Player does not exist in our system."));
-                        return;
-                    }
+                    PlayerContext targetContext = PlayerContextFactory.create(uuid, playerDataService);
 
-                    targetData.setCoins(Integer.parseInt(args[2])); // TODO change to new method
-                    player.sendMessage(new TextComponent("Coins set for " + targetData.getUsername() + " to " + ChatColor.AQUA + args[2]));
+                    targetContext.setCoins(Integer.parseInt(args[2])); // TODO change to new method
+                    player.sendMessage(new TextComponent("Coins set for " + targetContext.getUsername() + " to " + ChatColor.AQUA + args[2]));
                 }
             }
         }
