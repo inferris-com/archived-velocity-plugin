@@ -1,5 +1,8 @@
-package com.inferris.player;
+package com.inferris.player.service;
 
+import com.inferris.player.Profile;
+import com.inferris.player.context.PlayerContext;
+import com.inferris.player.PlayerData;
 import com.inferris.rank.Rank;
 
 import java.util.UUID;
@@ -19,10 +22,12 @@ import java.util.function.Consumer;
  * <pre>{@code PlayerDataService dataService = ServiceLocator.getPlayerDataService();}
  *     </pre>
  *
- * @see com.inferris.player.PlayerDataServiceImpl
- * @see com.inferris.player.PlayerContext
+ * @see PlayerDataServiceImpl
+ * @see PlayerContext
  */
 public interface PlayerDataService {
+    void setPlayerDataRepository(PlayerDataRepository playerDataRepository);
+    PlayerDataRepository getPlayerDataRepository();
     PlayerData getPlayerData(UUID uuid);
 
     void getPlayerData(UUID uuid, Consumer<PlayerData> operation);
@@ -31,7 +36,9 @@ public interface PlayerDataService {
 
     void updatePlayerData(UUID uuid, Consumer<PlayerData> updateFunction);
 
-    void updatePlayerDataWithoutPush(UUID uuid, Consumer<PlayerData> updateFunction);
+    void updateDatabase(UUID uuid, Consumer<PlayerData> updateFunction);
+
+    void updateLocalPlayerData(UUID uuid, Consumer<PlayerData> updateFunction);
 
     void updateProfileField(UUID uuid, Consumer<Profile> updateFunction);
 
