@@ -2,7 +2,12 @@ package com.inferris.commands;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.inferris.player.*;
+import com.inferris.player.channel.Channel;
+import com.inferris.player.channel.ChannelManager;
+import com.inferris.player.context.PlayerContext;
+import com.inferris.player.context.PlayerContextFactory;
+import com.inferris.player.PlayerData;
+import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
 import com.inferris.server.ErrorCode;
 import com.inferris.util.ChatUtil;
@@ -76,20 +81,18 @@ public class CommandNuke extends Command {
         }
 
 
-        if(sender instanceof ProxiedPlayer player) {
-            PlayerDataService dataService = ServiceLocator.getPlayerDataService();
-            PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), dataService);
+        if (sender instanceof ProxiedPlayer player) {
+            PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
+
             ChannelManager.sendStaffChatMessage(Channel.STAFF, playerContext.getRank().getByBranch().getPrefix(true)
-            + ChatColor.RESET + player.getName() + ChatColor.YELLOW + " completely erased " + playerContext.getRank().getByBranch().getPrefix(true)
-            + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + "'s data", ChannelManager.StaffChatMessageType.NOTIFICATION);
-        }else{
+                    + ChatColor.RESET + player.getName() + ChatColor.YELLOW + " completely erased " + playerContext.getRank().getByBranch().getPrefix(true)
+                    + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + "'s data", ChannelManager.StaffChatMessageType.NOTIFICATION);
+        } else {
             PlayerContext playerContext = PlayerContextFactory.create(uuid, playerDataService);
             ChannelManager.sendStaffChatMessage(Channel.STAFF, ChatColor.RED + sender.getName() + ChatColor.YELLOW + " completely erased "
                     + playerContext.getRank().getByBranch().getPrefix(true)
                     + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + "'s data", ChannelManager.StaffChatMessageType.NOTIFICATION);
         }
-
-        // Proceed with deletion
 
         playerDataService.nukePlayerData(uuid);
         sender.sendMessage(new TextComponent(ChatColor.GREEN + "Player data has been successfully deleted."));
