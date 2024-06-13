@@ -1,6 +1,6 @@
 package com.inferris.messaging;
 
-import com.inferris.player.Channel;
+import com.inferris.player.channel.Channel;
 
 import java.util.UUID;
 

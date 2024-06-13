@@ -1,5 +1,7 @@
 package com.inferris.player;
 
+import com.inferris.player.service.PlayerDataService;
+
 public class ServiceLocator {
     private static PlayerDataService playerDataService;
 

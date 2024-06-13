@@ -1,9 +1,15 @@
 package com.inferris.commands;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.inferris.player.*;
+import com.inferris.player.context.PlayerContext;
+import com.inferris.player.context.PlayerContextFactory;
+import com.inferris.player.service.PlayerDataManager;
+import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
 import com.inferris.server.ErrorCode;
+import com.inferris.util.SerializationUtils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -31,6 +37,13 @@ public class CommandBungeeDev extends Command {
             if (length == 1) {
                 String action = args[0].toLowerCase();
                 switch (action) {
+                    case "service" -> {
+                        try {
+                            player.sendMessage(SerializationUtils.serializePlayerData(playerDataService.getPlayerData(player.getUniqueId())));
+                        } catch (JsonProcessingException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
                     case "end" -> {
                         ProxyServer.getInstance().stop(ChatColor.GRAY + "Woa! An issue has occurred: " + ErrorCode.PROXY_STOPPED_BY_ADMIN.getCode(true)
                                 + "\n\n" + ErrorCode.PROXY_STOPPED_BY_ADMIN.getMessage(true) + "\n\n"

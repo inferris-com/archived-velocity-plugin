@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.inferris.player.Channel;
+import com.inferris.player.channel.Channel;
 import com.inferris.player.PlayerData;
 import com.inferris.player.Profile;
 import com.inferris.player.vanish.VanishState;

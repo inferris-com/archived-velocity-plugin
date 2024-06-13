@@ -1,46 +1,31 @@
-package com.inferris.player;
+package com.inferris.player.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.inferris.Inferris;
 import com.inferris.events.redis.EventPayload;
 import com.inferris.events.redis.PlayerAction;
-import com.inferris.player.friends.Friends;
-import com.inferris.player.friends.FriendsManager;
+import com.inferris.player.Profile;
+import com.inferris.player.channel.Channel;
+import com.inferris.player.PlayerData;
 import com.inferris.serialization.SerializationModule;
-import com.inferris.database.DatabasePool;
-import com.inferris.database.Table;
-import com.inferris.player.coins.Coins;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
-import com.inferris.rank.RanksManager;
 import com.inferris.server.Server;
 import com.inferris.server.ServerState;
 import com.inferris.server.ServerStateManager;
 import com.inferris.server.jedis.JedisChannel;
 import com.inferris.util.SerializationUtils;
-import com.inferris.util.DatabaseUtils;
-import com.inferris.util.ServerUtil;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -70,15 +55,13 @@ public class PlayerDataManager {
     private final ObjectMapper objectMapper;
     private final Cache<UUID, PlayerData> caffeineCache;
     private final Logger logger;
-    private final PlayerDataRepository playerDataRepository;
+    private PlayerDataRepository playerDataRepository;
 
-
-    private PlayerDataManager(JedisPool jedisPool, ObjectMapper objectMapper, Cache<UUID, PlayerData> caffeineCache, Logger logger, PlayerDataRepository playerDataRepository) {
+    private PlayerDataManager(JedisPool jedisPool, ObjectMapper objectMapper, Cache<UUID, PlayerData> caffeineCache, Logger logger) {
         this.jedisPool = jedisPool;
         this.objectMapper = objectMapper;
         this.caffeineCache = caffeineCache;
         this.logger = logger;
-        this.playerDataRepository = playerDataRepository;
     }
 
     public static synchronized PlayerDataManager getInstance() {
@@ -87,11 +70,17 @@ public class PlayerDataManager {
                     Inferris.getJedisPool(),
                     SerializationUtils.createObjectMapper(new SerializationModule()),
                     Caffeine.newBuilder().build(),
-                    Inferris.getInstance().getLogger(),
-                    new PlayerDataRepository()
-            );
+                    Inferris.getInstance().getLogger());
         }
         return instance;
+    }
+
+    public void setPlayerDataRepository(PlayerDataRepository playerDataRepository) {
+        this.playerDataRepository = playerDataRepository;
+    }
+
+    public PlayerDataRepository getPlayerDataRepository() {
+        return this.playerDataRepository;
     }
 
     /**

@@ -1,12 +1,6 @@
 package com.inferris.util;
 
 import com.inferris.messaging.PlayerCondition;
-import com.inferris.player.Channel;
-import com.inferris.player.PlayerData;
-import com.inferris.player.PlayerDataManager;
-import com.inferris.rank.Branch;
-import com.inferris.rank.RankRegistry;
-import com.inferris.server.Tag;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -16,7 +10,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

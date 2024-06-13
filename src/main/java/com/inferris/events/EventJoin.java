@@ -7,7 +7,10 @@ import com.inferris.config.ConfigurationHandler;
 import com.inferris.events.redis.EventPayload;
 import com.inferris.events.redis.PlayerAction;
 import com.inferris.player.*;
-import com.inferris.server.PlayerSessionManager;
+import com.inferris.player.context.PlayerContext;
+import com.inferris.player.context.PlayerContextFactory;
+import com.inferris.player.service.PlayerDataManager;
+import com.inferris.player.service.PlayerDataService;
 import com.inferris.server.jedis.JedisChannel;
 import com.inferris.server.jedis.JedisHelper;
 import com.inferris.tasks.PlayerTaskManager;
@@ -31,7 +34,6 @@ import net.md_5.bungee.event.EventPriority;
 import java.awt.*;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 public class EventJoin implements Listener {
@@ -119,7 +121,7 @@ public class EventJoin implements Listener {
             taskManager.addTaskForPlayer(player, welcomeRunnable4, 8, TimeUnit.SECONDS);
         }
 
-        playerDataService.updatePlayerDataWithoutPush(player.getUniqueId(), playerData -> {
+        playerDataService.updateLocalPlayerData(player.getUniqueId(), playerData -> {
             Permissions.attachPermissions(player);
             playerData.setCurrentServer(ServerUtil.getServerType(player));
         });

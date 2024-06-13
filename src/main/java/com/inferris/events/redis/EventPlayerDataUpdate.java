@@ -3,6 +3,7 @@ package com.inferris.events.redis;
 import com.inferris.Inferris;
 import com.inferris.events.redis.dispatching.JedisEventHandler;
 import com.inferris.player.*;
+import com.inferris.player.service.PlayerDataService;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
@@ -13,8 +14,8 @@ public class EventPlayerDataUpdate implements JedisEventHandler {
     public void handle(String message, String senderId) {
         //todo handle offline
         PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
-        Inferris.getInstance().getLogger().severe("Proxy received update");
+        Inferris.getInstance().getLogger().severe("Proxy received update (EventPlayerDataUpdate)");
         ProxiedPlayer player = ProxyServer.getInstance().getPlayer(UUID.fromString(message));
-        playerDataService.updatePlayerDataWithoutPush(player.getUniqueId(), playerData -> {});
+        playerDataService.updateLocalPlayerData(player.getUniqueId(), playerData -> {});
     }
 }

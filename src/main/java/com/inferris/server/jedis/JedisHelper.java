@@ -29,6 +29,15 @@ public class JedisHelper {
         }
     }
 
+    public static void hdel(String key, String field) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            jedis.hdel(key, field);
+        } catch (Exception e) {
+            // Handle logging or specific exceptions here
+            System.err.println("Error performing HSET operation: " + e.getMessage());
+        }
+    }
+
     public static void publish(JedisChannel channel, String message) {
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.publish(channel.getChannelName(), message);

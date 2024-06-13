@@ -4,7 +4,7 @@ import com.inferris.common.ColorType;
 import com.inferris.config.ConfigType;
 import com.inferris.config.ConfigurationHandler;
 import com.inferris.player.PlayerData;
-import com.inferris.player.PlayerDataManager;
+import com.inferris.player.service.PlayerDataManager;
 import com.inferris.player.vanish.VanishState;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;

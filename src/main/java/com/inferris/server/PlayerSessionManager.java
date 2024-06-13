@@ -1,6 +1,6 @@
 package com.inferris.server;
 
-import com.inferris.player.PlayerDataService;
+import com.inferris.player.service.PlayerDataService;
 
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;

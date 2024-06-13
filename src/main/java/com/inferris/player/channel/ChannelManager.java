@@ -1,6 +1,12 @@
-package com.inferris.player;
+package com.inferris.player.channel;
 
 import com.inferris.Inferris;
+import com.inferris.player.service.PlayerDataManager;
+import com.inferris.player.service.PlayerDataService;
+import com.inferris.player.ServiceLocator;
+import com.inferris.player.context.PlayerContext;
+import com.inferris.player.context.PlayerContextFactory;
+import com.inferris.player.PlayerData;
 import com.inferris.rank.Branch;
 import com.inferris.rank.RankRegistry;
 import com.inferris.server.Tag;

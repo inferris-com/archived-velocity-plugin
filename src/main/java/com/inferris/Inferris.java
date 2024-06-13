@@ -4,6 +4,11 @@ import com.inferris.config.ConfigType;
 import com.inferris.config.ConfigurationHandler;
 import com.inferris.database.DatabasePool;
 import com.inferris.player.*;
+import com.inferris.player.PlayerData;
+import com.inferris.player.service.PlayerDataRepository;
+import com.inferris.player.service.PlayerDataManager;
+import com.inferris.player.service.PlayerDataService;
+import com.inferris.player.service.PlayerDataServiceImpl;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.server.*;
 import com.inferris.util.JedisBuilder;
@@ -11,7 +16,6 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
 
 import java.io.*;
 import java.sql.Connection;
@@ -45,8 +49,29 @@ public class Inferris extends Plugin {
         jedisPool = jedisBuilder.build();
 
         PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
+
+        // Initialize PlayerDataService and set dependencies
         PlayerDataService playerDataService = new PlayerDataServiceImpl(playerDataManager);
+        PlayerDataRepository playerDataRepository = new PlayerDataRepository();
+
+        // Set the dependencies after initialization
+        playerDataService.setPlayerDataRepository(playerDataRepository);
+        playerDataRepository.setPlayerDataService(playerDataService);
+
+        // Set PlayerDataRepository in PlayerDataManager
+        playerDataManager.setPlayerDataRepository(playerDataRepository);
+
+        // Now you can use playerDataService and playerDataRepository
+        Inferris.getInstance().getLogger().severe(String.valueOf(playerDataService.getPlayerDataRepository() != null)); // Should print true
+        Inferris.getInstance().getLogger().severe(String.valueOf(playerDataRepository.getPlayerDataService() != null)); // Should print true
+
+        // Set service in ServiceLocator
         ServiceLocator.setPlayerDataService(playerDataService);
+
+        // Now you can safely use the services without worrying about circular dependencies
+        PlayerDataService service = ServiceLocator.getPlayerDataService();
+
+        // Initialization logic with Redis subscriptions, commands, events,
         Initializer.initialize(this);
 
         try {

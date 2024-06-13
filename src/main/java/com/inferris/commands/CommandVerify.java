@@ -6,8 +6,8 @@ import com.inferris.Inferris;
 import com.inferris.config.ConfigType;
 import com.inferris.database.DatabasePool;
 import com.inferris.player.PlayerData;
-import com.inferris.player.PlayerDataManager;
-import com.inferris.player.PlayerDataService;
+import com.inferris.player.service.PlayerDataManager;
+import com.inferris.player.service.PlayerDataService;
 import com.inferris.util.CodeGenerator;
 import com.inferris.util.ContentTypes;
 import com.inferris.util.DatabaseUtils;
@@ -19,7 +19,6 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
 import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
 import okhttp3.Response;
 
 import java.lang.reflect.Type;

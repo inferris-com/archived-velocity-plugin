@@ -3,7 +3,7 @@ package com.inferris.util;
 import com.inferris.Inferris;
 import com.inferris.events.redis.EventPayload;
 import com.inferris.events.redis.PlayerAction;
-import com.inferris.player.PlayerDataService;
+import com.inferris.player.service.PlayerDataService;
 import com.inferris.player.ServiceLocator;
 import com.inferris.rank.RankRegistry;
 import com.inferris.server.Tag;

@@ -1,6 +1,11 @@
 package com.inferris.commands;
 
 import com.inferris.player.*;
+import com.inferris.player.context.PlayerContext;
+import com.inferris.player.context.PlayerContextFactory;
+import com.inferris.player.PlayerData;
+import com.inferris.player.service.PlayerDataManager;
+import com.inferris.player.service.PlayerDataService;
 import com.inferris.server.Message;
 import com.inferris.rank.Branch;
 import net.md_5.bungee.api.ChatColor;
@@ -58,7 +63,6 @@ public class CommandSetrank extends Command implements TabExecutor {
         }
 
         String targetName = args[0];
-        PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
 
         UUID uuid = playerDataService.fetchUUIDByUsername(targetName);
         if (uuid == null) {
@@ -69,16 +73,15 @@ public class CommandSetrank extends Command implements TabExecutor {
         PlayerDataService dataService = ServiceLocator.getPlayerDataService();
         PlayerContext playerContext = PlayerContextFactory.create(uuid, dataService);
 
-        PlayerData playerData = PlayerDataManager.getInstance().getRedisData(uuid);
         playerContext.setRank(branch, id, true);
         commandSender.sendMessage(new TextComponent("Rank set for " + args[0] + " to " + branch.name() + "-" + id));
         if (ProxyServer.getInstance().getPlayer(uuid) != null) {
             if (ProxyServer.getInstance().getPlayer(uuid).isConnected()) {
                 ProxiedPlayer target = ProxyServer.getInstance().getPlayer(uuid);
                 assert player != null;
-                PlayerData targetData = PlayerDataManager.getInstance().getPlayerData(target);
+                PlayerContext updatedContext = PlayerContextFactory.create(uuid, dataService);
 
-                target.sendMessage(new TextComponent(ChatColor.GREEN + "Your rank has been set to " + playerContext.getNameColor() + playerContext.getRank().getByBranch()));
+                target.sendMessage(new TextComponent(ChatColor.GREEN + "Your rank has been set to " + updatedContext.getNameColor() + updatedContext.getRank().getByBranch()));
             }
         }
     }

@@ -1,10 +1,16 @@
-package com.inferris.player;
+package com.inferris.player.context;
 
+import com.inferris.player.*;
+import com.inferris.player.channel.Channel;
+import com.inferris.player.PlayerData;
+import com.inferris.player.service.CoinsManager;
+import com.inferris.player.service.PlayerDataManager;
+import com.inferris.player.service.PlayerDataService;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
 import com.inferris.rank.RankRegistry;
-import com.inferris.rank.RanksManager;
+import com.inferris.player.service.RanksManager;
 import com.inferris.server.Server;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
@@ -17,11 +23,11 @@ import java.util.UUID;
 /**
  * Provides a user-friendly interface for interacting with player data.
  * <p>
- * This class acts as a facade for accessing and modifying player-related information. It wraps the {@link com.inferris.player.PlayerData}
+ * This class acts as a facade for accessing and modifying player-related information. It wraps the {@link PlayerData}
  * object and offers methods to interact with various aspects of the player's data, such as retrieving the player's
  * rank, profile, coins, and other attributes.
  * <p>
- * The PlayerContext is constructed with a UUID and a {@link com.inferris.player.PlayerDataService} instance, which it uses to fetch and
+ * The PlayerContext is constructed with a UUID and a {@link PlayerDataService} instance, which it uses to fetch and
  * update player data. This design encapsulates the complexities of data access and manipulation, providing
  * a simpler API for client code.
  * <p>
@@ -31,8 +37,8 @@ import java.util.UUID;
  *     PlayerContext playerContext = PlayerContextFactory.create(uuid, dataService);
  *     }</pre>
  *
- * @see com.inferris.player.PlayerContextFactory
- * @see com.inferris.player.PlayerDataService
+ * @see PlayerContextFactory
+ * @see PlayerDataService
  */
 public class PlayerContext {
     private final UUID uuid;
@@ -115,7 +121,6 @@ public class PlayerContext {
 
     public void setRank(Branch branch, int level) {
         RanksManager.getInstance().setRank(uuid, branch, level);
-
     }
 
     public void setRank(Branch branch, int level, boolean hasMessage) {
@@ -123,7 +128,7 @@ public class PlayerContext {
     }
 
     public void setCoins(int amount) {
-        playerData.setCoins(amount);
-        playerDataService.updatePlayerData(uuid, pd -> pd.setCoins(amount));
+        CoinsManager.getInstance().setCoins(uuid, amount);
+        //playerDataService.updatePlayerData(uuid, pd -> pd.setCoins(amount));
     }
 }

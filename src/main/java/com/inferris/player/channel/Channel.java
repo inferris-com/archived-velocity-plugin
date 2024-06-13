@@ -1,4 +1,4 @@
-package com.inferris.player;
+package com.inferris.player.channel;
 
 import com.inferris.rank.Branch;
 import net.md_5.bungee.api.ChatColor;

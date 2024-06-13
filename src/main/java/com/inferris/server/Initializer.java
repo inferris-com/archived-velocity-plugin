@@ -9,7 +9,7 @@ import com.inferris.events.EventQuit;
 import com.inferris.events.redis.*;
 import com.inferris.events.redis.dispatching.DispatchingJedisPubSub;
 import com.inferris.events.redis.dispatching.JedisEventDispatcher;
-import com.inferris.player.PlayerDataService;
+import com.inferris.player.service.PlayerDataService;
 import com.inferris.player.ServiceLocator;
 import com.inferris.server.jedis.JedisChannel;
 import net.md_5.bungee.api.plugin.Plugin;

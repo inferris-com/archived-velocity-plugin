@@ -3,12 +3,11 @@ package com.inferris.events.redis;
 import com.inferris.Inferris;
 import com.inferris.events.redis.dispatching.JedisEventHandler;
 import com.inferris.messaging.StaffChatMessage;
-import com.inferris.player.Channel;
-import com.inferris.player.ChannelManager;
+import com.inferris.player.channel.Channel;
+import com.inferris.player.channel.ChannelManager;
 import com.inferris.serialization.StaffChatSerializer;
 import com.inferris.server.ServerState;
 import com.inferris.server.ServerStateManager;
-import com.inferris.util.ChatUtil;
 import net.md_5.bungee.api.ProxyServer;
 
 public class EventStaffchat implements JedisEventHandler {

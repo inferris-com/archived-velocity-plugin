@@ -1,9 +1,9 @@
 package com.inferris.commands;
 
-import com.inferris.player.PlayerDataService;
+import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
 import com.inferris.player.PlayerData;
-import com.inferris.player.PlayerDataManager;
+import com.inferris.player.service.PlayerDataManager;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;

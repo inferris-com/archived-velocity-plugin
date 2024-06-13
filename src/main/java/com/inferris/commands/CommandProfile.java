@@ -1,6 +1,11 @@
 package com.inferris.commands;
 
 import com.inferris.player.*;
+import com.inferris.player.context.PlayerContext;
+import com.inferris.player.context.PlayerContextFactory;
+import com.inferris.player.PlayerData;
+import com.inferris.player.service.PlayerDataManager;
+import com.inferris.player.service.PlayerDataService;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.util.DatabaseUtils;
 import net.md_5.bungee.api.ChatColor;
@@ -12,11 +17,6 @@ import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
 
 import java.sql.SQLException;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class CommandProfile extends Command implements TabExecutor {

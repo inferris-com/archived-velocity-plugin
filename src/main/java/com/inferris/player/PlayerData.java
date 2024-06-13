@@ -1,6 +1,7 @@
 package com.inferris.player;
 
-import com.inferris.player.coins.Coins;
+import com.inferris.player.channel.Channel;
+import com.inferris.player.Profile;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Rank;
 import com.inferris.server.Server;

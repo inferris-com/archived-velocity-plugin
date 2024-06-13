@@ -9,8 +9,6 @@ import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.inferris.player.PlayerData;
 import com.inferris.player.friends.Friends;
-import com.inferris.serialization.PlayerDataDeserializer;
-import com.inferris.serialization.PlayerDataSerializer;
 
 import java.io.IOException;
 import java.util.List;
