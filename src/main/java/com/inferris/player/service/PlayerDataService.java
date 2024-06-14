@@ -55,4 +55,5 @@ public interface PlayerDataService {
     PlayerData fetchPlayerDataFromDatabase(UUID uuid, String username, boolean insertData);
 
     void nukePlayerData(UUID uuid);
+    boolean hasAccess(UUID uuid);
 }

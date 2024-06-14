@@ -15,3 +15,5 @@ friends:
 
 test:
   value: true
+
+internal-lockdown: false

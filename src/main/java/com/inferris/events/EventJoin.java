@@ -6,11 +6,15 @@ import com.inferris.config.ConfigType;
 import com.inferris.config.ConfigurationHandler;
 import com.inferris.events.redis.EventPayload;
 import com.inferris.events.redis.PlayerAction;
+import com.inferris.messaging.StaffChatMessage;
 import com.inferris.player.*;
+import com.inferris.player.channel.ChannelManager;
 import com.inferris.player.context.PlayerContext;
 import com.inferris.player.context.PlayerContextFactory;
 import com.inferris.player.service.PlayerDataManager;
 import com.inferris.player.service.PlayerDataService;
+import com.inferris.server.CustomError;
+import com.inferris.server.ErrorCode;
 import com.inferris.server.jedis.JedisChannel;
 import com.inferris.server.jedis.JedisHelper;
 import com.inferris.tasks.PlayerTaskManager;
@@ -18,11 +22,13 @@ import com.inferris.server.Message;
 import com.inferris.player.friends.Friends;
 import com.inferris.player.friends.FriendsManager;
 import com.inferris.rank.*;
+import com.inferris.util.ChatUtil;
 import com.inferris.util.ServerUtil;
 import com.inferris.server.Tag;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PostLoginEvent;
@@ -52,6 +58,7 @@ public class EventJoin implements Listener {
     @EventHandler
     public void onSwitch(ServerSwitchEvent event) {
         ProxiedPlayer player = event.getPlayer();
+
         PlayerTaskManager taskManager = new PlayerTaskManager(Inferris.getInstance().getProxy().getScheduler());
         sendHeader(player);
 
@@ -136,6 +143,22 @@ public class EventJoin implements Listener {
     public void onPostLogin(PostLoginEvent event) {
         ProxiedPlayer player = event.getPlayer();
         PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
+
+        if (ConfigurationHandler.getInstance().getConfig(ConfigType.CONFIG).getBoolean("internal-lockdown")) {
+            if (!playerDataService.hasAccess(event.getPlayer().getUniqueId())) {
+                player.disconnect(this.getLockdownMessage());
+                TextComponent[] textComponent = new TextComponent[]{new TextComponent(Tag.STAFF.getName(true) + ChatColor.RESET + player.getName() + ChatColor.RED + " tried to join!")};
+
+                ChatUtil.sendGlobalMessage(staff -> {
+                    PlayerContext playerContext = PlayerContextFactory.create(staff.getUniqueId(), playerDataService);
+                    if(staff.getUniqueId().equals(player.getUniqueId())){
+                        return false;
+                    }
+                    return playerContext.isStaff();
+                }, textComponent);
+            }
+        }
+
         playerDataService.getPlayerDataAsync(player.getUniqueId()).thenAccept(playerData -> {
             PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
 
@@ -189,5 +212,23 @@ public class EventJoin implements Listener {
                 "Welcome back! Your return feels like sunshine after a rainy day.",
                 "Hey! The room feels warmer and happier now that you’ve returned.\n"
         );
+    }
+
+    private BaseComponent getLockdownMessage(){
+        CustomError customError = new CustomError(ErrorCode.INTERNAL_LOCKDOWN);
+        BaseComponent kickComponent = customError.getErrorHeader();
+
+        kickComponent.addExtra(ChatColor.RED + "\n\nInferris is in active development!");
+        kickComponent.addExtra("\n");
+        kickComponent.addExtra(ChatColor.translateAlternateColorCodes('&', """
+                    &eWe're currently working hard to bring you an amazing experience.
+                    Our Discord server will be opening soon, and it's the &oheart&f&e of our community.
+                    Join us on Discord to stay updated and be part of the journey!
+                                        
+                    &fDiscord: &ahttps://dsc.gg/inferris
+                    &fWebsite: &ahttps://inferris.com
+                    """ + "\n\n"));
+
+        return kickComponent;
     }
 }

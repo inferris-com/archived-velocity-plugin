@@ -4,7 +4,8 @@ import net.md_5.bungee.api.ChatColor;
 
 public enum ErrorCode {
     PROXY_STOPPED_BY_ADMIN(200, "Proxy has been stopped by an administrator."),
-    PLAYER_DATA_DELETED_BY_ADMIN(201, "Account data has been deleted by an administrator.");
+    PLAYER_DATA_DELETED_BY_ADMIN(201, "Account data has been deleted by an administrator."),
+    INTERNAL_LOCKDOWN(203, "Internal lockdown");
 
     private final int code;
     private final String message;

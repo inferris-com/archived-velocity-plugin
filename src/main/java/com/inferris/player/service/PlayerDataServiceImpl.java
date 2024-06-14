@@ -57,6 +57,11 @@ public class PlayerDataServiceImpl implements PlayerDataService {
     }
 
     @Override
+    public boolean hasAccess(UUID uuid) {
+        return playerDataRepository.hasAccess(uuid);
+    }
+
+    @Override
     public void updatePlayerData(UUID uuid, Consumer<PlayerData> updateFunction) {
         PlayerData playerData = playerDataManager.getPlayerData(uuid);
         updateFunction.accept(playerData);

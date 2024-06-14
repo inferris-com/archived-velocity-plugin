@@ -118,6 +118,14 @@ public class PlayerDataRepository {
         }
     }
 
+    public boolean hasAccess(UUID uuid) {
+        try {
+            return hasAccessAsync(uuid).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     // Asynchronous method to get player data from database
     public CompletableFuture<PlayerData> getPlayerDataFromDatabaseAsync(UUID uuid) {
         return CompletableFuture.supplyAsync(() -> {
@@ -348,6 +356,24 @@ public class PlayerDataRepository {
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
+        }, executorService);
+    }
+
+    public CompletableFuture<Boolean> hasAccessAsync(UUID uuid) {
+        return CompletableFuture.supplyAsync(() -> {
+            ServerUtil.log("Checking access restriction", Level.WARNING, ServerState.DEBUG);
+
+            try(Connection connection = DatabasePool.getConnection()){
+                String[] column = {"uuid"};
+                String condition = "`uuid` = ?";
+                ResultSet resultSet = DatabaseUtils.executeQuery(connection, "controlled_access", column, condition, uuid.toString());
+                if(resultSet.next()) {
+                    return true;
+                }
+            }catch(SQLException e){
+                Inferris.getInstance().getLogger().severe("Error: " + e.getMessage());
+            }
+            return false;
         }, executorService);
     }
 }
