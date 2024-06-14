@@ -17,13 +17,17 @@ public class ChatUtil {
 
     public static void sendGlobalMessage(PlayerCondition condition, BaseComponent[] message) {
         TextComponent textComponent = new TextComponent(message);
+
         for (ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
-            if (condition.shouldSendMessage(player)) {
-                player.sendMessage(textComponent);
+            try {
+                if (condition.shouldSendMessage(player)) {
+                    player.sendMessage(textComponent);
+                }
+            } catch (Exception e) {
+                // Silently block the error
             }
         }
     }
-
     public static String translateToHex(String message) {
         final Pattern pattern = Pattern.compile("(?<!\\\\)(#[a-fA-F0-9]{6})");
         Matcher matcher = pattern.matcher(message);
