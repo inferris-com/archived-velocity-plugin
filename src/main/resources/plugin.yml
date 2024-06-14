@@ -25,8 +25,8 @@ commands:
     description: Alright2
   rank:
     description: Set rank for a player
-  coins:
-    description: Set coins for a player
+  lumina:
+    description: Set Lumina for a player
   channel:
     description: Set channel
   profile:
@@ -79,3 +79,5 @@ commands:
     description: Flag a player
   convert:
     description: Convert times
+  playercount:
+    description: Admin command

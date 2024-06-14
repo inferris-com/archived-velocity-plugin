@@ -39,7 +39,7 @@ public class Initializer {
         pluginManager.registerCommand(instance, new CommandVerify("verify", playerDataService));
         pluginManager.registerCommand(instance, new CommandUnlink("unlink", playerDataService));
         pluginManager.registerCommand(instance, new CommandSetrank("rank", playerDataService));
-        pluginManager.registerCommand(instance, new CommandCoins("coins", playerDataService));
+        pluginManager.registerCommand(instance, new CommandLumina("lumina", playerDataService));
         pluginManager.registerCommand(instance, new CommandProfile("profile", playerDataService));
         pluginManager.registerCommand(instance, new CommandAccount("account", playerDataService));
         pluginManager.registerCommand(instance, new CommandServerState("serverstate", playerDataService));
@@ -62,6 +62,7 @@ public class Initializer {
         pluginManager.registerCommand(instance, new CommandBungeeDev("bungeedev", playerDataService));
         pluginManager.registerCommand(instance, new CommandFlagPlayer("flagplayer", playerDataService));
         pluginManager.registerCommand(instance, new CommandConvertTimezone("converttime"));
+        pluginManager.registerCommand(instance, new CommandPlayerCount("playercount", playerDataService));
 
 
         CommandViewlogs commandViewlogs = new CommandViewlogs("viewlogs", ServiceLocator.getPlayerDataService());
