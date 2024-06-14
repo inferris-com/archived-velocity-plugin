@@ -1,11 +1,13 @@
 package com.inferris.events;
 
+import com.inferris.Inferris;
 import com.inferris.common.ColorType;
 import com.inferris.config.ConfigType;
 import com.inferris.config.ConfigurationHandler;
 import com.inferris.player.PlayerData;
 import com.inferris.player.service.PlayerDataManager;
 import com.inferris.player.vanish.VanishState;
+import com.inferris.server.PlayerCountManager;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.ServerPing;
@@ -38,24 +40,15 @@ public class EventPing implements Listener {
 
         serverPing.setDescriptionComponent(descriptionComponent);
 
-        if(count >=1){
-
-            count = count - getTotalVanishedPlayers();
-
-            serverPing.getPlayers().setOnline(count);
-
-            event.setResponse(serverPing);
-        }
-    }
-
-    private int getTotalVanishedPlayers() {
-        int vanishedCount = 0;
-        for(ProxiedPlayer player : ProxyServer.getInstance().getPlayers()){
-            PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
-            if(playerData.getVanishState() == VanishState.ENABLED){
-                vanishedCount++;
+        if(PlayerCountManager.isOverridden()){
+            count = PlayerCountManager.getOverriddenCount();
+        } else {
+            if(count >= 1){
+                count = count - Inferris.getInstance().getTotalVanishedPlayers();
             }
         }
-        return vanishedCount;
+
+        serverPing.getPlayers().setOnline(count);
+        event.setResponse(serverPing);
     }
 }
