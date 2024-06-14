@@ -1,5 +1,6 @@
 package com.inferris.commands;
 
+import com.inferris.common.ColorType;
 import com.inferris.player.*;
 import com.inferris.player.context.PlayerContext;
 import com.inferris.player.context.PlayerContextFactory;
@@ -15,10 +16,10 @@ import net.md_5.bungee.api.plugin.TabExecutor;
 
 import java.util.*;
 
-public class CommandCoins extends Command implements TabExecutor {
+public class CommandLumina extends Command implements TabExecutor {
     private final PlayerDataService playerDataService;
 
-    public CommandCoins(String name, PlayerDataService playerDataService) {
+    public CommandLumina(String name, PlayerDataService playerDataService) {
         super(name);
         this.playerDataService = playerDataService;
     }
@@ -30,26 +31,30 @@ public class CommandCoins extends Command implements TabExecutor {
             PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
             int length = args.length;
             if (length == 0) {
-                int coins = playerContext.getCoins();
-                player.sendMessage(new TextComponent(ChatColor.GRAY + "Coin balance: " + ChatColor.YELLOW + coins));
+                int lumina = playerContext.getCoins();
+                player.sendMessage(TextComponent.fromLegacyText(ChatColor.GRAY + "Lumina: " + ChatColor.of(ColorType.LUMINA.getColor()) + lumina));
                 return;
             }
 
             if (length == 3 && playerContext.getRank().getBranchValue(Branch.STAFF) >= 3) {
                 if (args[0].equalsIgnoreCase("set")) {
 
-                    // TODO: Target
                     ProxiedPlayer target = ProxyServer.getInstance().getPlayer(args[1]);
-                    UUID uuid = playerDataService.fetchUUIDByUsername(args[1]);
+                    UUID uuid;
+                    if (target != null) {
+                        uuid = target.getUniqueId();
+                    } else {
+                        uuid = playerDataService.fetchUUIDByUsername(args[1]);
+                    }
+
                     if (uuid == null) {
                         player.sendMessage(new TextComponent(ChatColor.RED + "Player does not exist in our system."));
                         return;
                     }
 
                     PlayerContext targetContext = PlayerContextFactory.create(uuid, playerDataService);
-
-                    targetContext.setCoins(Integer.parseInt(args[2])); // TODO change to new method
-                    player.sendMessage(new TextComponent("Coins set for " + targetContext.getUsername() + " to " + ChatColor.AQUA + args[2]));
+                    targetContext.setCoins(Integer.parseInt(args[2]));
+                    player.sendMessage(TextComponent.fromLegacyText("Lumina set for " + targetContext.getUsername() + " to " + ChatColor.of(ColorType.LUMINA.getColor()) + args[2]));
                 }
             }
         }
@@ -57,7 +62,11 @@ public class CommandCoins extends Command implements TabExecutor {
 
     @Override
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
-
+        if (sender instanceof ProxiedPlayer player) {
+            if (playerDataService.getPlayerData(player.getUniqueId()).getRank().getBranchValue(Branch.STAFF) < 3) {
+                return Collections.emptyList();
+            }
+        }
         if (args.length == 1) {
             String partialOption = args[0].toLowerCase();
             List<String> options = new ArrayList<>();
