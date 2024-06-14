@@ -25,6 +25,11 @@ public class EventQuit implements Listener {
     public void onQuit(PlayerDisconnectEvent event) {
         ProxiedPlayer player = event.getPlayer();
         PlayerData playerData = playerDataService.getPlayerData(player.getUniqueId());
+
+        if(playerData == null){
+            return;
+        }
+
         RankRegistry rankRegistry = playerData.getRank().getByBranch();
         Rank rank = playerData.getRank();
 
