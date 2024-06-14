@@ -146,17 +146,7 @@ public class PlayerDataManager {
             return CompletableFuture.completedFuture(cachedData);
         }
 
-        // If not found in cache, fetch from Redis asynchronously
         return CompletableFuture.supplyAsync(() -> {
-            // Get the current stack trace
-            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-            // Log the details of the calling method (the element at index 2 should be the caller)
-            if (stackTrace.length > 2) {
-                StackTraceElement caller = stackTrace[2];
-                String logMessage = String.format("Method called from: %s.%s(%s:%d)",
-                        caller.getClassName(), caller.getMethodName(), caller.getFileName(), caller.getLineNumber());
-                Inferris.getInstance().getLogger().log(Level.SEVERE, logMessage);
-            }
             return getPlayerData(uuid);
         }, Inferris.getInstance().getExecutorService());  // Assuming you have an Executor for async tasks
     }
