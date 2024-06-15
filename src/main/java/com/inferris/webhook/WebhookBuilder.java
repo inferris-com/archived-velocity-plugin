@@ -1,4 +1,4 @@
-package com.inferris;
+package com.inferris.webhook;
 
 import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.WebhookClientBuilder;
