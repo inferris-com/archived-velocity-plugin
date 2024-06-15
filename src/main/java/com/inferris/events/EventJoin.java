@@ -1,14 +1,13 @@
 package com.inferris.events;
 
 import com.inferris.Inferris;
+import com.inferris.WebhookBuilder;
 import com.inferris.common.ColorType;
 import com.inferris.config.ConfigType;
 import com.inferris.config.ConfigurationHandler;
 import com.inferris.events.redis.EventPayload;
 import com.inferris.events.redis.PlayerAction;
-import com.inferris.messaging.StaffChatMessage;
 import com.inferris.player.*;
-import com.inferris.player.channel.ChannelManager;
 import com.inferris.player.context.PlayerContext;
 import com.inferris.player.context.PlayerContextFactory;
 import com.inferris.player.service.PlayerDataManager;
@@ -28,7 +27,6 @@ import com.inferris.server.Tag;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PostLoginEvent;
@@ -43,7 +41,7 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 public class EventJoin implements Listener {
-    private PlayerDataService playerDataService;
+    private final PlayerDataService playerDataService;
 
     public EventJoin(PlayerDataService playerDataService) {
         this.playerDataService = playerDataService;
@@ -61,8 +59,6 @@ public class EventJoin implements Listener {
 
         PlayerTaskManager taskManager = new PlayerTaskManager(Inferris.getInstance().getProxy().getScheduler());
         sendHeader(player);
-
-        PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
 
         FriendsManager friendsManager = FriendsManager.getInstance();
         Friends friends = friendsManager.getFriendsData(player.getUniqueId());
@@ -144,14 +140,23 @@ public class EventJoin implements Listener {
         ProxiedPlayer player = event.getPlayer();
         PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
 
+        // Lockdown check
+
         if (ConfigurationHandler.getInstance().getConfig(ConfigType.CONFIG).getBoolean("internal-lockdown")) {
             if (!playerDataService.hasAccess(event.getPlayer().getUniqueId())) {
                 player.disconnect(this.getLockdownMessage());
                 TextComponent[] textComponent = new TextComponent[]{new TextComponent(Tag.STAFF.getName(true) + ChatColor.RESET + player.getName() + ChatColor.RED + " tried to join!")};
 
+                WebhookBuilder webhookBuilder = new WebhookBuilder()
+                        .setColor(ColorType.BRAND_PRIMARY.getColor())
+                        .setTitle("Backend Notification")
+                        .setDescription(player.getName() + " tried to join the Minecraft network, but is not authorized!")
+                        .build();
+                webhookBuilder.sendEmbed();
+
                 ChatUtil.sendGlobalMessage(staff -> {
                     PlayerContext playerContext = PlayerContextFactory.create(staff.getUniqueId(), playerDataService);
-                    if(staff.getUniqueId().equals(player.getUniqueId())){
+                    if (staff.getUniqueId().equals(player.getUniqueId())) {
                         return false;
                     }
                     return playerContext.isStaff();
@@ -214,21 +219,22 @@ public class EventJoin implements Listener {
         );
     }
 
-    private BaseComponent getLockdownMessage(){
+    private BaseComponent getLockdownMessage() {
         CustomError customError = new CustomError(ErrorCode.INTERNAL_LOCKDOWN);
         BaseComponent kickComponent = customError.getErrorHeader();
 
         kickComponent.addExtra(ChatColor.RED + "\n\nInferris is in active development!");
         kickComponent.addExtra("\n");
         kickComponent.addExtra(ChatColor.translateAlternateColorCodes('&', """
-                    &eWe're currently working hard to bring you an amazing experience.
-                    Our Discord server will be opening soon, and it's the &oheart&f&e of our community.
-                    Join us on Discord to stay updated and be part of the journey!
-                                        
-                    &fDiscord: &ahttps://dsc.gg/inferris
-                    &fWebsite: &ahttps://inferris.com
-                    """ + "\n\n"));
-
+                &eWe're currently working hard to bring you an amazing experience.
+                Our Discord server will be opening soon, and it's the &oheart&f&e of our community. &d❀
+                                
+                """));
+        kickComponent.addExtra(TextComponent.fromLegacy(ChatColor.of(ColorType.BRAND_SECONDARY.getColor()) + "Join us on Discord to stay updated and be part of the journey!\n\n"));
+        kickComponent.addExtra(ChatColor.translateAlternateColorCodes('&', """
+                &fDiscord: &ahttps://dsc.gg/inferris
+                &fWebsite: &ahttps://inferris.com");)
+                """));
         return kickComponent;
     }
 }
