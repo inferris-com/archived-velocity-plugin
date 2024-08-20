@@ -1,5 +1,6 @@
 package com.inferris.commands;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.inferris.database.DatabasePool;
 import com.inferris.player.*;
 import com.inferris.player.context.PlayerContext;
@@ -10,7 +11,8 @@ import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
 import com.inferris.util.ChatUtil;
 import com.inferris.util.DatabaseUtils;
-import com.inferris.util.UnixTimeUtils;
+import com.inferris.util.SerializationUtils;
+import com.inferris.util.timedate.UnixTimeUtils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -176,6 +178,9 @@ public class CommandFlagPlayer extends Command {
                 PlayerData moderatorPlayerData = PlayerDataManager.getInstance().getPlayerData(flaggedByUuid);
                 String moderatorRank = PlayerDataManager.getInstance().getPlayerData(flaggedByUuid).getRank().getByBranch().getPrefix(true);
 
+                sender.sendMessage("Target: " + SerializationUtils.serializePlayerData(targetPlayerData));
+                sender.sendMessage("Moderator: " + SerializationUtils.serializePlayerData(moderatorPlayerData));
+
                 TextComponent clickableUsername = ChatUtil.createClickableTextComponent(
                         ChatColor.RED + targetPlayerData.getUsername(),
                         ChatColor.GREEN + "Click to view account",
@@ -193,6 +198,8 @@ public class CommandFlagPlayer extends Command {
         } catch (SQLException e) {
             e.printStackTrace();
             sender.sendMessage(new TextComponent(ChatColor.RED + "An error occurred while retrieving flagged players."));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
     }
 
