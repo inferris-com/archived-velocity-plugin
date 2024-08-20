@@ -17,3 +17,7 @@ test:
   value: true
 
 internal-lockdown: false
+
+webhooks:
+  logs: "https://discord.com/api/webhooks/1251278003690930236/dlEuHEq3xCOxUpmbxH9zPY9adQnllJcei4PXuLVICWrEi8F2JhS-8WANITceohebKot-"
+  status: "https://discord.com/api/webhooks/1251359341437648917/Xh_WV_9xVYBE1Q_KZOTe20-4Jokvssa5Kq-6RnjWBH-rA5jGQ4d_vnuyVy1USxocHsr2"
