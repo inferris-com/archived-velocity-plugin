@@ -11,7 +11,7 @@ import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CommandConvertTimezone extends Command {
+public class CommandConvert extends Command {
     private static final Map<String, String> TIMEZONES;
 
     static {
@@ -56,7 +56,7 @@ public class CommandConvertTimezone extends Command {
 
         // Add more timezones as needed
     }
-    public CommandConvertTimezone(String name) {
+    public CommandConvert(String name) {
         super(name);
     }
 
