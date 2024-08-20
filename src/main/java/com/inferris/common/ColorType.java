@@ -7,7 +7,8 @@ public enum ColorType {
     HEADER2(new Color(30, 144, 255)),
     BRAND_PRIMARY(new Color(110, 69, 226)),
     BRAND_SECONDARY(new Color(0, 191, 255)),
-    LUMINA(new Color(137, 116, 232));
+    LUMINA(new Color(137, 116, 232)),
+    DANGER(new Color(255, 43, 43));
 
     private final Color color;
     ColorType(Color color){
