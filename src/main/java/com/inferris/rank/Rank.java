@@ -87,6 +87,49 @@ public class Rank {
         }
     }
 
+    public String getByBranchFormatted() {
+        int staff = getBranchValue(Branch.STAFF);
+        int builder = getBranchValue(Branch.BUILDER);
+        int donor = getBranchValue(Branch.DONOR);
+
+        if (staff == 3) {
+            return "[Admin]";
+        } else if (staff == 2) {
+            return "[Mod]";
+        } else if (staff == 1) {
+            return "[Helper]";
+        } else if (builder == 1) {
+            return "[Builder]";
+        } else if (donor == 1) {
+            return "[Donor]";
+        } else {
+            return "";
+        }
+    }
+
+    public String getByBranchFormatted(boolean spacer) {
+        int staff = getBranchValue(Branch.STAFF);
+        int builder = getBranchValue(Branch.BUILDER);
+        int donor = getBranchValue(Branch.DONOR);
+
+        if(spacer) {
+            if (staff == 3) {
+                return "[Admin] ";
+            } else if (staff == 2) {
+                return "[Mod] ";
+            } else if (staff == 1) {
+                return "[Helper] ";
+            } else if (builder == 1) {
+                return "[Builder] ";
+            } else if (donor == 1) {
+                return "[Donor] ";
+            } else {
+                return "";
+            }
+        }
+        return null;
+    }
+
     public List<RankRegistry> getApplicableRanks() {
         List<RankRegistry> ranks = new ArrayList<>();
         int staff = getStaff();

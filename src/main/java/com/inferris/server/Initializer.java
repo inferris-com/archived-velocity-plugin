@@ -61,7 +61,7 @@ public class Initializer {
         pluginManager.registerCommand(instance, new CommandRemoveFromRedis("removefromredis", playerDataService));
         pluginManager.registerCommand(instance, new CommandBungeeDev("bungeedev", playerDataService));
         pluginManager.registerCommand(instance, new CommandFlagPlayer("flagplayer", playerDataService));
-        pluginManager.registerCommand(instance, new CommandConvertTimezone("converttime"));
+        pluginManager.registerCommand(instance, new CommandConvert("convert"));
         pluginManager.registerCommand(instance, new CommandPlayerCount("playercount", playerDataService));
 
 
@@ -76,7 +76,7 @@ public class Initializer {
         // Custom Redis event RECEIVE dispatch methods
 
         JedisEventDispatcher dispatcher = new JedisEventDispatcher();
-        //dispatcher.registerHandler(JedisChannel.VIEW_LOGS_SPIGOT_TO_PROXY.getChannelName(), new EventViewlog(commandViewlogs));
+        dispatcher.registerHandler(JedisChannel.VIEW_LOGS_SPIGOT_TO_PROXY.getChannelName(), new EventViewlog(commandViewlogs));
         dispatcher.registerHandler(JedisChannel.STAFFCHAT.getChannelName(), new EventStaffchat());
         dispatcher.registerHandler(JedisChannel.PLAYERDATA_UPDATE.getChannelName(), new EventPlayerDataUpdate());
         dispatcher.registerHandler(JedisChannel.SPIGOT_TO_PROXY_PLAYERDATA_CACHE_UPDATE.getChannelName(), new EventUpdateDataFromSpigot());

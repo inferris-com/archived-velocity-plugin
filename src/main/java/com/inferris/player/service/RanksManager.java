@@ -114,7 +114,7 @@ public class RanksManager {
                     return;
                 }
             }
-            // Update Player Data and push
+            // Update Player Data and push. Todo: use new method?
             if (!isNull) {
                 PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData, JedisChannel.PLAYERDATA_UPDATE);
             }

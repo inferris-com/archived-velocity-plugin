@@ -1,4 +1,4 @@
-package com.inferris.util;
+package com.inferris.util.timedate;
 
 import java.time.Instant;
 import java.time.ZoneId;

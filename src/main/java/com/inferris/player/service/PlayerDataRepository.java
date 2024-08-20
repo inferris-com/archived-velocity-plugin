@@ -287,7 +287,6 @@ public class PlayerDataRepository {
     }
 
     public void deletePlayerData(UUID uuid) {
-        ProxyServer.getInstance().getPlayer(uuid).sendMessage("deletePlayerData debug: " + playerDataService.getPlayerData(uuid).getUsername());
         PlayerData playerData = playerDataService.getPlayerData(uuid);
 
         // Step 1: Fetch the list of friends
