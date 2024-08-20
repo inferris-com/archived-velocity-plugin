@@ -23,6 +23,7 @@ import com.inferris.rank.*;
 import com.inferris.util.ChatUtil;
 import com.inferris.util.ServerUtil;
 import com.inferris.server.Tag;
+import com.inferris.webhook.WebhookType;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -146,7 +147,7 @@ public class EventJoin implements Listener {
                 player.disconnect(this.getLockdownMessage());
                 TextComponent[] textComponent = new TextComponent[]{new TextComponent(Tag.STAFF.getName(true) + ChatColor.RESET + player.getName() + ChatColor.RED + " tried to join!")};
 
-                WebhookBuilder webhookBuilder = new WebhookBuilder()
+                WebhookBuilder webhookBuilder = new WebhookBuilder(WebhookType.LOGS)
                         .setColor(ColorType.BRAND_PRIMARY.getColor())
                         .setTitle("Backend Notification")
                         .setDescription(player.getName() + " tried to join the Minecraft network, but is not authorized!")
@@ -232,7 +233,7 @@ public class EventJoin implements Listener {
         kickComponent.addExtra(TextComponent.fromLegacy(ChatColor.of(ColorType.BRAND_SECONDARY.getColor()) + "Join us on Discord to stay updated and be part of the journey!\n\n"));
         kickComponent.addExtra(ChatColor.translateAlternateColorCodes('&', """
                 &fDiscord: &ahttps://dsc.gg/inferris
-                &fWebsite: &ahttps://inferris.com");)
+                &fWebsite: &ahttps://inferris.com
                 """));
         return kickComponent;
     }

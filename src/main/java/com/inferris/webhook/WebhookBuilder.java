@@ -15,8 +15,8 @@ public class WebhookBuilder {
     private WebhookEmbed embed;
     private final WebhookEmbedBuilder embedBuilder;
 
-    public WebhookBuilder() {
-        clientBuilder = new WebhookClientBuilder("https://discord.com/api/webhooks/1251278003690930236/dlEuHEq3xCOxUpmbxH9zPY9adQnllJcei4PXuLVICWrEi8F2JhS-8WANITceohebKot-"); // or id, token
+    public WebhookBuilder(WebhookType webhookType) {
+        clientBuilder = new WebhookClientBuilder(webhookType.getUrl()); // or id, token
         clientBuilder.setThreadFactory((job) -> {
             Thread thread = new Thread(job);
             thread.setDaemon(true);

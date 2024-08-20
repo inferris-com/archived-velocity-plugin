@@ -12,11 +12,15 @@ import com.inferris.player.service.PlayerDataServiceImpl;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.server.*;
 import com.inferris.util.JedisBuilder;
+import com.inferris.util.timedate.TimeUtils;
+import com.inferris.webhook.WebhookBuilder;
+import com.inferris.webhook.WebhookType;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 import redis.clients.jedis.JedisPool;
 
+import java.awt.*;
 import java.io.*;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -85,6 +89,10 @@ public class Inferris extends Plugin {
             getLogger().log(Level.WARNING, e.getMessage());
         }
 
+        // Enter debug mode
+
+        sendStatusWebhook("Backend Notification", "Backend proxy is now online [" + TimeUtils.getCurrentTimeUTC() + "]", new Color(122, 237, 90));
+
         String debugMode = configurationHandler.getProperties(ConfigType.PROPERTIES).getProperty("debug.mode");
         if (debugMode != null && debugMode.equalsIgnoreCase("true")) {
             ServerStateManager.setCurrentState(ServerState.DEBUG);
@@ -99,6 +107,7 @@ public class Inferris extends Plugin {
     @Override
     public void onDisable() {
         jedisPool.getResource().close();
+        sendStatusWebhook("Backend Notification", "Backend proxy is now offline [" + TimeUtils.getCurrentTimeUTC() + "]", new Color(255, 112, 112));
     }
 
     public int getTotalVanishedPlayers() {
@@ -122,6 +131,15 @@ public class Inferris extends Plugin {
             count = count - getTotalVanishedPlayers();
         }
         return count;
+    }
+
+    private void sendStatusWebhook(String title, String description, Color color) {
+        WebhookBuilder webhookBuilder = new WebhookBuilder(WebhookType.STATUS)
+                .setTitle(title)
+                .setDescription(description)
+                .setColor(color)
+                .build();
+        webhookBuilder.sendEmbed();
     }
 
     public ConfigurationHandler getConfigurationHandler() {

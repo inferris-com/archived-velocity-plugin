@@ -2,6 +2,7 @@ package com.inferris.commands;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.inferris.common.ColorType;
 import com.inferris.player.channel.Channel;
 import com.inferris.player.channel.ChannelManager;
 import com.inferris.player.context.PlayerContext;
@@ -11,6 +12,8 @@ import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
 import com.inferris.server.ErrorCode;
 import com.inferris.util.ChatUtil;
+import com.inferris.webhook.WebhookBuilder;
+import com.inferris.webhook.WebhookType;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -60,6 +63,7 @@ public class CommandNuke extends Command {
 
         UUID uuid;
         PlayerData playerData; //todo
+
         try {
             uuid = playerDataService.fetchUUIDByUsername(args[0]);
             playerData = playerDataService.fetchPlayerDataFromDatabase(uuid);
@@ -80,22 +84,32 @@ public class CommandNuke extends Command {
             return;
         }
 
+        PlayerContext targetPlayerContext = PlayerContextFactory.create(uuid, playerDataService);
+        WebhookBuilder webhookBuilder = new WebhookBuilder(WebhookType.LOGS);
+        webhookBuilder.setColor(ColorType.DANGER.getColor());
+        webhookBuilder.setTitle("Backend Notification");
 
         if (sender instanceof ProxiedPlayer player) {
-            PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
+            PlayerContext senderPlayerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
 
-            ChannelManager.sendStaffChatMessage(Channel.STAFF, playerContext.getRank().getByBranch().getPrefix(true)
-                    + ChatColor.RESET + player.getName() + ChatColor.YELLOW + " completely erased " + playerContext.getRank().getByBranch().getPrefix(true)
+            ChannelManager.sendStaffChatMessage(Channel.STAFF, senderPlayerContext.getRank().getByBranch().getPrefix(true)
+                    + ChatColor.RESET + player.getName() + ChatColor.YELLOW + " completely erased " + targetPlayerContext.getRank().getByBranch().getPrefix(true)
                     + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + "'s data", ChannelManager.StaffChatMessageType.NOTIFICATION);
+
+            webhookBuilder.setDescription(senderPlayerContext.getRank().getByBranchFormatted(true) + senderPlayerContext.getUsername()
+                    + " completely erased " + targetPlayerContext.getRank().getByBranchFormatted(true) + targetPlayerContext.getUsername() + "'s data");
         } else {
-            PlayerContext playerContext = PlayerContextFactory.create(uuid, playerDataService);
             ChannelManager.sendStaffChatMessage(Channel.STAFF, ChatColor.RED + sender.getName() + ChatColor.YELLOW + " completely erased "
-                    + playerContext.getRank().getByBranch().getPrefix(true)
+                    + targetPlayerContext.getRank().getByBranch().getPrefix(true)
                     + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + "'s data", ChannelManager.StaffChatMessageType.NOTIFICATION);
+
+            webhookBuilder.setDescription("CONSOLE" + " completely erased "
+                    + targetPlayerContext.getRank().getByBranchFormatted(true) + targetPlayerContext.getUsername() + "'s data");
         }
 
         playerDataService.nukePlayerData(uuid);
         sender.sendMessage(new TextComponent(ChatColor.GREEN + "Player data has been successfully deleted."));
+        webhookBuilder.build().sendEmbed();
 
         ProxiedPlayer target = ProxyServer.getInstance().getPlayer(uuid);
         if (target != null) {
