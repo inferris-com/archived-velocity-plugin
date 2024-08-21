@@ -9,13 +9,15 @@ import java.util.UUID;
  * <p>
  * This factory provides a method to create a new {@link PlayerContext} for a given player UUID
  * Using a factory ensures that PlayerContext instances are created in a consistent and controlled manner.
+ * Todo: use high level things here so won't always need service manager
  * <p>
- * The factory encapsulates the construction logic of PlayerContext, making it easier to manage dependencies
- * and instantiation details.
+ *
  *
  * @see PlayerContext
  * @see PlayerDataService
  */
+
+@Deprecated
 public class PlayerContextFactory {
     public static PlayerContext create(UUID uuid, PlayerDataService playerDataService) {
         return new PlayerContext(uuid, playerDataService);
