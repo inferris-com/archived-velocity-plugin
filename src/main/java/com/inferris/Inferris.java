@@ -1,10 +1,14 @@
 package com.inferris;
 
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.inferris.config.ConfigType;
 import com.inferris.config.ConfigurationHandler;
 import com.inferris.database.DatabasePool;
 import com.inferris.player.*;
 import com.inferris.player.PlayerData;
+import com.inferris.player.friends.FriendsManager;
 import com.inferris.player.service.PlayerDataRepository;
 import com.inferris.player.service.PlayerDataManager;
 import com.inferris.player.service.PlayerDataService;
@@ -29,7 +33,9 @@ import java.util.logging.Level;
 public class Inferris extends Plugin {
     private static Inferris instance;
     private static JedisPool jedisPool;
+    private Injector injector;
     private final ConfigurationHandler configurationHandler = ConfigurationHandler.getInstance();
+    private PlayerDataManager playerDataManager;
     private static final String INSTANCE_ID = "backend";
 
     @Override
@@ -52,31 +58,14 @@ public class Inferris extends Plugin {
         jedisBuilder.setPassword(redisPassword);
         jedisPool = jedisBuilder.build();
 
-        PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
+        // Initialize Guice
+        injector = Guice.createInjector(new GuiceModule());
 
-        // Initialize PlayerDataService and set dependencies
-        PlayerDataService playerDataService = new PlayerDataServiceImpl(playerDataManager);
-        PlayerDataRepository playerDataRepository = new PlayerDataRepository();
+        // Inject and initialize necessary services and managers
+        this.playerDataManager = injector.getInstance(PlayerDataManager.class);
+        PlayerDataService playerDataService = injector.getInstance(PlayerDataServiceImpl.class);
 
-        // Set the dependencies after initialization
-        playerDataService.setPlayerDataRepository(playerDataRepository);
-        playerDataRepository.setPlayerDataService(playerDataService);
-
-        // Set PlayerDataRepository in PlayerDataManager
-        playerDataManager.setPlayerDataRepository(playerDataRepository);
-
-        // Now you can use playerDataService and playerDataRepository
-        Inferris.getInstance().getLogger().severe(String.valueOf(playerDataService.getPlayerDataRepository() != null)); // Should print true
-        Inferris.getInstance().getLogger().severe(String.valueOf(playerDataRepository.getPlayerDataService() != null)); // Should print true
-
-        // Set service in ServiceLocator
-        ServiceLocator.setPlayerDataService(playerDataService);
-
-        // Now you can safely use the services without worrying about circular dependencies
-        PlayerDataService service = ServiceLocator.getPlayerDataService();
-
-        // Initialization logic with Redis subscriptions, commands, events,
-        Initializer.initialize(this);
+        // Initialize other services and managers
 
         try {
             Connection connection = DatabasePool.getConnection();
@@ -89,8 +78,6 @@ public class Inferris extends Plugin {
             getLogger().log(Level.WARNING, e.getMessage());
         }
 
-        // Enter debug mode
-
         sendStatusWebhook("Backend Notification", "Backend proxy is now online [" + TimeUtils.getCurrentTimeUTC() + "]", new Color(122, 237, 90));
 
         String debugMode = configurationHandler.getProperties(ConfigType.PROPERTIES).getProperty("debug.mode");
@@ -102,6 +89,13 @@ public class Inferris extends Plugin {
         } else {
             ServerStateManager.setCurrentState(ServerState.NORMAL);
         }
+
+        Initializer initializer = new Initializer(playerDataService, this, injector);
+        initializer.initialize();
+    }
+
+    public Injector getInjector() {
+        return injector;
     }
 
     @Override
@@ -113,7 +107,7 @@ public class Inferris extends Plugin {
     public int getTotalVanishedPlayers() {
         int vanishedCount = 0;
         for (ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
-            PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
+            PlayerData playerData = playerDataManager.getPlayerData(player);
             if (playerData.getVanishState() == VanishState.ENABLED) {
                 vanishedCount++;
             }
