@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.inject.Inject;
 import com.inferris.Inferris;
 import com.inferris.config.ConfigType;
 import com.inferris.player.*;
@@ -33,18 +34,12 @@ public class FriendsManager {
     private final Cache<UUID, Friends> caffeineCache;
     private final PlayerDataService playerDataService;
 
-    private FriendsManager(PlayerDataService playerDataService) {
+    @Inject
+    public FriendsManager(PlayerDataService playerDataService) {
         jedisPool = Inferris.getJedisPool(); // Set Redis server details
         objectMapper = SerializationUtils.createObjectMapper(new SerializationModule());
         caffeineCache = Caffeine.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build();
         this.playerDataService = playerDataService;
-    }
-
-    public static synchronized FriendsManager getInstance() {
-        if (instance == null) {
-            instance = new FriendsManager(ServiceLocator.getPlayerDataService());
-        }
-        return instance;
     }
 
     public synchronized Friends getFriendsData(UUID playerUUID) {
@@ -96,7 +91,7 @@ public class FriendsManager {
                 ProxyServer.getInstance().getPlayer(playerUUID).sendMessage(new TextComponent(ChatColor.GREEN + "Sent friend request"));
 
                 if (targetPlayer != null) {
-                    PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(playerUUID);
+                    PlayerData playerData = playerDataService.getPlayerData(playerUUID);
                     targetPlayer.sendMessage(new TextComponent(ChatColor.GREEN + "You received a friend request from " +
                             playerDataService.getPlayerData(playerUUID).getRank().getByBranch().getPrefix(true) + playerData.getUsername()));
                 }
@@ -133,8 +128,8 @@ public class FriendsManager {
         try (Jedis jedis = jedisPool.getResource()) {
             Friends playerFriends = getFriendsDataFromRedis(playerUUID);
             Friends targetFriends = getFriendsDataFromRedis(targetUUID);
-            PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(playerUUID);
-            PlayerData targetData = PlayerDataManager.getInstance().getRedisDataOrNull(targetUUID);
+            PlayerData playerData = playerDataService.getPlayerData(playerUUID);
+            PlayerData targetData = playerDataService.getPlayerData(targetUUID);
 
             try {
                 playerFriends.removeFriend(targetUUID);
@@ -163,8 +158,8 @@ public class FriendsManager {
         try (Jedis jedis = jedisPool.getResource()) {
             Friends playerFriends = getFriendsDataFromRedis(playerUUID);
             Friends targetFriends = getFriendsDataFromRedis(targetUUID);
-            PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(playerUUID);
-            PlayerData targetData = PlayerDataManager.getInstance().getRedisDataOrNull(targetUUID);
+            PlayerData playerData = playerDataService.getPlayerData(playerUUID);
+            PlayerData targetData = playerDataService.getPlayerData(targetUUID);
 
             try {
                 ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerUUID);
@@ -196,7 +191,7 @@ public class FriendsManager {
         List<PlayerData> playerDataList = new ArrayList<>();
 
         for (UUID friendUUID : sortedList) {
-            PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(friendUUID);
+            PlayerData playerData = playerDataService.getPlayerData(friendUUID);
             if (playerData != null) {
                 playerDataList.add(playerData);
             }

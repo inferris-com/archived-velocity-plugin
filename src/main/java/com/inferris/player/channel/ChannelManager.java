@@ -1,12 +1,9 @@
 package com.inferris.player.channel;
 
+import com.google.inject.Inject;
 import com.inferris.Inferris;
-import com.inferris.player.service.PlayerDataManager;
 import com.inferris.player.service.PlayerDataService;
-import com.inferris.player.ServiceLocator;
 import com.inferris.player.context.PlayerContext;
-import com.inferris.player.context.PlayerContextFactory;
-import com.inferris.player.PlayerData;
 import com.inferris.rank.Branch;
 import com.inferris.rank.RankRegistry;
 import com.inferris.server.Tag;
@@ -22,11 +19,18 @@ import java.sql.SQLException;
 import java.util.UUID;
 
 public class ChannelManager {
-    private static final PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
 
-    public static void setChannel(ProxiedPlayer player, Channel channel, boolean sendMessage){
-        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player, "#setChannel, ChannelManager");
-        playerData.setChannel(channel);
+    private final PlayerDataService playerDataService;
+
+    @Inject
+    public ChannelManager(PlayerDataService playerDataService){
+        this.playerDataService = playerDataService;
+    }
+
+    public void setChannel(ProxiedPlayer player, Channel channel, boolean sendMessage){
+        playerDataService.updatePlayerData(player.getUniqueId(), playerData -> {
+            playerData.setChannel(channel);
+        });
         String channelName = null;
 
         if(sendMessage){
@@ -46,12 +50,10 @@ public class ChannelManager {
             }catch(SQLException e){
                 Inferris.getInstance().getLogger().severe(e.getMessage());
             }
-
-        PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData);
     }
 
     // Method for sending player messages
-    public static void sendStaffChatMessage(Channel channel, String message, StaffChatMessageType chatMessageType, UUID senderUuid) {
+    public void sendStaffChatMessage(Channel channel, String message, StaffChatMessageType chatMessageType, UUID senderUuid) {
         if (chatMessageType == StaffChatMessageType.PLAYER && senderUuid != null) {
             BaseComponent[] textComponent = createTextComponent(channel, message, chatMessageType, senderUuid);
             sendMessageToStaff(senderUuid, channel, textComponent);
@@ -61,7 +63,7 @@ public class ChannelManager {
     }
 
     // Method for sending console and notification messages
-    public static void sendStaffChatMessage(Channel channel, String message, StaffChatMessageType chatMessageType) {
+    public void sendStaffChatMessage(Channel channel, String message, StaffChatMessageType chatMessageType) {
         if (chatMessageType == StaffChatMessageType.CONSOLE || chatMessageType == StaffChatMessageType.NOTIFICATION) {
             BaseComponent[] textComponent = createTextComponent(channel, message, chatMessageType, null);
             sendMessageToStaff(null, channel, textComponent);
@@ -71,13 +73,13 @@ public class ChannelManager {
     }
 
     // Helper method to create text components based on the message type
-    private static BaseComponent[] createTextComponent(Channel channel, String message, StaffChatMessageType chatMessageType, UUID senderUuid) {
+    private BaseComponent[] createTextComponent(Channel channel, String message, StaffChatMessageType chatMessageType, UUID senderUuid) {
         String formattedMessage;
         switch (chatMessageType) {
             case PLAYER:
                 ProxiedPlayer player = ProxyServer.getInstance().getPlayer(senderUuid);
                 UUID uuid = player.getUniqueId();
-                PlayerContext playerContext = PlayerContextFactory.create(uuid, playerDataService);
+                PlayerContext playerContext = new PlayerContext(player.getUniqueId(), playerDataService);
 
                 RankRegistry rank = playerDataService.getPlayerData(uuid).getRank().getByBranch();
                 formattedMessage = channel.getTag(true) +
@@ -98,7 +100,7 @@ public class ChannelManager {
     }
 
     // Helper method to send the message to all staff members and the console
-    private static void sendMessageToStaff(UUID senderUuid, Channel channel, BaseComponent[] textComponent) {
+    private void sendMessageToStaff(UUID senderUuid, Channel channel, BaseComponent[] textComponent) {
         if (senderUuid == null) {
             // Handle message sending for the console
             ChatUtil.sendGlobalMessage(player -> switch (channel) {
@@ -108,7 +110,7 @@ public class ChannelManager {
         } else {
             // Handle message sending for players
             ChatUtil.sendGlobalMessage(player -> {
-                PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
+                PlayerContext playerContext = new PlayerContext(player.getUniqueId(), playerDataService);
                 switch (channel) {
                     case STAFF -> {
                         return playerContext.getRank().getBranchValue(Branch.STAFF) >= 1;

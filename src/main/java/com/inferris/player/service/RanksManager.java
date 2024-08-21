@@ -1,5 +1,6 @@
 package com.inferris.player.service;
 
+import com.google.inject.Inject;
 import com.inferris.Inferris;
 import com.inferris.database.DatabasePool;
 import com.inferris.player.PlayerData;
@@ -17,16 +18,11 @@ import java.sql.SQLException;
 import java.util.UUID;
 
 public class RanksManager {
-    private static RanksManager instance;
+    private final PlayerDataService playerDataService;
 
-    private RanksManager() {
-    }
-
-    public static RanksManager getInstance() {
-        if (instance == null) {
-            instance = new RanksManager();
-        }
-        return instance;
+    @Inject
+    public RanksManager(PlayerDataService playerDataService) {
+        this.playerDataService = playerDataService;
     }
 
     public Rank loadRanks(UUID uuid, Connection connection) {
@@ -58,6 +54,8 @@ public class RanksManager {
     public void setRank(UUID uuid, Branch branch, int id) {
         ProxiedPlayer player = ProxyServer.getInstance().getPlayer(uuid);
         boolean isNull = player == null;
+
+        // Database Operation
 
         try (Connection connection = DatabasePool.getConnection();
              PreparedStatement queryStatement = connection.prepareStatement("SELECT * FROM `rank` WHERE uuid = ?");
@@ -92,32 +90,37 @@ public class RanksManager {
                 insertStatement.executeUpdate();
             }
 
-            // Update the cached rank for the player
-            PlayerData playerData = PlayerDataManager.getInstance().getRedisDataOrNull(uuid);
+            /*
+            Update PlayerData in Redis
+             */
+
+            PlayerData playerData = playerDataService.getPlayerData(uuid);
             //Rank rank = getRank(player);
             Rank rank = playerData.getRank();
-            switch (branch) {
-                case STAFF -> {
-                    rank.setStaff(id);
+
+            // Todo: Goes to high level? Might want to fix at some point, circular dependency
+            playerDataService.updatePlayerData(uuid, playerData1 -> {
+                if (!isNull) {
+                    switch (branch) {
+                        case STAFF -> {
+                            rank.setStaff(id);
+                        }
+                        case BUILDER -> {
+                            rank.setBuilder(id);
+                        }
+                        case DONOR -> {
+                            rank.setDonor(id);
+                        }
+                        case OTHER -> {
+                            rank.setOther(id);
+                        }
+                        default -> {
+                            Inferris.getInstance().getLogger().warning("Invalid rank branch specified");
+                            return;
+                        }
+                    }
                 }
-                case BUILDER -> {
-                    rank.setBuilder(id);
-                }
-                case DONOR -> {
-                    rank.setDonor(id);
-                }
-                case OTHER -> {
-                    rank.setOther(id);
-                }
-                default -> {
-                    Inferris.getInstance().getLogger().warning("Invalid rank branch specified");
-                    return;
-                }
-            }
-            // Update Player Data and push. Todo: use new method?
-            if (!isNull) {
-                PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData, JedisChannel.PLAYERDATA_UPDATE);
-            }
+            });
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

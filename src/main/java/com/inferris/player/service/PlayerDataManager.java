@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.inferris.Inferris;
 import com.inferris.events.redis.EventPayload;
 import com.inferris.events.redis.PlayerAction;
@@ -51,38 +53,24 @@ import java.util.logging.Logger;
 public class PlayerDataManager {
 
     private static PlayerDataManager instance;
-    private final JedisPool jedisPool;
+    private final JedisPool jedisPool = Inferris.getJedisPool();
     private final ObjectMapper objectMapper;
     private final Cache<UUID, PlayerData> caffeineCache;
-    private final Logger logger;
-    private PlayerDataRepository playerDataRepository;
+    private final Logger logger = Inferris.getInstance().getLogger();
+   //private final PlayerDataRepository playerDataRepository;
+   private final Provider<PlayerDataRepository> playerDataRepositoryProvider;
 
-    private PlayerDataManager(JedisPool jedisPool, ObjectMapper objectMapper, Cache<UUID, PlayerData> caffeineCache, Logger logger) {
-        this.jedisPool = jedisPool;
+
+    @Inject
+    public PlayerDataManager(ObjectMapper objectMapper, Cache<UUID, PlayerData> caffeineCache, Provider<PlayerDataRepository> playerDataRepositoryProvider) {
         this.objectMapper = objectMapper;
         this.caffeineCache = caffeineCache;
-        this.logger = logger;
+        this.playerDataRepositoryProvider = playerDataRepositoryProvider;
     }
 
-    public static synchronized PlayerDataManager getInstance() {
-        if (instance == null) {
-            instance = new PlayerDataManager(
-                    Inferris.getJedisPool(),
-                    SerializationUtils.createObjectMapper(new SerializationModule()),
-                    Caffeine.newBuilder().build(),
-                    Inferris.getInstance().getLogger());
-        }
-        return instance;
+    private PlayerDataRepository getPlayerDataRepository() {
+        return playerDataRepositoryProvider.get();
     }
-
-    public void setPlayerDataRepository(PlayerDataRepository playerDataRepository) {
-        this.playerDataRepository = playerDataRepository;
-    }
-
-    public PlayerDataRepository getPlayerDataRepository() {
-        return this.playerDataRepository;
-    }
-
     /**
      * Retrieves the player data for the specified player. The method first checks if the data is available in the
      * in-memory cache, and if not, retrieves it from the Redis server. If no data is found, an empty PlayerData object
@@ -103,14 +91,12 @@ public class PlayerDataManager {
 
     public PlayerData getPlayerData(UUID uuid) {
         PlayerData cachedData = caffeineCache.getIfPresent(uuid);
-
         if (cachedData != null) {
             return cachedData;
         } else {
             return getRedisData(uuid);
         }
     }
-
 
     // TODO DEBUG, REMOVE
     public PlayerData getPlayerData(ProxiedPlayer player, String debugOnly) {
@@ -165,7 +151,7 @@ public class PlayerDataManager {
                 return SerializationUtils.deserializePlayerData(json);
             } else {
                 Inferris.getInstance().getLogger().severe("Trying getPlayerDataFromDatabase");
-                return playerDataRepository.getPlayerDataFromDatabase(player.getUniqueId());
+                return getPlayerDataRepository().getPlayerDataFromDatabase(player.getUniqueId());
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
@@ -179,7 +165,7 @@ public class PlayerDataManager {
                 return SerializationUtils.deserializePlayerData(json);
             } else {
                 Inferris.getInstance().getLogger().severe("Trying getPlayerDataFromDatabase");
-                return playerDataRepository.getPlayerDataFromDatabase(uuid);
+                return getPlayerDataRepository().getPlayerDataFromDatabase(uuid);
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
@@ -295,7 +281,7 @@ public class PlayerDataManager {
 
             // Log update to Redis and publish the update
             Inferris.getInstance().getLogger().info("Updated all data and Redis information via Jedis. We let the front-end know, it has the cue!");
-            //jedis.publish(JedisChannels.PLAYERDATA_UPDATE.getChannelName(), uuid.toString());
+
             jedis.publish(JedisChannel.PLAYERDATA_UPDATE.getChannelName(), new EventPayload(player.getUniqueId(),
                     PlayerAction.UPDATE_PLAYER_DATA,
                     null,
@@ -307,6 +293,7 @@ public class PlayerDataManager {
         }
     }
 
+    @Deprecated
     public void updateAllDataAndPush(ProxiedPlayer player, PlayerData playerData, JedisChannel jedisChannels) {
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.hset("playerdata", player.getUniqueId().toString(), SerializationUtils.serializePlayerData(playerData));
@@ -363,7 +350,6 @@ public class PlayerDataManager {
         }
     }
 
-
     /**
      * Logs relevant information about the player's data.
      *
@@ -402,6 +388,10 @@ public class PlayerDataManager {
 
     public void invalidateCache(ProxiedPlayer player) {
         caffeineCache.invalidate(player.getUniqueId());
+    }
+
+    public void invalidateCache(UUID uuid) {
+        caffeineCache.invalidate(uuid);
     }
 
     public Cache<UUID, PlayerData> getCache() {
