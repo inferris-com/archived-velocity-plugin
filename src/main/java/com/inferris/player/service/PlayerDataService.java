@@ -3,6 +3,7 @@ package com.inferris.player.service;
 import com.inferris.player.Profile;
 import com.inferris.player.context.PlayerContext;
 import com.inferris.player.PlayerData;
+import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
 
 import java.util.UUID;
@@ -27,7 +28,9 @@ import java.util.function.Consumer;
  */
 public interface PlayerDataService {
     void setPlayerDataRepository(PlayerDataRepository playerDataRepository);
+
     PlayerDataRepository getPlayerDataRepository();
+
     PlayerData getPlayerData(UUID uuid);
 
     void getPlayerData(UUID uuid, Consumer<PlayerData> operation);
@@ -44,6 +47,8 @@ public interface PlayerDataService {
 
     void updateRankField(UUID uuid, Consumer<Rank> updateFunction);
 
+    void updateCoins(UUID uuid, int amount);
+
     boolean hasJoinedBefore(UUID uuid);
 
     boolean hasUUIDByUsername(String username);
@@ -54,6 +59,15 @@ public interface PlayerDataService {
 
     PlayerData fetchPlayerDataFromDatabase(UUID uuid, String username, boolean insertData);
 
+    void setRank(UUID uuid, Branch branch, int level);
+
+    void setRank(UUID uuid, Branch branch, int level, boolean hasMessage);
+
+    void setVanished(UUID uuid, boolean isEnabled);
+
     void nukePlayerData(UUID uuid);
+
     boolean hasAccess(UUID uuid);
+
+    void invalidate(UUID uuid);
 }
