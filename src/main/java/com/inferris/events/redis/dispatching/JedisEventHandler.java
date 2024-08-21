@@ -1,5 +1,8 @@
 package com.inferris.events.redis.dispatching;
 
+import com.inferris.player.service.PlayerDataService;
+import com.inferris.player.service.ManagerContainer;
+
 public interface JedisEventHandler {
-    void handle(String message, String senderId);
+    void handle(PlayerDataService playerDataService, ManagerContainer managerContainer, String message, String senderId);
 }
