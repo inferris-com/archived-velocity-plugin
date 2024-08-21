@@ -4,7 +4,6 @@ import com.inferris.Inferris;
 import com.inferris.events.redis.EventPayload;
 import com.inferris.events.redis.PlayerAction;
 import com.inferris.player.service.PlayerDataService;
-import com.inferris.player.ServiceLocator;
 import com.inferris.rank.RankRegistry;
 import com.inferris.server.Tag;
 import com.inferris.server.jedis.JedisChannel;
@@ -16,8 +15,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 public class MessageUtil {
 
-    public static void sendMessage(ProxiedPlayer sender, ProxiedPlayer receiver, String message) {
-        PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
+    public static void sendMessage(ProxiedPlayer sender, ProxiedPlayer receiver, String message, PlayerDataService playerDataService) {
         RankRegistry playerRank = playerDataService.getPlayerData(sender.getUniqueId()).getRank().getByBranch();
         RankRegistry receiverRank = playerDataService.getPlayerData(receiver.getUniqueId()).getRank().getByBranch();
         sender.sendMessage(new TextComponent(ChatColor.GREEN + "Message sent!"));
