@@ -1,10 +1,9 @@
 package com.inferris.commands;
 
+import com.google.inject.Inject;
 import com.inferris.player.*;
 import com.inferris.player.context.PlayerContext;
-import com.inferris.player.context.PlayerContextFactory;
 import com.inferris.player.PlayerData;
-import com.inferris.player.service.PlayerDataManager;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.util.DatabaseUtils;
@@ -21,6 +20,8 @@ import java.util.*;
 
 public class CommandProfile extends Command implements TabExecutor {
     protected final PlayerDataService playerDataService;
+
+    @Inject
     public CommandProfile(String name, PlayerDataService playerDataService) {
         super(name);
         this.playerDataService = playerDataService;
@@ -30,7 +31,7 @@ public class CommandProfile extends Command implements TabExecutor {
     public void execute(CommandSender sender, String[] args) {
         if (sender instanceof ProxiedPlayer player) {
             int length = args.length;
-            PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
+            PlayerData playerData = playerDataService.getPlayerData(player.getUniqueId());
 
             if (length == 0) {
                 sendPlayerProfile(player, player.getUniqueId());
@@ -64,13 +65,14 @@ public class CommandProfile extends Command implements TabExecutor {
                         try {
                             DatabaseUtils.executeUpdate(sql, parameters);
                             player.sendMessage(new TextComponent(ChatColor.GREEN + "Your " + fieldToUnset + " has been cleared."));
-                            if (fieldToUnset.equals("bio")) {
-                                playerData.getProfile().setBio(null);
-                            } else if (fieldToUnset.equals("pronouns")) {
-                                playerData.getProfile().setPronouns(null);
-                            }
 
-                            PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData);
+                            playerDataService.updatePlayerData(player.getUniqueId(), playerData1 -> {
+                                if (fieldToUnset.equals("bio")) {
+                                    playerData1.getProfile().setBio(null);
+                                } else if (fieldToUnset.equals("pronouns")) {
+                                    playerData1.getProfile().setPronouns(null);
+                                }
+                            });
                         } catch (SQLException e) {
                             throw new RuntimeException(e);
                         }
@@ -88,8 +90,10 @@ public class CommandProfile extends Command implements TabExecutor {
                         try {
                             DatabaseUtils.executeUpdate(sql, parameters);
                             player.sendMessage(new TextComponent(ChatColor.GREEN + "Your bio has been successfully updated"));
-                            playerData.getProfile().setBio(bio);
-                            PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData);
+                            String finalBio = bio;
+                            playerDataService.updatePlayerData(player.getUniqueId(), playerData1 -> {
+                                playerData1.getProfile().setBio(finalBio);
+                            });
                         } catch (SQLException e) {
                             player.sendMessage(new TextComponent(ChatColor.RED + "Uh oh, something went wrong while you were setting your bio."));
                             player.sendMessage(new TextComponent(ChatColor.RED + "Here's the stacktrace: " + ChatColor.RESET + ChatColor.ITALIC + e.getMessage()));
@@ -116,8 +120,10 @@ public class CommandProfile extends Command implements TabExecutor {
                             try {
                                 DatabaseUtils.executeUpdate(sql, parameters);
                                 player.sendMessage(new TextComponent(ChatColor.GREEN + "Your pronouns have been successfully updated"));
-                                playerData.getProfile().setPronouns(pronouns);
-                                PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData);
+                                String finalPronouns = pronouns;
+                                playerDataService.updatePlayerData(player.getUniqueId(), playerData1 -> {
+                                    playerData1.getProfile().setPronouns(finalPronouns);
+                                });
                             } catch (SQLException e) {
                                 player.sendMessage(new TextComponent(ChatColor.RED + "Uh oh, something went wrong while you were setting your pronouns."));
                                 player.sendMessage(new TextComponent(ChatColor.RED + "Here's the stacktrace: " + ChatColor.RESET + ChatColor.ITALIC + e.getMessage()));
@@ -149,7 +155,7 @@ public class CommandProfile extends Command implements TabExecutor {
             }
 
             for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                if (!(PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getVanishState() == VanishState.ENABLED)) {
+                if (!(playerDataService.getPlayerData(proxiedPlayers.getUniqueId()).getVanishState() == VanishState.ENABLED)) {
                     String playerName = proxiedPlayers.getName();
                     if (playerName.toLowerCase().startsWith(partialPlayerName.toLowerCase())) {
                         completions.add(playerName);
@@ -177,9 +183,8 @@ public class CommandProfile extends Command implements TabExecutor {
 
 
     private void sendPlayerProfile(ProxiedPlayer player, UUID targetUUID) {
-        PlayerDataService service = ServiceLocator.getPlayerDataService();
-        PlayerContext context = PlayerContextFactory.create(targetUUID, service);
-        service.getPlayerData(targetUUID, playerData -> {
+        PlayerContext context = new PlayerContext(targetUUID, playerDataService);
+        playerDataService.getPlayerData(targetUUID, playerData -> {
             Profile profile = playerData.getProfile();
             ChatColor reset = ChatColor.RESET;
 

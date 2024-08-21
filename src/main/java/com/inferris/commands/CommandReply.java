@@ -1,10 +1,9 @@
 package com.inferris.commands;
 
+import com.google.inject.Inject;
 import com.inferris.commands.cache.CommandMessageCache;
 import com.inferris.player.context.PlayerContext;
-import com.inferris.player.context.PlayerContextFactory;
 import com.inferris.player.PlayerData;
-import com.inferris.player.service.PlayerDataManager;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
@@ -23,6 +22,8 @@ import java.util.concurrent.TimeUnit;
 
 public class CommandReply extends Command implements TabExecutor {
     private final PlayerDataService playerDataService;
+
+    @Inject
     public CommandReply(String name, PlayerDataService playerDataService) {
         super(name, null, "r");
         this.playerDataService = playerDataService;
@@ -54,7 +55,7 @@ public class CommandReply extends Command implements TabExecutor {
             UUID targetUUID = cache.getCache().asMap().get(senderUUID);
             ProxiedPlayer target = ProxyServer.getInstance().getPlayer(targetUUID);
             PlayerData playerData = playerDataService.getPlayerData(player.getUniqueId());
-            PlayerContext playerContext = PlayerContextFactory.create(senderUUID, playerDataService);
+            PlayerContext playerContext = new PlayerContext(player.getUniqueId(), playerDataService);
 
             if (target == null) {
                 player.sendMessage(new TextComponent(Message.COULD_NOT_FIND_PLAYER.getMessage()));
@@ -62,7 +63,7 @@ public class CommandReply extends Command implements TabExecutor {
             }
 
             // Check if the target player is vanished
-            if (PlayerDataManager.getInstance().getPlayerData(target).getVanishState() == VanishState.ENABLED) {
+            if (playerDataService.getPlayerData(target.getUniqueId()).getVanishState() == VanishState.ENABLED) {
                 if (playerContext.getRank().getBranchValue(Branch.STAFF) < 3) {
                     player.sendMessage(new TextComponent(Message.COULD_NOT_FIND_PLAYER.getMessage()));
                     target.sendMessage(new TextComponent(ChatColor.GRAY + "Notice: " + playerContext.getRank().getByBranch() + " " + player.getName() + ChatColor.GRAY
@@ -71,7 +72,7 @@ public class CommandReply extends Command implements TabExecutor {
                 }
             }
 
-            MessageUtil.sendMessage(player, target, message);
+            MessageUtil.sendMessage(player, target, message, playerDataService);
             CommandMessage.getCacheReplyHandler().invalidate(targetUUID);
             CommandMessageCache targetCache = CommandMessage.getCacheReplyHandler().asMap().computeIfAbsent(targetUUID,
                     uuid -> new CommandMessageCache(target, player, 5L, TimeUnit.MINUTES));
@@ -86,7 +87,7 @@ public class CommandReply extends Command implements TabExecutor {
             String partialPlayerName = args[0];
             List<String> playerNames = new ArrayList<>();
             for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                if (!(PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getVanishState() == VanishState.ENABLED)) {
+                if (!(playerDataService.getPlayerData(proxiedPlayers.getUniqueId()).getVanishState() == VanishState.ENABLED)) {
                     String playerName = proxiedPlayers.getName();
                     if (playerName.toLowerCase().startsWith(partialPlayerName.toLowerCase())) {
                         playerNames.add(playerName);

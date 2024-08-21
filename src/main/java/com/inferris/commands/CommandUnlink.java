@@ -1,9 +1,9 @@
 package com.inferris.commands;
 
+import com.google.inject.Inject;
 import com.inferris.Inferris;
 import com.inferris.config.ConfigType;
 import com.inferris.database.DatabasePool;
-import com.inferris.player.service.PlayerDataManager;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.player.Profile;
 import com.inferris.util.ContentTypes;
@@ -30,6 +30,7 @@ public class CommandUnlink extends Command implements TabExecutor {
 
     private final PlayerDataService playerDataService;
 
+    @Inject
     public CommandUnlink(String name, PlayerDataService playerDataService) {
         super(name);
         this.playerDataService = playerDataService;
@@ -49,7 +50,7 @@ public class CommandUnlink extends Command implements TabExecutor {
             player.sendMessage(ChatColor.GOLD + "===============");
         }
         if (length == 1 && args[0].equalsIgnoreCase("confirm")) {
-            Profile profile = PlayerDataManager.getInstance().getPlayerData(player).getProfile();
+            Profile profile = playerDataService.getPlayerData(player.getUniqueId()).getProfile();
             boolean isVerified = false;
             try (Connection connection = DatabasePool.getConnection()) {
                 String condition = "uuid = '" + player.getUniqueId() + "'";

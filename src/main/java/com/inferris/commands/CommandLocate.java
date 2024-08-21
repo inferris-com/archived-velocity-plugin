@@ -1,10 +1,8 @@
 package com.inferris.commands;
 
-import com.inferris.player.*;
+import com.google.inject.Inject;
 import com.inferris.player.context.PlayerContext;
-import com.inferris.player.context.PlayerContextFactory;
 import com.inferris.player.PlayerData;
-import com.inferris.player.service.PlayerDataManager;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
@@ -24,6 +22,7 @@ import java.util.List;
 public class CommandLocate extends Command implements TabExecutor {
     private final PlayerDataService playerDataService;
 
+    @Inject
     public CommandLocate(String name, PlayerDataService playerDataService) {
         super(name);
         this.playerDataService = playerDataService;
@@ -35,9 +34,9 @@ public class CommandLocate extends Command implements TabExecutor {
         if (args.length == 1 && sender instanceof ProxiedPlayer player) {
             String partialPlayerName = args[0];
             List<String> playerNames = new ArrayList<>();
-            PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
+            PlayerData playerData = playerDataService.getPlayerData(player.getUniqueId());
             for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                if (PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getVanishState() == VanishState.DISABLED || playerData.getRank().getBranchValue(Branch.STAFF) >= 3) {
+                if (playerDataService.getPlayerData(proxiedPlayers.getUniqueId()).getVanishState() == VanishState.DISABLED || playerData.getRank().getBranchValue(Branch.STAFF) >= 3) {
                     String playerName = proxiedPlayers.getName();
                     if (playerName.toLowerCase().startsWith(partialPlayerName.toLowerCase())) {
                         playerNames.add(playerName);
@@ -64,9 +63,8 @@ public class CommandLocate extends Command implements TabExecutor {
             return;
         }
 
-        PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
-        PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
-        PlayerContext targetPlayerContext = PlayerContextFactory.create(target.getUniqueId(), playerDataService);
+        PlayerContext playerContext = new PlayerContext(player.getUniqueId(), playerDataService);
+        PlayerContext targetPlayerContext = new PlayerContext(target.getUniqueId(), playerDataService);
 
         if (targetPlayerContext.getVanishState() == VanishState.ENABLED) {
             if (playerContext.getRank().getBranchValue(Branch.STAFF) < 3) {

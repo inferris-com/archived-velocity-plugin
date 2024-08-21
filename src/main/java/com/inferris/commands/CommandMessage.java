@@ -2,13 +2,13 @@ package com.inferris.commands;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.inject.Inject;
 import com.inferris.Inferris;
 import com.inferris.commands.cache.CommandJokeCache;
 import com.inferris.commands.cache.CommandMessageCache;
 import com.inferris.config.ConfigType;
 import com.inferris.player.*;
 import com.inferris.player.context.PlayerContext;
-import com.inferris.player.context.PlayerContextFactory;
 import com.inferris.player.PlayerData;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.tasks.PlayerTaskManager;
@@ -40,6 +40,7 @@ public class CommandMessage extends Command implements TabExecutor {
         JOKE_ALLOWED = Inferris.getInstance().getConfigurationHandler().getConfig(ConfigType.CONFIG).getSection("command.features").getBoolean("message-joke");
     }
 
+    @Inject
     public CommandMessage(String name, PlayerDataService playerDataService) {
         super(name, null, "msg", "dm", "pm");
         this.playerDataService = playerDataService;
@@ -62,8 +63,7 @@ public class CommandMessage extends Command implements TabExecutor {
             ProxiedPlayer receiver = ProxyServer.getInstance().getPlayer(receiverName);
             String message = String.join(" ", Arrays.copyOfRange(args, 1, length));
 
-            PlayerDataService dataService = ServiceLocator.getPlayerDataService();
-            PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), dataService);
+            PlayerContext playerContext = new PlayerContext(player.getUniqueId(), playerDataService);
 
             if (receiver == null) {
                 player.sendMessage(new TextComponent(Message.COULD_NOT_FIND_PLAYER.getMessage()));
@@ -76,7 +76,7 @@ public class CommandMessage extends Command implements TabExecutor {
             }
 
             // Check if the receiver is in a vanished state
-            if (dataService.getPlayerData(receiver.getUniqueId()).getVanishState() == VanishState.ENABLED) {
+            if (playerDataService.getPlayerData(receiver.getUniqueId()).getVanishState() == VanishState.ENABLED) {
                 if (playerContext.getRank().getBranchValue(Branch.STAFF) < 3) {
                     player.sendMessage(new TextComponent(Message.COULD_NOT_FIND_PLAYER.getMessage()));
                     receiver.sendMessage(new TextComponent(ChatColor.GRAY + "Notice: " + playerContext.getRank().getByBranch() + " " + player.getName() + ChatColor.GRAY
@@ -85,7 +85,7 @@ public class CommandMessage extends Command implements TabExecutor {
                 }
             }
 
-            MessageUtil.sendMessage(player, receiver, message);
+            MessageUtil.sendMessage(player, receiver, message, playerDataService);
 
             // Update the reply cache
             cacheReplyHandler.invalidate(receiver.getUniqueId());

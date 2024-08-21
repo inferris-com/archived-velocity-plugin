@@ -1,14 +1,18 @@
 package com.inferris.commands;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.inject.Inject;
+import com.inferris.Inferris;
+import com.inferris.events.redis.EventPayload;
+import com.inferris.events.redis.PlayerAction;
 import com.inferris.player.*;
 import com.inferris.player.context.PlayerContext;
-import com.inferris.player.context.PlayerContextFactory;
 import com.inferris.player.service.PlayerDataManager;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
 import com.inferris.server.ErrorCode;
+import com.inferris.server.jedis.JedisChannel;
 import com.inferris.util.SerializationUtils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -16,10 +20,12 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
+import redis.clients.jedis.Jedis;
 
 public class CommandBungeeDev extends Command {
     private final PlayerDataService playerDataService;
 
+    @Inject
     public CommandBungeeDev(String name, PlayerDataService playerDataService) {
         super(name);
         this.playerDataService = playerDataService;
@@ -37,6 +43,24 @@ public class CommandBungeeDev extends Command {
             if (length == 1) {
                 String action = args[0].toLowerCase();
                 switch (action) {
+                    case "data" -> {
+                        PlayerData playerData = playerDataService.getPlayerData(player.getUniqueId());
+
+                        player.sendMessage(playerData.getUuid().toString());
+                        player.sendMessage(playerData.getUsername().toString());
+                        player.sendMessage(playerData.getRank().toString());
+
+                        try (Jedis jedis = Inferris.getJedisPool().getResource()) {
+                            jedis.publish(JedisChannel.PLAYERDATA_VANISH.getChannelName(), new EventPayload(player.getUniqueId(),
+                                    PlayerAction.UPDATE_PLAYER_DATA,
+                                    null,
+                                    Inferris.getInstanceId()).toPayloadString());
+                            Inferris.getInstance().getLogger().info("Completed vanish state update for player: " + playerData.getUuid().toString());
+                        } catch (Exception e) {
+                            Inferris.getInstance().getLogger().warning("Failed to publish vanish state update: " + e.getMessage());
+                            // Optionally, handle the exception further if needed
+                        }
+                    }
                     case "service" -> {
                         try {
                             player.sendMessage(SerializationUtils.serializePlayerData(playerDataService.getPlayerData(player.getUniqueId())));
@@ -50,7 +74,8 @@ public class CommandBungeeDev extends Command {
                                 + ChatColor.WHITE + "Not to fret! They're probably fixin' up an issue\n or deploying a patch. Hang tight!");
                     }
                     case "cache" -> {
-                        player.sendMessage(new TextComponent(String.valueOf(PlayerDataManager.getInstance().getCache().getIfPresent(player.getUniqueId()).getProfile().toString())));
+                        PlayerDataManager playerDataManager = Inferris.getInstance().getInjector().getInstance(PlayerDataManager.class);
+                        player.sendMessage(new TextComponent(String.valueOf(playerDataManager.getCache().getIfPresent(player.getUniqueId()).getProfile().toString())));
                     }
                 }
             }
@@ -60,8 +85,7 @@ public class CommandBungeeDev extends Command {
     @Override
     public boolean hasPermission(CommandSender sender) {
         if (sender instanceof ProxiedPlayer player) {
-            PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
-            PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
+            PlayerContext playerContext = new PlayerContext(player.getUniqueId(), playerDataService);
             Rank rank = playerContext.getRank();
             return rank.getBranchValue(Branch.STAFF) >= 3 || player.getUniqueId().toString().equals("7d16b15d-bb22-4a6d-80db-6213b3d75007");
         }

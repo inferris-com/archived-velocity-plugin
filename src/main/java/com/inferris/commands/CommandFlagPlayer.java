@@ -1,12 +1,11 @@
 package com.inferris.commands;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.inject.Inject;
 import com.inferris.database.DatabasePool;
 import com.inferris.player.*;
 import com.inferris.player.context.PlayerContext;
-import com.inferris.player.context.PlayerContextFactory;
 import com.inferris.player.PlayerData;
-import com.inferris.player.service.PlayerDataManager;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
 import com.inferris.util.ChatUtil;
@@ -30,6 +29,7 @@ import java.util.UUID;
 public class CommandFlagPlayer extends Command {
     private final PlayerDataService playerDataService;
 
+    @Inject
     public CommandFlagPlayer(String name, PlayerDataService playerDataService) {
         super(name);
         this.playerDataService = playerDataService;
@@ -38,7 +38,7 @@ public class CommandFlagPlayer extends Command {
     @Override
     public boolean hasPermission(CommandSender sender) {
         if (sender instanceof ProxiedPlayer player) {
-            PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
+            PlayerContext playerContext = new PlayerContext(player.getUniqueId(), playerDataService);
             return playerContext.getRank().getBranchValue(Branch.STAFF) >= 2;
         }
         // Allow console to execute the command
@@ -47,7 +47,6 @@ public class CommandFlagPlayer extends Command {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
 
         if (args.length < 1) {
             sender.sendMessage(new TextComponent(ChatColor.RED + "Usage: /flag <add|remove> <player> [reason]"));
@@ -80,11 +79,11 @@ public class CommandFlagPlayer extends Command {
 
         if (targetPlayer != null) {
             targetUuid = targetPlayer.getUniqueId();
-            targetPlayerData = PlayerDataManager.getInstance().getPlayerData(targetUuid);
+            targetPlayerData = playerDataService.getPlayerData(targetUuid);
         } else {
             targetUuid = playerDataService.fetchUUIDByUsername(playerName);
             if (targetUuid != null) {
-                targetPlayerData = PlayerDataManager.getInstance().getPlayerData(targetUuid);
+                targetPlayerData = playerDataService.getPlayerData(targetUuid);
             }
         }
 
@@ -136,8 +135,9 @@ public class CommandFlagPlayer extends Command {
             DatabaseUtils.insertData(connection, "flagged_players", columns, insert);
             DatabaseUtils.updateData(connection, "profile", new String[]{"is_flagged"}, new Object[]{1}, "`uuid` = '" + targetUuid + "'");
             if (targetPlayerData != null) {
-                targetPlayerData.getProfile().setFlagged(true);
-                PlayerDataManager.getInstance().updateAllDataAndPush(targetUuid, targetPlayerData);
+                playerDataService.updatePlayerData(targetUuid, playerData -> {
+                    targetPlayerData.getProfile().setFlagged(true);
+                });
             }
             sender.sendMessage(new TextComponent(ChatColor.GREEN + "Player flagged successfully."));
         } else {
@@ -153,8 +153,9 @@ public class CommandFlagPlayer extends Command {
         DatabaseUtils.updateData(connection, "profile", new String[]{"is_flagged"}, new Object[]{0}, "`uuid` = '" + targetUuid + "'");
         if (rowsAffected > 0) {
             if (targetPlayerData != null) {
-                targetPlayerData.getProfile().setFlagged(false);
-                PlayerDataManager.getInstance().updateAllDataAndPush(targetUuid, targetPlayerData);
+                playerDataService.updatePlayerData(targetUuid, playerData -> {
+                    targetPlayerData.getProfile().setFlagged(false);
+                });
             }
             sender.sendMessage(new TextComponent(ChatColor.GREEN + "Player unflagged successfully."));
         } else {
@@ -174,9 +175,9 @@ public class CommandFlagPlayer extends Command {
                 String reason = resultSet.getString("reason");
                 UUID flaggedByUuid = resultSet.getString("flagged_by_uuid") != null ? UUID.fromString(resultSet.getString("flagged_by_uuid")) : null;
 
-                PlayerData targetPlayerData = PlayerDataManager.getInstance().getPlayerData(uuid);
-                PlayerData moderatorPlayerData = PlayerDataManager.getInstance().getPlayerData(flaggedByUuid);
-                String moderatorRank = PlayerDataManager.getInstance().getPlayerData(flaggedByUuid).getRank().getByBranch().getPrefix(true);
+                PlayerData targetPlayerData = playerDataService.getPlayerData(uuid);
+                PlayerData moderatorPlayerData = playerDataService.getPlayerData(flaggedByUuid);
+                String moderatorRank = playerDataService.getPlayerData(flaggedByUuid).getRank().getByBranch().getPrefix(true);
 
                 sender.sendMessage("Target: " + SerializationUtils.serializePlayerData(targetPlayerData));
                 sender.sendMessage("Moderator: " + SerializationUtils.serializePlayerData(moderatorPlayerData));
@@ -215,8 +216,8 @@ public class CommandFlagPlayer extends Command {
             UUID flaggedByUuid = resultSet.getString("flagged_by_uuid") != null ? UUID.fromString(resultSet.getString("flagged_by_uuid")) : null;
             long timestamp = resultSet.getLong("date");
 
-            PlayerData moderatorPlayerData = PlayerDataManager.getInstance().getPlayerData(flaggedByUuid);
-            String moderatorRank = PlayerDataManager.getInstance().getPlayerData(flaggedByUuid).getRank().getByBranch().getPrefix(true);
+            PlayerData moderatorPlayerData = playerDataService.getPlayerData(flaggedByUuid);
+            String moderatorRank = playerDataService.getPlayerData(flaggedByUuid).getRank().getByBranch().getPrefix(true);
 
             TextComponent textComponent = new TextComponent();
             textComponent.addExtra(new TextComponent(ChatColor.GRAY + "Username: " + ChatColor.RESET + targetPlayerData.getUsername() + "\n"));

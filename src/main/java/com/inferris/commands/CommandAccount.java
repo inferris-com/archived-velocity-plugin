@@ -1,12 +1,10 @@
 package com.inferris.commands;
 
+import com.google.inject.Inject;
 import com.inferris.Inferris;
 import com.inferris.database.Database;
 import com.inferris.database.DatabasePool;
-import com.inferris.player.*;
 import com.inferris.player.context.PlayerContext;
-import com.inferris.player.context.PlayerContextFactory;
-import com.inferris.player.service.PlayerDataManager;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
@@ -32,7 +30,9 @@ import java.util.List;
 import java.util.UUID;
 
 public class CommandAccount extends Command implements TabExecutor {
-    protected final PlayerDataService playerDataService;
+    private final PlayerDataService playerDataService;
+
+    @Inject
     public CommandAccount(String name, PlayerDataService playerDataService) {
         super(name);
         this.playerDataService = playerDataService;
@@ -41,7 +41,7 @@ public class CommandAccount extends Command implements TabExecutor {
     @Override
     public boolean hasPermission(CommandSender sender) {
         if (sender instanceof ProxiedPlayer player) {
-            return ServiceLocator.getPlayerDataService().getPlayerData(player.getUniqueId()).getRank().getBranchValue(Branch.STAFF) >= 1;
+            return playerDataService.getPlayerData(player.getUniqueId()).getRank().getBranchValue(Branch.STAFF) >= 1;
         }
         return false;
     }
@@ -57,11 +57,9 @@ public class CommandAccount extends Command implements TabExecutor {
             }
             if (length == 1) {
                 String targetName = args[0];
-                PlayerDataManager playerDataManager = PlayerDataManager.getInstance();
-                PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
 
                 UUID uuid = playerDataService.fetchUUIDByUsername(args[0]);
-                PlayerContext playerContext = PlayerContextFactory.create(uuid, playerDataService);
+                PlayerContext playerContext = new PlayerContext(uuid, playerDataService);
                 Rank rank = playerContext.getRank();
                 String tag = Tag.STAFF.getName(true);
                 ChatColor reset = ChatColor.RESET;

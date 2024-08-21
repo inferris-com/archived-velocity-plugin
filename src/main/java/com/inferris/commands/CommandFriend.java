@@ -1,5 +1,7 @@
 package com.inferris.commands;
 
+import com.google.inject.Inject;
+import com.inferris.player.service.ManagerContainer;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.server.Message;
 import com.inferris.player.PlayerData;
@@ -19,16 +21,25 @@ import net.md_5.bungee.api.plugin.TabExecutor;
 import java.util.*;
 
 public class CommandFriend extends Command implements TabExecutor {
+
     protected final PlayerDataService playerDataService;
-    public CommandFriend(String name, PlayerDataService playerDataService) {
-        super(name);
+    private final PlayerDataManager playerDataManager;
+    private final ManagerContainer managerContainer;
+
+    @Inject
+    public CommandFriend(PlayerDataService playerDataService, PlayerDataManager playerDataManager, ManagerContainer managerContainer) {
+        super("friend");
         this.playerDataService = playerDataService;
+        this.playerDataManager = playerDataManager;
+        this.managerContainer = managerContainer;
     }
+
 
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (sender instanceof ProxiedPlayer player) {
             int length = args.length;
+            FriendsManager friendsManager = managerContainer.getFriendsManager();
 
             if (length == 0) {
                 player.sendMessage(new TextComponent(ChatColor.YELLOW + "/friend add <player>"));
@@ -53,13 +64,12 @@ public class CommandFriend extends Command implements TabExecutor {
                 }
                 if (subCommand.equalsIgnoreCase("list")) {
                     UUID playerUUID = player.getUniqueId();
-                    FriendsManager.getInstance().listFriends(playerUUID, 1);
+                    friendsManager.listFriends(playerUUID, 1);
                     return;
                 }
                 player.sendMessage(new TextComponent(ChatColor.YELLOW + "Unknown command argument: " + subCommand));
             }
             if (length == 2) {
-                FriendsManager friendsManager = FriendsManager.getInstance();
                 UUID playerUUID = player.getUniqueId();
 
                 if (args[0].equalsIgnoreCase("list")) {
@@ -72,10 +82,10 @@ public class CommandFriend extends Command implements TabExecutor {
                     player.sendMessage(new TextComponent(Message.PLAYER_NOT_IN_SYSTEM.getMessage()));
                     return;
                 }
-                PlayerData targetData = PlayerDataManager.getInstance().getRedisData(targetUUID);
+                PlayerData targetData = playerDataManager.getRedisData(targetUUID);
                 String targetName = targetData.getUsername();
-                Friends playerFriends = FriendsManager.getInstance().getFriendsData(playerUUID);
-                Friends targetFriends = FriendsManager.getInstance().getFriendsData(targetUUID);
+                Friends playerFriends = friendsManager.getFriendsData(playerUUID);
+                Friends targetFriends = friendsManager.getFriendsData(targetUUID);
 
                 if (args[0].equalsIgnoreCase("add") || args[0].equalsIgnoreCase("request")) {
                     friendsManager.friendRequest(playerUUID, targetUUID);
@@ -93,9 +103,9 @@ public class CommandFriend extends Command implements TabExecutor {
                         player.sendMessage(new TextComponent(ChatColor.RED + "You don't have a pending friend request from " + targetName));
                     }
                 } else if (args[0].equalsIgnoreCase("remove")) {
-                    FriendsManager.getInstance().removeFriend(playerUUID, targetUUID);
+                    friendsManager.removeFriend(playerUUID, targetUUID);
                 } else if (args[0].equalsIgnoreCase("reject") || args[0].equalsIgnoreCase("deny")) {
-                    FriendsManager.getInstance().rejectFriendRequest(playerUUID, targetUUID);
+                    friendsManager.rejectFriendRequest(playerUUID, targetUUID);
                 }
             }
         }
@@ -119,9 +129,9 @@ public class CommandFriend extends Command implements TabExecutor {
             if (length == 2) {
                 String partialPlayerName = args[0];
                 List<String> playerNames = new ArrayList<>();
-                PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
+                PlayerData playerData = playerDataService.getPlayerData(player.getUniqueId());
                 for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                    if (PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getVanishState() == VanishState.DISABLED || playerData.getRank().getBranchValue(Branch.STAFF) >= 3) {
+                    if (playerDataService.getPlayerData(proxiedPlayers.getUniqueId()).getVanishState() == VanishState.DISABLED || playerData.getRank().getBranchValue(Branch.STAFF) >= 3) {
                         String playerName = proxiedPlayers.getName();
                         if (playerName.toLowerCase().startsWith(partialPlayerName.toLowerCase())) {
                             playerNames.add(playerName);

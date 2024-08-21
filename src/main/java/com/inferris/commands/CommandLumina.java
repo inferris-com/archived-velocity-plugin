@@ -1,9 +1,8 @@
 package com.inferris.commands;
 
+import com.google.inject.Inject;
 import com.inferris.common.ColorType;
-import com.inferris.player.*;
 import com.inferris.player.context.PlayerContext;
-import com.inferris.player.context.PlayerContextFactory;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
 import net.md_5.bungee.api.ChatColor;
@@ -19,6 +18,7 @@ import java.util.*;
 public class CommandLumina extends Command implements TabExecutor {
     private final PlayerDataService playerDataService;
 
+    @Inject
     public CommandLumina(String name, PlayerDataService playerDataService) {
         super(name);
         this.playerDataService = playerDataService;
@@ -27,8 +27,7 @@ public class CommandLumina extends Command implements TabExecutor {
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (sender instanceof ProxiedPlayer player) {
-            PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
-            PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
+            PlayerContext playerContext = new PlayerContext(player.getUniqueId(), playerDataService);
             int length = args.length;
             if (length == 0) {
                 int lumina = playerContext.getCoins();
@@ -52,8 +51,8 @@ public class CommandLumina extends Command implements TabExecutor {
                         return;
                     }
 
-                    PlayerContext targetContext = PlayerContextFactory.create(uuid, playerDataService);
-                    targetContext.setCoins(Integer.parseInt(args[2]));
+                    PlayerContext targetContext = new PlayerContext(uuid, playerDataService);
+                    playerDataService.updateCoins(target.getUniqueId(), Integer.parseInt(args[2]));
                     player.sendMessage(TextComponent.fromLegacyText("Lumina set for " + targetContext.getUsername() + " to " + ChatColor.of(ColorType.LUMINA.getColor()) + args[2]));
                 }
             }

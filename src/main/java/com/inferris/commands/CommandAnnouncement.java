@@ -1,8 +1,8 @@
 package com.inferris.commands;
 
+import com.google.inject.Inject;
 import com.inferris.player.*;
 import com.inferris.player.context.PlayerContext;
-import com.inferris.player.context.PlayerContextFactory;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
 import com.inferris.util.ChatUtil;
@@ -16,6 +16,7 @@ import net.md_5.bungee.api.plugin.Command;
 public class CommandAnnouncement extends Command {
     private final PlayerDataService playerDataService;
 
+    @Inject
     public CommandAnnouncement(String name, PlayerDataService playerDataService) {
         super(name);
         this.playerDataService = playerDataService;
@@ -72,8 +73,7 @@ public class CommandAnnouncement extends Command {
     @Override
     public boolean hasPermission(CommandSender sender) {
         if (sender instanceof ProxiedPlayer player) {
-            PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
-            PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
+            PlayerContext playerContext = new PlayerContext(player.getUniqueId(), playerDataService);
             return playerContext.getRank().getBranchValue(Branch.STAFF) >= 3;
         }
         return false;

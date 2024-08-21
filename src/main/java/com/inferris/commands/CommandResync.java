@@ -1,9 +1,9 @@
 package com.inferris.commands;
 
+import com.google.inject.Inject;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
 import com.inferris.player.PlayerData;
-import com.inferris.player.service.PlayerDataManager;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -14,13 +14,9 @@ import net.md_5.bungee.api.plugin.Command;
 public class CommandResync extends Command {
     private final PlayerDataService playerDataService;
 
+    @Inject
     public CommandResync(String name, PlayerDataService playerDataService) {
         super(name);
-        this.playerDataService = playerDataService;
-    }
-
-    public CommandResync(String name, String permission, PlayerDataService playerDataService, String... aliases) {
-        super(name, permission, aliases);
         this.playerDataService = playerDataService;
     }
 
@@ -34,14 +30,12 @@ public class CommandResync extends Command {
             }
             player.sendMessage(new TextComponent(ChatColor.GREEN + "Re-synced!"));
             if (length == 0) {
-                PlayerData playerData = playerDataService.fetchPlayerDataFromDatabase(player.getUniqueId());
-                PlayerDataManager.getInstance().updateAllData(player, playerData);
                 return;
             }
             if (ProxyServer.getInstance().getPlayer(args[0]) != null) {
                 ProxiedPlayer target = ProxyServer.getInstance().getPlayer(args[0]);
                 PlayerData playerData = playerDataService.fetchPlayerDataFromDatabase(target.getUniqueId());
-                PlayerDataManager.getInstance().updateAllData(target, playerData);
+                playerDataService.updatePlayerData(player.getUniqueId(), playerData1 -> playerDataService.fetchPlayerDataFromDatabase(player.getUniqueId()));
             } else {
                 player.sendMessage(new TextComponent(ChatColor.RED + "Player not found!"));
             }

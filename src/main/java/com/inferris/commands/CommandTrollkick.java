@@ -1,9 +1,8 @@
 package com.inferris.commands;
 
+import com.google.inject.Inject;
 import com.inferris.player.PlayerData;
-import com.inferris.player.service.PlayerDataManager;
 import com.inferris.player.service.PlayerDataService;
-import com.inferris.player.ServiceLocator;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
 import com.inferris.server.Message;
@@ -21,6 +20,7 @@ import java.util.List;
 public class CommandTrollkick extends Command implements TabExecutor {
     private final PlayerDataService playerDataService;
 
+    @Inject
     public CommandTrollkick(String name, PlayerDataService playerDataService) {
         super(name);
         this.playerDataService = playerDataService;
@@ -33,7 +33,6 @@ public class CommandTrollkick extends Command implements TabExecutor {
 
         if (sender instanceof ProxiedPlayer) {
             player = (ProxiedPlayer) sender;
-            PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
             playerDataService.getPlayerData(player.getUniqueId(), playerData -> {
 
                 if (playerData.getRank().getBranchValue(Branch.STAFF) < 2) {
@@ -56,14 +55,13 @@ public class CommandTrollkick extends Command implements TabExecutor {
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
 
         if (args.length == 1 && sender instanceof ProxiedPlayer player) {
-            PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
             PlayerData playerData = playerDataService.getPlayerData(player.getUniqueId());
 
             if (playerData.getRank().getBranchValue(Branch.STAFF) >= 2) {
                 String partialPlayerName = args[0];
                 List<String> playerNames = new ArrayList<>();
                 for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                    if (PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getVanishState() == VanishState.DISABLED || playerData.getRank().getBranchValue(Branch.STAFF) >= 3) {
+                    if (playerDataService.getPlayerData(proxiedPlayers.getUniqueId()).getVanishState() == VanishState.DISABLED || playerData.getRank().getBranchValue(Branch.STAFF) >= 3) {
                         String playerName = proxiedPlayers.getName();
                         if (playerName.toLowerCase().startsWith(partialPlayerName.toLowerCase())) {
                             playerNames.add(playerName);

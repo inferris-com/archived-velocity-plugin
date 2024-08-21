@@ -1,10 +1,9 @@
 package com.inferris.commands;
 
+import com.google.inject.Inject;
 import com.inferris.Inferris;
 import com.inferris.player.context.PlayerContext;
-import com.inferris.player.context.PlayerContextFactory;
 import com.inferris.player.PlayerData;
-import com.inferris.player.service.PlayerDataManager;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.server.ReportPayload;
@@ -44,6 +43,7 @@ public class CommandReport extends Command implements TabExecutor {
     private final List<String> possibleReasons = List.of("spamming", "harassment", "inappropriate_behavior", "cheating", "exploiting_bugs", "impersonation", "scamming", "advertisement", "other");
     private final PlayerDataService playerDataService;
 
+    @Inject
     public CommandReport(String name, PlayerDataService playerDataService) {
         super(name);
         this.playerDataService = playerDataService;
@@ -89,7 +89,7 @@ public class CommandReport extends Command implements TabExecutor {
                 String stringBuilder = reason.substring(0, 1).toUpperCase() + reason.substring(1);
 
                 PlayerData playerData = playerDataService.getPlayerData(player.getUniqueId());
-                PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
+                PlayerContext playerContext = new PlayerContext(player.getUniqueId(), playerDataService);
                 PlayerData targetPlayerData = playerDataService.getPlayerData(targetUuid);
                 String username = targetPlayerData.getUsername();
 
@@ -141,7 +141,7 @@ public class CommandReport extends Command implements TabExecutor {
                 fullMessage.addExtra(logs);
 
                 for (ProxiedPlayer staffPlayer : ProxyServer.getInstance().getPlayers()) {
-                    PlayerContext staffContext = PlayerContextFactory.create(staffPlayer.getUniqueId(), playerDataService);
+                    PlayerContext staffContext = new PlayerContext(staffPlayer.getUniqueId(), playerDataService);
                     if (staffContext.isStaff()) {
                         staffPlayer.sendMessage(fullMessage);
                     }
@@ -157,7 +157,7 @@ public class CommandReport extends Command implements TabExecutor {
             String partialPlayerName = args[0];
             List<String> playerNames = new ArrayList<>();
             for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                if (!(PlayerDataManager.getInstance().getPlayerData(proxiedPlayers).getVanishState() == VanishState.ENABLED)) {
+                if (!(playerDataService.getPlayerData(proxiedPlayers.getUniqueId()).getVanishState() == VanishState.ENABLED)) {
                     String playerName = proxiedPlayers.getName();
                     if (playerName.toLowerCase().startsWith(partialPlayerName.toLowerCase())) {
                         playerNames.add(playerName);

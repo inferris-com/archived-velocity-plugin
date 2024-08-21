@@ -1,5 +1,6 @@
 package com.inferris.commands;
 
+import com.google.inject.Inject;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
 import com.inferris.server.ServerState;
@@ -20,6 +21,7 @@ import java.util.List;
 public class CommandServerState extends Command implements TabExecutor {
     private final PlayerDataService playerDataService;
 
+    @Inject
     public CommandServerState(String name, PlayerDataService playerDataService) {
         super(name);
         this.playerDataService = playerDataService;

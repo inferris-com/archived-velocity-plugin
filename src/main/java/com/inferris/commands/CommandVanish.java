@@ -1,11 +1,11 @@
 package com.inferris.commands;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.inject.Inject;
 import com.inferris.Inferris;
 import com.inferris.events.redis.EventPayload;
 import com.inferris.events.redis.PlayerAction;
 import com.inferris.player.PlayerData;
-import com.inferris.player.service.PlayerDataManager;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
@@ -30,6 +30,7 @@ import java.util.List;
 public class CommandVanish extends Command implements TabExecutor {
     private final PlayerDataService playerDataService;
 
+    @Inject
     public CommandVanish(String name, PlayerDataService playerDataService) {
         super(name);
         this.playerDataService = playerDataService;
@@ -48,13 +49,12 @@ public class CommandVanish extends Command implements TabExecutor {
                 }
 
                 if (args[0].equalsIgnoreCase("on")) {
-                    updateDatabase(player, 1);
-                    updatePlayerData(player, VanishState.ENABLED);
-                    //BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_DATA, Subchannel.VANISH, Subchannel.FORWARD, VanishState.ENABLED.name());
+                    playerDataService.setVanished(player.getUniqueId(), true);
                 }
                 if (args[0].equalsIgnoreCase("off")) {
-                    updateDatabase(player, 0);
-                    updatePlayerData(player, VanishState.DISABLED);
+                    playerDataService.setVanished(player.getUniqueId(), false);
+
+
                     //BungeeUtils.sendBungeeMessage(player, BungeeChannel.PLAYER_DATA, Subchannel.VANISH, Subchannel.FORWARD, VanishState.ENABLED.name());
                 }
 
@@ -95,16 +95,16 @@ public class CommandVanish extends Command implements TabExecutor {
     }
 
     private void updatePlayerData(ProxiedPlayer player, VanishState vanishState) {
-        PlayerData playerData = playerDataService.getPlayerData(player.getUniqueId());
-        playerData.setVanishState(vanishState);
-        PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData, JedisChannel.PLAYERDATA_VANISH);
-        String json;
-        try {
-            json = SerializationUtils.serializePlayerData(playerData);
-            Inferris.getInstance().getLogger().warning("Bungee json: " + json);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        playerDataService.updatePlayerData(player.getUniqueId(), playerData1 -> {
+            playerData1.setVanishState(vanishState);
+            String json;
+            try {
+                json = SerializationUtils.serializePlayerData(playerData1);
+                Inferris.getInstance().getLogger().warning("Bungee json: " + json);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override

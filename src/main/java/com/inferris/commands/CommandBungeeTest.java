@@ -6,13 +6,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.inject.Inject;
 import com.inferris.*;
 import com.inferris.config.ConfigType;
-import com.inferris.player.*;
 import com.inferris.player.context.PlayerContext;
-import com.inferris.player.context.PlayerContextFactory;
 import com.inferris.player.PlayerData;
-import com.inferris.player.service.PlayerDataManager;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
 import com.inferris.serialization.SerializationModule;
@@ -35,6 +33,7 @@ public class CommandBungeeTest extends Command {
 
     private final PlayerDataService playerDataService;
 
+    @Inject
     public CommandBungeeTest(String name, PlayerDataService playerDataService) {
         super(name);
         this.playerDataService = playerDataService;
@@ -43,8 +42,7 @@ public class CommandBungeeTest extends Command {
     @Override
     public boolean hasPermission(CommandSender sender) {
         if (sender instanceof ProxiedPlayer player) {
-            PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
-            PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
+            PlayerContext playerContext = new PlayerContext(player.getUniqueId(), playerDataService);
             return playerContext.getRank().getBranchValue(Branch.STAFF) >= 3;
         }
         return false;
@@ -54,6 +52,7 @@ public class CommandBungeeTest extends Command {
     public void execute(CommandSender sender, String[] args) {
         if (sender instanceof ProxiedPlayer player) {
             int length = args.length;
+            PlayerData playerData = playerDataService.getPlayerData(player.getUniqueId());
 
             if (length == 1) {
                 if (args[0].equalsIgnoreCase("config")) {
@@ -65,7 +64,6 @@ public class CommandBungeeTest extends Command {
                     }
                 }
                 if (args[0].equalsIgnoreCase("playerdata")) {
-                    PlayerData playerData = PlayerDataManager.getInstance().getRedisData(player);
                     try {
                         player.sendMessage(new TextComponent(SerializationUtils.serializePlayerData(playerData)));
                     } catch (JsonProcessingException e) {
@@ -73,7 +71,6 @@ public class CommandBungeeTest extends Command {
                     }
                 }
                 if (args[0].equalsIgnoreCase("cache")) {
-                    PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
                     try {
                         player.sendMessage(new TextComponent(SerializationUtils.serializePlayerData(playerData)));
                     } catch (JsonProcessingException e) {
@@ -98,8 +95,7 @@ public class CommandBungeeTest extends Command {
                     player.sendMessage(TextComponent.fromLegacyText(ChatUtil.translateToHex("&8[" + "#800000" + "Admin" + "&8]")));
                 }
                 if (args[0].equalsIgnoreCase("ranks")) {
-                    PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
-                    PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
+                    PlayerContext playerContext = new PlayerContext(player.getUniqueId(), playerDataService);
                     player.sendMessage(TextComponent.fromLegacyText("By branches - " + playerContext.getRank().getFormattedApplicableRanks()));
                 }
                 if (args[0].equalsIgnoreCase("registry")) {
@@ -113,7 +109,6 @@ public class CommandBungeeTest extends Command {
                             .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
                     try (Jedis jedis = pool.getResource()) {
-                        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
                         player.sendMessage(playerData.getUsername());
                         player.sendMessage(playerData.getVanishState().toString());
                         player.sendMessage(playerData.getChannel().getTag());
@@ -127,14 +122,14 @@ public class CommandBungeeTest extends Command {
                 }
                 if (args[0].equalsIgnoreCase("redis")) {
                     try (Jedis jedis = Inferris.getJedisPool().getResource()) {
-                        jedis.publish("playerdata_update", SerializationUtils.serializePlayerData(PlayerDataManager.getInstance().getPlayerData(player)));
+                        jedis.publish("playerdata_update", SerializationUtils.serializePlayerData(playerData));
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException(e);
                     }
                 }
 
                 if (args[0].equalsIgnoreCase("server")) {
-                    player.sendMessage(new TextComponent(ChatColor.AQUA + PlayerDataManager.getInstance().getPlayerData(player).getCurrentServer().name()));
+                    player.sendMessage(new TextComponent(ChatColor.AQUA + playerData.getCurrentServer().name()));
                 }
             }
         }

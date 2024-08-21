@@ -2,12 +2,13 @@ package com.inferris.commands;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.inject.Inject;
 import com.inferris.common.ColorType;
 import com.inferris.player.channel.Channel;
 import com.inferris.player.channel.ChannelManager;
 import com.inferris.player.context.PlayerContext;
-import com.inferris.player.context.PlayerContextFactory;
 import com.inferris.player.PlayerData;
+import com.inferris.player.service.ManagerContainer;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
 import com.inferris.server.ErrorCode;
@@ -30,10 +31,13 @@ public class CommandNuke extends Command {
     private final Cache<String, Boolean> confirmationCache = Caffeine.newBuilder()
             .expireAfterWrite(1, TimeUnit.MINUTES) // Set TTL to 2 minutes
             .build();
+    private final ManagerContainer managerContainer;
 
-    public CommandNuke(String name, PlayerDataService playerDataService) {
-        super(name);
+    @Inject
+    public CommandNuke(String name, PlayerDataService playerDataService, ManagerContainer managerContainer) {
+        super("nuke");
         this.playerDataService = playerDataService;
+        this.managerContainer = managerContainer;
     }
 
     @Override
@@ -47,6 +51,7 @@ public class CommandNuke extends Command {
     @Override
     public void execute(CommandSender sender, String[] args) {
         int length = args.length;
+        ChannelManager channelManager = managerContainer.getChannelManager();
 
         if (length == 0 || length > 1) {
             sender.sendMessage(TextComponent.fromLegacyText(ChatUtil.translateToHex(
@@ -84,22 +89,22 @@ public class CommandNuke extends Command {
             return;
         }
 
-        PlayerContext targetPlayerContext = PlayerContextFactory.create(uuid, playerDataService);
+        PlayerContext targetPlayerContext = new PlayerContext(uuid, playerDataService);
         WebhookBuilder webhookBuilder = new WebhookBuilder(WebhookType.LOGS);
         webhookBuilder.setColor(ColorType.DANGER.getColor());
         webhookBuilder.setTitle("Backend Notification");
 
         if (sender instanceof ProxiedPlayer player) {
-            PlayerContext senderPlayerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
+            PlayerContext senderPlayerContext = new PlayerContext(player.getUniqueId(), playerDataService);
 
-            ChannelManager.sendStaffChatMessage(Channel.STAFF, senderPlayerContext.getRank().getByBranch().getPrefix(true)
+            channelManager.sendStaffChatMessage(Channel.STAFF, senderPlayerContext.getRank().getByBranch().getPrefix(true)
                     + ChatColor.RESET + player.getName() + ChatColor.YELLOW + " completely erased " + targetPlayerContext.getRank().getByBranch().getPrefix(true)
                     + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + "'s data", ChannelManager.StaffChatMessageType.NOTIFICATION);
 
             webhookBuilder.setDescription(senderPlayerContext.getRank().getByBranchFormatted(true) + senderPlayerContext.getUsername()
                     + " completely erased " + targetPlayerContext.getRank().getByBranchFormatted(true) + targetPlayerContext.getUsername() + "'s data");
         } else {
-            ChannelManager.sendStaffChatMessage(Channel.STAFF, ChatColor.RED + sender.getName() + ChatColor.YELLOW + " completely erased "
+            channelManager.sendStaffChatMessage(Channel.STAFF, ChatColor.RED + sender.getName() + ChatColor.YELLOW + " completely erased "
                     + targetPlayerContext.getRank().getByBranch().getPrefix(true)
                     + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + "'s data", ChannelManager.StaffChatMessageType.NOTIFICATION);
 

@@ -1,44 +1,56 @@
 package com.inferris.commands;
 
+import com.google.inject.Inject;
 import com.inferris.player.*;
 import com.inferris.player.channel.Channel;
 import com.inferris.player.channel.ChannelManager;
 import com.inferris.player.context.PlayerContext;
-import com.inferris.player.context.PlayerContextFactory;
+import com.inferris.player.service.ManagerContainer;
 import com.inferris.player.service.PlayerDataService;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
 public class CommandStaffchatShortcut extends Command {
     private final PlayerDataService playerDataService;
-    public CommandStaffchatShortcut(String name, PlayerDataService playerDataService) {
-        super(name, null, "s");
+    private final ManagerContainer managerContainer;
+
+    @Inject
+    public CommandStaffchatShortcut(PlayerDataService playerDataService, ManagerContainer managerContainer) {
+        super("sc", null, "s");
         this.playerDataService = playerDataService;
+        this.managerContainer = managerContainer;
     }
 
     @Override
     public void execute(CommandSender sender, String[] args) {
         StringBuilder message = new StringBuilder();
         BaseComponent[] textComponent = null;
+        ChannelManager channelManager = managerContainer.getChannelManager();
+
+        if(args.length == 0){
+            sender.sendMessage(new TextComponent(ChatColor.RED + "You must provide a message!"));
+            return;
+        }
 
         for (String word : args) {
             message.append(word).append(" "); // Add a space between words
         }
 
         if (sender instanceof ProxiedPlayer player) {
-            ChannelManager.sendStaffChatMessage(Channel.STAFF, message.toString(), ChannelManager.StaffChatMessageType.PLAYER, player.getUniqueId());
+            channelManager.sendStaffChatMessage(Channel.STAFF, message.toString(), ChannelManager.StaffChatMessageType.PLAYER, player.getUniqueId());
         }else{
-            ChannelManager.sendStaffChatMessage(Channel.STAFF, message.toString(), ChannelManager.StaffChatMessageType.CONSOLE);
+            channelManager.sendStaffChatMessage(Channel.STAFF, message.toString(), ChannelManager.StaffChatMessageType.CONSOLE);
         }
     }
 
     @Override
     public boolean hasPermission(CommandSender sender) {
         if (sender instanceof ProxiedPlayer player) {
-            PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
-            PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
+            PlayerContext playerContext = new PlayerContext(player.getUniqueId(), playerDataService);
             return playerContext.isStaff();
         }
         return true;

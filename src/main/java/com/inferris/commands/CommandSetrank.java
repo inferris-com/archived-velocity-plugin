@@ -1,10 +1,8 @@
 package com.inferris.commands;
 
+import com.google.inject.Inject;
 import com.inferris.player.*;
 import com.inferris.player.context.PlayerContext;
-import com.inferris.player.context.PlayerContextFactory;
-import com.inferris.player.PlayerData;
-import com.inferris.player.service.PlayerDataManager;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.server.Message;
 import com.inferris.rank.Branch;
@@ -22,6 +20,8 @@ public class CommandSetrank extends Command implements TabExecutor {
     private final UUID ownerUuid = UUID.fromString("7d16b15d-bb22-4a6d-80db-6213b3d75007");
 
     private final PlayerDataService playerDataService;
+
+    @Inject
     public CommandSetrank(String name, PlayerDataService playerDataService) {
         super(name);
         this.playerDataService = playerDataService;
@@ -35,7 +35,7 @@ public class CommandSetrank extends Command implements TabExecutor {
         }
 
         if (player != null) {
-            if (!(PlayerDataManager.getInstance().getPlayerData(player).getRank().getBranchValue(Branch.STAFF) >= 3) && !player.getUniqueId().equals(ownerUuid)) {
+            if (!(playerDataService.getPlayerData(player.getUniqueId()).getRank().getBranchValue(Branch.STAFF) >= 3) && !player.getUniqueId().equals(ownerUuid)) {
                 player.sendMessage(Message.NO_PERMISSION.getMessage());
                 return;
             }
@@ -70,16 +70,14 @@ public class CommandSetrank extends Command implements TabExecutor {
             return;
         }
 
-        PlayerDataService dataService = ServiceLocator.getPlayerDataService();
-        PlayerContext playerContext = PlayerContextFactory.create(uuid, dataService);
-
-        playerContext.setRank(branch, id, true);
+        PlayerContext playerContext = new PlayerContext(player.getUniqueId(), playerDataService);
+        playerDataService.setRank(uuid, branch, id, true);
         commandSender.sendMessage(new TextComponent("Rank set for " + args[0] + " to " + branch.name() + "-" + id));
         if (ProxyServer.getInstance().getPlayer(uuid) != null) {
             if (ProxyServer.getInstance().getPlayer(uuid).isConnected()) {
                 ProxiedPlayer target = ProxyServer.getInstance().getPlayer(uuid);
                 assert player != null;
-                PlayerContext updatedContext = PlayerContextFactory.create(uuid, dataService);
+                PlayerContext updatedContext = new PlayerContext(uuid, playerDataService);
 
                 target.sendMessage(new TextComponent(ChatColor.GREEN + "Your rank has been set to " + updatedContext.getNameColor() + updatedContext.getRank().getByBranch()));
             }

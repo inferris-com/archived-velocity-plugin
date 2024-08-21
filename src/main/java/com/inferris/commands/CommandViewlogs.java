@@ -5,7 +5,6 @@ import com.inferris.events.redis.EventPayload;
 import com.inferris.events.redis.PlayerAction;
 import com.inferris.messaging.ViewlogMessage;
 import com.inferris.player.context.PlayerContext;
-import com.inferris.player.context.PlayerContextFactory;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
 import com.inferris.serialization.ViewlogSerializer;
@@ -97,7 +96,7 @@ public class CommandViewlogs extends Command {
     @Override
     public boolean hasPermission(CommandSender sender) {
         if (sender instanceof ProxiedPlayer player) {
-            PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
+            PlayerContext playerContext = new PlayerContext(player.getUniqueId(), playerDataService);
             return playerContext.getRank().getBranchValue(Branch.STAFF) >= 2;
         }
         // Allow console to execute the command

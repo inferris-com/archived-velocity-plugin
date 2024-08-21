@@ -1,9 +1,11 @@
 package com.inferris.commands;
 
+import com.google.inject.Inject;
 import com.inferris.Inferris;
 import com.inferris.player.channel.Channel;
 import com.inferris.player.channel.ChannelManager;
 import com.inferris.player.PlayerData;
+import com.inferris.player.service.ManagerContainer;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
 import com.inferris.util.ChatUtil;
@@ -19,10 +21,13 @@ import java.util.UUID;
 
 public class CommandRemoveFromRedis extends Command {
     private final PlayerDataService playerDataService;
+    private final ManagerContainer managerContainer;
 
-    public CommandRemoveFromRedis(String name, PlayerDataService playerDataService) {
-        super(name);
+    @Inject
+    public CommandRemoveFromRedis(String name, PlayerDataService playerDataService, ManagerContainer managerContainer) {
+        super("removefromredis");
         this.playerDataService = playerDataService;
+        this.managerContainer = managerContainer;
     }
 
     @Override
@@ -36,6 +41,7 @@ public class CommandRemoveFromRedis extends Command {
     @Override
     public void execute(CommandSender sender, String[] args) {
         int length = args.length;
+        ChannelManager channelManager = managerContainer.getChannelManager();
 
         if (length == 0) {
             sender.sendMessage(TextComponent.fromLegacyText(ChatUtil.translateToHex(
@@ -67,10 +73,10 @@ public class CommandRemoveFromRedis extends Command {
             jedis.hdel("playerdata", uuid.toString());
 
             if (sender instanceof ProxiedPlayer player) {
-                ChannelManager.sendStaffChatMessage(Channel.STAFF, player.getName() + ChatColor.YELLOW + " removed " + playerData.getRank().getByBranch().getPrefix(true)
+                channelManager.sendStaffChatMessage(Channel.STAFF, player.getName() + ChatColor.YELLOW + " removed " + playerData.getRank().getByBranch().getPrefix(true)
                         + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + " from Redis keystore", ChannelManager.StaffChatMessageType.NOTIFICATION);
             } else {
-                ChannelManager.sendStaffChatMessage(Channel.STAFF, ChatColor.RED + sender.getName() + ChatColor.YELLOW + " removed " + playerData.getRank().getByBranch().getPrefix(true)
+                channelManager.sendStaffChatMessage(Channel.STAFF, ChatColor.RED + sender.getName() + ChatColor.YELLOW + " removed " + playerData.getRank().getByBranch().getPrefix(true)
                         + ChatColor.RESET + playerData.getUsername() + ChatColor.YELLOW + " from Redis keystore", ChannelManager.StaffChatMessageType.NOTIFICATION);
             }
 

@@ -1,5 +1,6 @@
 package com.inferris.commands;
 
+import com.google.inject.Inject;
 import com.inferris.Inferris;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
@@ -15,6 +16,7 @@ import java.io.IOException;
 public class CommandConfig extends Command {
     private final PlayerDataService playerDataService;
 
+    @Inject
     public CommandConfig(String name, PlayerDataService playerDataService) {
         super(name);
         this.playerDataService = playerDataService;

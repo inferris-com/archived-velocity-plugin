@@ -2,6 +2,7 @@ package com.inferris.commands;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import com.google.inject.Inject;
 import com.inferris.Inferris;
 import com.inferris.config.ConfigType;
 import com.inferris.database.DatabasePool;
@@ -31,7 +32,7 @@ import java.util.*;
 public class CommandVerify extends Command implements TabExecutor {
 
     private static final String API_BASE_URL = "https://inferris.com/api/";
-    String API_KEY = Inferris.getInstance().getConfigurationHandler().getProperties(ConfigType.PROPERTIES).getProperty("xf.api.key");
+    private final String API_KEY = Inferris.getInstance().getConfigurationHandler().getProperties(ConfigType.PROPERTIES).getProperty("xf.api.key");
     private static final String TITLE = "Verification request";
     private static final int EXPIRATION_TIME = 15; // minutes
     private String recommendationName = null;
@@ -40,6 +41,7 @@ public class CommandVerify extends Command implements TabExecutor {
 
     private final PlayerDataService playerDataService;
 
+    @Inject
     public CommandVerify(String name, PlayerDataService playerDataService) {
         super(name);
         this.playerDataService = playerDataService;
@@ -228,9 +230,11 @@ public class CommandVerify extends Command implements TabExecutor {
             Inferris.getInstance().getLogger().severe(e.getMessage());
         }
 
-        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player);
-        playerData.getProfile().setXenforoId(recipient_id);
-        PlayerDataManager.getInstance().updateAllDataAndPush(player, playerData);
+        PlayerData playerData = playerDataService.getPlayerData(player.getUniqueId());
+        int finalRecipient_id = recipient_id;
+        playerDataService.updatePlayerData(player.getUniqueId(), playerData1 -> {
+            playerData.getProfile().setXenforoId(finalRecipient_id);
+        });
 
         try (RestClientManager restClientManager = new RestClientManager()) {
             restClientManager.sendRequest(API_BASE_URL + "users/" + +recipient_id + "/?=&custom_fields[minecraft]=" + usernameMC,

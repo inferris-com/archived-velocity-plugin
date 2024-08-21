@@ -1,10 +1,11 @@
 package com.inferris.commands;
 
+import com.google.inject.Inject;
 import com.inferris.player.*;
 import com.inferris.player.channel.Channel;
 import com.inferris.player.channel.ChannelManager;
 import com.inferris.player.context.PlayerContext;
-import com.inferris.player.context.PlayerContextFactory;
+import com.inferris.player.service.ManagerContainer;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.server.Message;
 import com.inferris.rank.Branch;
@@ -22,19 +23,22 @@ import java.util.List;
 
 public class CommandChannel extends Command implements TabExecutor {
     private final PlayerDataService playerDataService;
+    private final ManagerContainer managerContainer;
 
-    public CommandChannel(String name, PlayerDataService playerDataService) {
-        super(name, null, "ch");
+    @Inject
+    public CommandChannel(PlayerDataService playerDataService, ManagerContainer managerContainer) {
+        super("channel", null, "ch");
         this.playerDataService = playerDataService;
+        this.managerContainer = managerContainer;
     }
 
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (sender instanceof ProxiedPlayer player) {
             int length = args.length;
+            ChannelManager channelManager = managerContainer.getChannelManager();
 
-            PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
-            PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
+            PlayerContext playerContext = new PlayerContext(player.getUniqueId(), playerDataService);
 
             if (length != 1) {
                 player.sendMessage(new TextComponent(ChatColor.RED + "/channel <channel>"));
@@ -45,20 +49,20 @@ public class CommandChannel extends Command implements TabExecutor {
             switch (channel) {
                 case "staff" -> {
                     if (playerContext.getRank().getBranchValue(Branch.STAFF) >= 1) {
-                        ChannelManager.setChannel(player, Channel.STAFF, true);
+                        channelManager.setChannel(player, Channel.STAFF, true);
                     } else {
                         player.sendMessage(Message.NO_PERMISSION.getMessage());
                     }
                 }
                 case "admin" -> {
                     if(playerContext.getRank().getBranchValue(Branch.STAFF) >=3){
-                        ChannelManager.setChannel(player, Channel.ADMIN, true);
+                        channelManager.setChannel(player, Channel.ADMIN, true);
                     }else{
                         player.sendMessage(Message.NO_PERMISSION.getMessage());
                     }
                 }
-                case "special" -> ChannelManager.setChannel(player, Channel.SPECIAL, true);
-                case "none" -> ChannelManager.setChannel(player, Channel.NONE, true);
+                case "special" -> channelManager.setChannel(player, Channel.SPECIAL, true);
+                case "none" -> channelManager.setChannel(player, Channel.NONE, true);
             }
         }
     }
