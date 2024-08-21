@@ -3,14 +3,11 @@ package com.inferris.player.context;
 import com.inferris.player.*;
 import com.inferris.player.channel.Channel;
 import com.inferris.player.PlayerData;
-import com.inferris.player.service.CoinsManager;
-import com.inferris.player.service.PlayerDataManager;
-import com.inferris.player.service.PlayerDataService;
+import com.inferris.player.service.*;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
 import com.inferris.rank.RankRegistry;
-import com.inferris.player.service.RanksManager;
 import com.inferris.server.Server;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
@@ -34,15 +31,14 @@ import java.util.UUID;
  *     Example usage:
  *     <pre>{@code
  *     PlayerDataService dataService = ServiceLocator.getPlayerDataService();
- *     PlayerContext playerContext = PlayerContextFactory.create(uuid, dataService);
  *     }</pre>
  *
- * @see PlayerContextFactory
  * @see PlayerDataService
  */
 public class PlayerContext {
     private final UUID uuid;
     private final PlayerDataService playerDataService;
+    private ManagerContainer managerContainer;
     private final PlayerData playerData;
 
     public PlayerContext(UUID uuid, PlayerDataService playerDataService) {
@@ -60,7 +56,7 @@ public class PlayerContext {
     }
 
     public UUID getUuid() {
-        return PlayerDataManager.getInstance().getPlayerData(uuid).getUuid();
+        return playerDataService.getPlayerData(uuid).getUuid();
     }
     public String getUsername() {
         return playerData.getUsername();
@@ -117,18 +113,5 @@ public class PlayerContext {
         }
 
         return ranks;
-    }
-
-    public void setRank(Branch branch, int level) {
-        RanksManager.getInstance().setRank(uuid, branch, level);
-    }
-
-    public void setRank(Branch branch, int level, boolean hasMessage) {
-        RanksManager.getInstance().setRank(uuid, branch, level);
-    }
-
-    public void setCoins(int amount) {
-        CoinsManager.getInstance().setCoins(uuid, amount);
-        //playerDataService.updatePlayerData(uuid, pd -> pd.setCoins(amount));
     }
 }
