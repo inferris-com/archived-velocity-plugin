@@ -50,15 +50,69 @@ public class DatabaseUtils {
         }
     }
 
-    public static void updateData(Connection connection, String tableName, String[] columnNames, Object[] values, String whereClause) throws SQLException {
+    public static void updateData(String tableName, String[] columnNames, Object[] values, String whereClause, Object... whereArgs) throws SQLException {
         String sql = buildUpdateQuery(tableName, columnNames, whereClause);
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            for (int i = 0; i < values.length; i++) {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+
+        try {
+            connection = DatabasePool.getConnection();
+            preparedStatement = connection.prepareStatement(sql);
+
+            int i = 0;
+            for (; i < values.length; i++) {
                 preparedStatement.setObject(i + 1, values[i]);
             }
+            for (int j = 0; j < whereArgs.length; j++) {
+                preparedStatement.setObject(i + j + 1, whereArgs[j]);
+            }
+
             preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            // Handle the exception appropriately
+            throw new RuntimeException("Failed to update data in the database", e);
+        } finally {
+            // Close resources in the reverse order of their creation
+            if (preparedStatement != null) {
+                preparedStatement.close();
+            }
+            if (connection != null) {
+                connection.close();
+            }
         }
     }
+
+    public static void updateData(Connection connection, String tableName, String[] columnNames, Object[] values, String whereClause, Object... whereArgs) throws SQLException {
+        String sql = buildUpdateQuery(tableName, columnNames, whereClause);
+        PreparedStatement preparedStatement = null;
+
+        try {
+            connection = DatabasePool.getConnection();
+            preparedStatement = connection.prepareStatement(sql);
+
+            int i = 0;
+            for (; i < values.length; i++) {
+                preparedStatement.setObject(i + 1, values[i]);
+            }
+            for (int j = 0; j < whereArgs.length; j++) {
+                preparedStatement.setObject(i + j + 1, whereArgs[j]);
+            }
+
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            // Handle the exception appropriately
+            throw new RuntimeException("Failed to update data in the database", e);
+        } finally {
+            // Close resources in the reverse order of their creation
+            if (preparedStatement != null) {
+                preparedStatement.close();
+            }
+            if (connection != null) {
+                connection.close();
+            }
+        }
+    }
+
     public static int executeUpdate(String sql, Object... parameters) throws SQLException {
         Connection connection = null;
         PreparedStatement statement = null;
