@@ -1,14 +1,13 @@
 package com.inferris.events.redis.dispatching;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.inferris.events.redis.EventPayload;
 import redis.clients.jedis.JedisPubSub;
 
-public class DispatchingJedisPubSub extends JedisPubSub {
+public class EventPubSubDispatcher extends JedisPubSub {
     private final JedisEventDispatcher dispatcher;
     private final String instanceId;
 
-    public DispatchingJedisPubSub(JedisEventDispatcher dispatcher, String instanceId) {
+    public EventPubSubDispatcher(JedisEventDispatcher dispatcher, String instanceId) {
         this.dispatcher = dispatcher;
         this.instanceId = instanceId;
     }

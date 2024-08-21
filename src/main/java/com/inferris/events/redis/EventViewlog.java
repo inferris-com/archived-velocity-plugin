@@ -1,9 +1,12 @@
 package com.inferris.events.redis;
 
+import com.google.inject.Inject;
 import com.inferris.Inferris;
 import com.inferris.commands.CommandViewlogs;
 import com.inferris.events.redis.dispatching.JedisEventHandler;
 import com.inferris.messaging.ViewlogMessage;
+import com.inferris.player.service.PlayerDataService;
+import com.inferris.player.service.ManagerContainer;
 import com.inferris.serialization.ViewlogSerializer;
 import com.inferris.server.ServerState;
 import com.inferris.server.ServerStateManager;
@@ -14,12 +17,14 @@ import com.inferris.server.ServerStateManager;
 
 public class EventViewlog implements JedisEventHandler {
     private final CommandViewlogs viewLogCommand;
+
+    @Inject
     public EventViewlog(CommandViewlogs viewLogCommand) {
         this.viewLogCommand = viewLogCommand;
     }
 
     @Override
-    public void handle(String message, String senderId) {
+    public void handle(PlayerDataService playerDataService, ManagerContainer managerContainer, String message, String senderId) {
         EventPayload payload = EventPayload.fromPayloadString(message);
 
         if (ServerStateManager.getCurrentState() == ServerState.DEBUG) {

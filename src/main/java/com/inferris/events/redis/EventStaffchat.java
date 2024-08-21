@@ -5,6 +5,8 @@ import com.inferris.events.redis.dispatching.JedisEventHandler;
 import com.inferris.messaging.StaffChatMessage;
 import com.inferris.player.channel.Channel;
 import com.inferris.player.channel.ChannelManager;
+import com.inferris.player.service.PlayerDataService;
+import com.inferris.player.service.ManagerContainer;
 import com.inferris.serialization.StaffChatSerializer;
 import com.inferris.server.ServerState;
 import com.inferris.server.ServerStateManager;
@@ -12,7 +14,7 @@ import net.md_5.bungee.api.ProxyServer;
 
 public class EventStaffchat implements JedisEventHandler {
     @Override
-    public void handle(String message, String senderId) {
+    public void handle(PlayerDataService playerDataService, ManagerContainer managerContainer, String message, String senderId) {
         EventPayload payload = EventPayload.fromPayloadString(message);
         ProxyServer.getInstance().getLogger().severe("Payload: " + payload.toPayloadString());
         if (ProxyServer.getInstance().getPlayer(payload.getUuid()) == null || senderId.equals(Inferris.getInstanceId())) {
@@ -26,7 +28,7 @@ public class EventStaffchat implements JedisEventHandler {
         assert staffChatMessage != null;
 
         Channel channel = staffChatMessage.getChannel();
-
-        ChannelManager.sendStaffChatMessage(channel, staffChatMessage.getMessage(), ChannelManager.StaffChatMessageType.PLAYER, staffChatMessage.getPlayerUUID());
+        ChannelManager channelManager = managerContainer.getChannelManager();
+        channelManager.sendStaffChatMessage(channel, staffChatMessage.getMessage(), ChannelManager.StaffChatMessageType.PLAYER, staffChatMessage.getPlayerUUID());
     }
 }

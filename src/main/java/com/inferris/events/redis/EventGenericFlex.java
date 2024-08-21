@@ -2,12 +2,14 @@ package com.inferris.events.redis;
 
 import com.inferris.Inferris;
 import com.inferris.events.redis.dispatching.JedisEventHandler;
+import com.inferris.player.service.PlayerDataService;
+import com.inferris.player.service.ManagerContainer;
 import com.inferris.server.jedis.JedisChannel;
 import com.inferris.server.jedis.JedisHelper;
 
 public class EventGenericFlex implements JedisEventHandler {
     @Override
-    public void handle(String message, String senderId) {
+    public void handle(PlayerDataService playerDataService, ManagerContainer managerContainer, String message, String senderId) {
         EventPayload payload = EventPayload.fromPayloadString(message);
         String data = payload.getData();
 
