@@ -2,6 +2,7 @@ package com.inferris.player.service;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.google.inject.Inject;
 import com.inferris.Inferris;
 import com.inferris.database.DatabasePool;
 import com.inferris.database.Table;
@@ -22,6 +23,14 @@ public class FetchPlayer {
      * @param username The username to search for.
      * @return The UUID corresponding to the provided username, or null if no match is found.
      */
+
+    private final PlayerDataRepository playerDataRepository;
+
+    @Inject
+    public FetchPlayer(PlayerDataRepository playerDataRepository) {
+        this.playerDataRepository = playerDataRepository;
+    }
+
     public UUID getUUIDByUsername(String username) {
         UUID uuid;
         PlayerData playerData = null;
@@ -40,7 +49,7 @@ public class FetchPlayer {
                     ResultSet resultSet = DatabaseUtils.queryData(connection, Table.PLAYER_DATA.getName(), new String[]{"uuid"}, condition);
                     if (resultSet.next()) {
                         uuid = UUID.fromString(resultSet.getString("uuid"));
-                        playerData = PlayerDataManager.getInstance().getPlayerDataRepository().getPlayerDataFromDatabase(uuid);
+                        playerData = playerDataRepository.getPlayerDataFromDatabase(uuid);
                     }
                 } catch (SQLException e) {
                     Inferris.getInstance().getLogger().severe(e.getMessage());
