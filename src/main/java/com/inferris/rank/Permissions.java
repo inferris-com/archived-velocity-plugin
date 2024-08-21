@@ -1,12 +1,10 @@
 package com.inferris.rank;
 
+import com.google.inject.Inject;
 import com.inferris.Inferris;
 import com.inferris.config.ConfigType;
-import com.inferris.player.*;
 import com.inferris.player.context.PlayerContext;
-import com.inferris.player.context.PlayerContextFactory;
 import com.inferris.player.PlayerData;
-import com.inferris.player.service.PlayerDataManager;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.server.ServerState;
 import com.inferris.util.ServerUtil;
@@ -20,11 +18,16 @@ import java.util.List;
 import java.util.logging.Level;
 
 public class Permissions {
-    private static final PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
 
-    public static void attachPermissions(ProxiedPlayer player) {
-        PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
-        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(player, "attachPermissions");
+    private final PlayerDataService playerDataService;
+    @Inject
+    public Permissions(PlayerDataService playerDataService){
+        this.playerDataService = playerDataService;
+    }
+
+    public void attachPermissions(ProxiedPlayer player) {
+        PlayerContext playerContext = new PlayerContext(player.getUniqueId(), playerDataService);
+        PlayerData playerData = playerDataService.getPlayerData(player.getUniqueId());
         List<RankRegistry> ranks = playerData.getRank().getApplicableRanks();
 
         Configuration permissionsConfig = Inferris.getInstance().getConfigurationHandler().getConfig(ConfigType.PERMISSIONS);
@@ -62,8 +65,8 @@ public class Permissions {
         }
     }
 
-    public static void listPermissions(ProxiedPlayer player) {
-        PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
+    public void listPermissions(ProxiedPlayer player) {
+        PlayerContext playerContext = new PlayerContext(player.getUniqueId(), playerDataService);
         List<RankRegistry> ranks = playerContext.getRank().getApplicableRanks();
         Configuration permissionsConfig = Inferris.getInstance().getConfigurationHandler().getConfig(ConfigType.PERMISSIONS);
         Configuration ranksSection = permissionsConfig.getSection("ranks");
@@ -84,5 +87,4 @@ public class Permissions {
             }
         }
     }
-
 }
