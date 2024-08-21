@@ -1,5 +1,6 @@
 package com.inferris.events;
 
+import com.google.inject.Inject;
 import com.inferris.player.PlayerData;
 import com.inferris.player.service.PlayerDataManager;
 import com.inferris.player.service.PlayerDataService;
@@ -17,10 +18,14 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
 public class EventQuit implements Listener {
-    private PlayerDataService playerDataService;
+
+    private final PlayerDataService playerDataService;
+
+    @Inject
     public EventQuit(PlayerDataService playerDataService){
         this.playerDataService = playerDataService;
     }
+
     @EventHandler
     public void onQuit(PlayerDisconnectEvent event) {
         ProxiedPlayer player = event.getPlayer();
@@ -35,13 +40,13 @@ public class EventQuit implements Listener {
 
         if (rank.getBranchID(Branch.STAFF) >= 1) {
             for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                PlayerData proxiedPlayerData = PlayerDataManager.getInstance().getPlayerData(proxiedPlayers);
+                PlayerData proxiedPlayerData = playerDataService.getPlayerData(proxiedPlayers.getUniqueId());
                 if (proxiedPlayerData.getRank().getBranchID(Branch.STAFF) >= 1) {
                     proxiedPlayers.sendMessage(TextComponent.fromLegacyText(Tag.STAFF.getName(true) + rankRegistry.getPrefix(true) + rankRegistry.getColor() + player.getName() + ChatColor.YELLOW + " disconnected"));
                 }
             }
         }
-        PlayerDataManager.getInstance().invalidateCache(player);
+        playerDataService.invalidate(player.getUniqueId());
         PlayerSessionManager.clearPlayerSession(player.getUniqueId());
     }
 }

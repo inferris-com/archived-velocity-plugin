@@ -1,5 +1,6 @@
 package com.inferris.events;
 
+import com.google.inject.Inject;
 import com.inferris.Inferris;
 import com.inferris.webhook.WebhookBuilder;
 import com.inferris.common.ColorType;
@@ -7,9 +8,7 @@ import com.inferris.config.ConfigType;
 import com.inferris.config.ConfigurationHandler;
 import com.inferris.events.redis.EventPayload;
 import com.inferris.events.redis.PlayerAction;
-import com.inferris.player.*;
 import com.inferris.player.context.PlayerContext;
-import com.inferris.player.context.PlayerContextFactory;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.server.CustomError;
 import com.inferris.server.ErrorCode;
@@ -42,9 +41,15 @@ import java.util.concurrent.TimeUnit;
 
 public class EventJoin implements Listener {
     private final PlayerDataService playerDataService;
+    private final FriendsManager friendsManager;
+    private final Permissions permissions;
 
-    public EventJoin(PlayerDataService playerDataService) {
+    //todo switch friends to central
+    @Inject
+    public EventJoin(PlayerDataService playerDataService, FriendsManager friendsManager, Permissions permissions) {
         this.playerDataService = playerDataService;
+        this.friendsManager = friendsManager;
+        this.permissions = permissions;
     }
 
     /**
@@ -60,7 +65,6 @@ public class EventJoin implements Listener {
         PlayerTaskManager taskManager = new PlayerTaskManager(Inferris.getInstance().getProxy().getScheduler());
         sendHeader(player);
 
-        FriendsManager friendsManager = FriendsManager.getInstance();
         Friends friends = friendsManager.getFriendsData(player.getUniqueId());
         friendsManager.updateCache(player.getUniqueId(), friends);
 
@@ -125,7 +129,7 @@ public class EventJoin implements Listener {
         }
 
         playerDataService.updateLocalPlayerData(player.getUniqueId(), playerData -> {
-            Permissions.attachPermissions(player);
+            permissions.attachPermissions(player);
             playerData.setCurrentServer(ServerUtil.getServerType(player));
         });
     }
@@ -138,7 +142,6 @@ public class EventJoin implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPostLogin(PostLoginEvent event) {
         ProxiedPlayer player = event.getPlayer();
-        PlayerDataService playerDataService = ServiceLocator.getPlayerDataService();
 
         // Lockdown check
 
@@ -155,7 +158,7 @@ public class EventJoin implements Listener {
                 webhookBuilder.sendEmbed();
 
                 ChatUtil.sendGlobalMessage(staff -> {
-                    PlayerContext playerContext = PlayerContextFactory.create(staff.getUniqueId(), playerDataService);
+                    PlayerContext playerContext = new PlayerContext(staff.getUniqueId(), playerDataService);
                     if (staff.getUniqueId().equals(player.getUniqueId())) {
                         return false;
                     }
@@ -165,7 +168,7 @@ public class EventJoin implements Listener {
         }
 
         playerDataService.getPlayerDataAsync(player.getUniqueId()).thenAccept(playerData -> {
-            PlayerContext playerContext = PlayerContextFactory.create(player.getUniqueId(), playerDataService);
+            PlayerContext playerContext = new PlayerContext(player.getUniqueId(), playerDataService);
 
             Rank rank = playerData.getRank();
             RankRegistry rankRegistry = playerData.getRank().getByBranch();
