@@ -3,6 +3,7 @@ package com.inferris.player.context;
 import com.inferris.player.*;
 import com.inferris.player.channel.Channel;
 import com.inferris.player.PlayerData;
+import com.inferris.player.manager.ManagerContainer;
 import com.inferris.player.service.*;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;

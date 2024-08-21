@@ -1,4 +1,9 @@
-package com.inferris.player.service;
+/*
+ * Copyright (c) 2024. Inferris.
+ * All rights reserved.
+ */
+
+package com.inferris.player.repository;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.inject.Inject;
@@ -9,6 +14,9 @@ import com.inferris.player.*;
 import com.inferris.player.channel.Channel;
 import com.inferris.player.friends.Friends;
 import com.inferris.player.friends.FriendsManager;
+import com.inferris.player.manager.ManagerContainer;
+import com.inferris.player.manager.PlayerDataManager;
+import com.inferris.player.service.PlayerDataService;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Rank;
 import com.inferris.server.Server;

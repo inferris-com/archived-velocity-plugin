@@ -1,9 +1,13 @@
-package com.inferris.player.service;
+/*
+ * Copyright (c) 2024. Inferris.
+ * All rights reserved.
+ */
+
+package com.inferris.player.manager;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.inferris.Inferris;
@@ -12,7 +16,7 @@ import com.inferris.events.redis.PlayerAction;
 import com.inferris.player.Profile;
 import com.inferris.player.channel.Channel;
 import com.inferris.player.PlayerData;
-import com.inferris.serialization.SerializationModule;
+import com.inferris.player.repository.PlayerDataRepository;
 import com.inferris.player.vanish.VanishState;
 import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
@@ -28,7 +32,6 @@ import redis.clients.jedis.JedisPool;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**

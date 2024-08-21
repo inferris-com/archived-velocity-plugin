@@ -2,7 +2,7 @@ package com.inferris.events.redis.dispatching;
 
 import com.google.inject.Inject;
 import com.inferris.player.service.PlayerDataService;
-import com.inferris.player.service.ManagerContainer;
+import com.inferris.player.manager.ManagerContainer;
 
 import java.util.HashMap;
 import java.util.Map;

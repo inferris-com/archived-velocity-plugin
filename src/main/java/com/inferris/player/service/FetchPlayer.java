@@ -7,6 +7,7 @@ import com.inferris.Inferris;
 import com.inferris.database.DatabasePool;
 import com.inferris.database.Table;
 import com.inferris.player.PlayerData;
+import com.inferris.player.repository.PlayerDataRepository;
 import com.inferris.util.DatabaseUtils;
 import redis.clients.jedis.Jedis;
 

@@ -13,6 +13,11 @@ import com.google.inject.TypeLiteral;
 import com.inferris.player.PlayerData;
 import com.inferris.player.channel.ChannelManager;
 import com.inferris.player.friends.FriendsManager;
+import com.inferris.player.manager.CoinsManager;
+import com.inferris.player.manager.ManagerContainer;
+import com.inferris.player.manager.PlayerDataManager;
+import com.inferris.player.manager.RanksManager;
+import com.inferris.player.repository.PlayerDataRepository;
 import com.inferris.player.service.*;
 import com.inferris.rank.Permissions;
 

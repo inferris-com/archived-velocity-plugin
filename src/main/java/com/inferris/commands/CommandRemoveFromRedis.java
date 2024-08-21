@@ -5,7 +5,7 @@ import com.inferris.Inferris;
 import com.inferris.player.channel.Channel;
 import com.inferris.player.channel.ChannelManager;
 import com.inferris.player.PlayerData;
-import com.inferris.player.service.ManagerContainer;
+import com.inferris.player.manager.ManagerContainer;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
 import com.inferris.util.ChatUtil;

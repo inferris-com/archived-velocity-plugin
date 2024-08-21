@@ -7,7 +7,7 @@ import com.inferris.events.redis.EventPayload;
 import com.inferris.events.redis.PlayerAction;
 import com.inferris.player.*;
 import com.inferris.player.context.PlayerContext;
-import com.inferris.player.service.PlayerDataManager;
+import com.inferris.player.manager.PlayerDataManager;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;

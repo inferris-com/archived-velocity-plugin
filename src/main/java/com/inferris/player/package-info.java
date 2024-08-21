@@ -6,7 +6,7 @@
  *     The main classes in this package are:
  *     <ul>
  *         <li>{@link com.inferris.player.PlayerData}: Represents the data and attributes associated with a player.
- *         <li>{@link com.inferris.player.service.PlayerDataManager}: Manages the data layers associated with a player, with storing, retrieving, and general management.
+ *         <li>{@link com.inferris.player.manager.PlayerDataManager}: Manages the data layers associated with a player, with storing, retrieving, and general management.
  * </p>
  * <p>
  *     The {@code PlayerData} class encapsulates the registry, rank, and coins information of a player.
@@ -26,11 +26,11 @@
  * @since 1.0
  *
  * @see com.inferris.player.PlayerData
- * @see com.inferris.player.service.PlayerDataManager
+ * @see com.inferris.player.manager.PlayerDataManager
  * @see com.inferris.player.registry.Registry
  * @see com.inferris.player.registry.RegistryManager
  * @see com.inferris.rank.Rank
- * @see com.inferris.player.service.RanksManager
+ * @see com.inferris.player.manager.RanksManager
  * @see com.inferris.rank.Branch
  * @see com.inferris.player.coins.Coins
  */

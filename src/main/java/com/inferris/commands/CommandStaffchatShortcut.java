@@ -1,11 +1,10 @@
 package com.inferris.commands;
 
 import com.google.inject.Inject;
-import com.inferris.player.*;
 import com.inferris.player.channel.Channel;
 import com.inferris.player.channel.ChannelManager;
 import com.inferris.player.context.PlayerContext;
-import com.inferris.player.service.ManagerContainer;
+import com.inferris.player.manager.ManagerContainer;
 import com.inferris.player.service.PlayerDataService;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;

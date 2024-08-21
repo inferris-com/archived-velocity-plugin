@@ -1,12 +1,17 @@
-package com.inferris.player.service;
+/*
+ * Copyright (c) 2024. Inferris.
+ * All rights reserved.
+ */
+
+package com.inferris.player.manager;
 
 import com.google.inject.Inject;
 import com.inferris.Inferris;
 import com.inferris.database.DatabasePool;
 import com.inferris.player.PlayerData;
+import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
-import com.inferris.server.jedis.JedisChannel;
 import com.inferris.util.DatabaseUtils;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;

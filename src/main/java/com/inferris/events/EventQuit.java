@@ -2,7 +2,6 @@ package com.inferris.events;
 
 import com.google.inject.Inject;
 import com.inferris.player.PlayerData;
-import com.inferris.player.service.PlayerDataManager;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;

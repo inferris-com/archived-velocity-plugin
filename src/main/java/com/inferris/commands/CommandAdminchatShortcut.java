@@ -4,7 +4,7 @@ import com.google.inject.Inject;
 import com.inferris.player.channel.Channel;
 import com.inferris.player.channel.ChannelManager;
 import com.inferris.player.context.PlayerContext;
-import com.inferris.player.service.ManagerContainer;
+import com.inferris.player.manager.ManagerContainer;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
 import net.md_5.bungee.api.ChatColor;

@@ -3,7 +3,7 @@
  * All rights reserved.
  */
 
-package com.inferris.player.service;
+package com.inferris.player.manager;
 
 import com.google.inject.Inject;
 import com.inferris.player.channel.ChannelManager;

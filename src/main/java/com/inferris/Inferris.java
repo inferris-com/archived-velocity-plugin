@@ -1,16 +1,12 @@
 package com.inferris;
 
 import com.google.inject.Guice;
-import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.inferris.config.ConfigType;
 import com.inferris.config.ConfigurationHandler;
 import com.inferris.database.DatabasePool;
-import com.inferris.player.*;
 import com.inferris.player.PlayerData;
-import com.inferris.player.friends.FriendsManager;
-import com.inferris.player.service.PlayerDataRepository;
-import com.inferris.player.service.PlayerDataManager;
+import com.inferris.player.manager.PlayerDataManager;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.player.service.PlayerDataServiceImpl;
 import com.inferris.player.vanish.VanishState;

@@ -6,7 +6,7 @@ import com.inferris.commands.CommandViewlogs;
 import com.inferris.events.redis.dispatching.JedisEventHandler;
 import com.inferris.messaging.ViewlogMessage;
 import com.inferris.player.service.PlayerDataService;
-import com.inferris.player.service.ManagerContainer;
+import com.inferris.player.manager.ManagerContainer;
 import com.inferris.serialization.ViewlogSerializer;
 import com.inferris.server.ServerState;
 import com.inferris.server.ServerStateManager;

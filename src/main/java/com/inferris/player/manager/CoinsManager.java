@@ -1,6 +1,12 @@
-package com.inferris.player.service;
+/*
+ * Copyright (c) 2024. Inferris.
+ * All rights reserved.
+ */
+
+package com.inferris.player.manager;
 
 import com.google.inject.Inject;
+import com.inferris.player.service.PlayerDataService;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

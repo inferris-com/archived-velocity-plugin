@@ -6,7 +6,7 @@ import com.inferris.messaging.StaffChatMessage;
 import com.inferris.player.channel.Channel;
 import com.inferris.player.channel.ChannelManager;
 import com.inferris.player.service.PlayerDataService;
-import com.inferris.player.service.ManagerContainer;
+import com.inferris.player.manager.ManagerContainer;
 import com.inferris.serialization.StaffChatSerializer;
 import com.inferris.server.ServerState;
 import com.inferris.server.ServerStateManager;

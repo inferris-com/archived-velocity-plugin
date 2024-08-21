@@ -3,7 +3,7 @@ package com.inferris.events.redis;
 import com.inferris.Inferris;
 import com.inferris.events.redis.dispatching.JedisEventHandler;
 import com.inferris.player.service.PlayerDataService;
-import com.inferris.player.service.ManagerContainer;
+import com.inferris.player.manager.ManagerContainer;
 import com.inferris.server.jedis.JedisChannel;
 import com.inferris.server.jedis.JedisHelper;
 
