@@ -44,16 +44,6 @@ public class PlayerDataServiceImpl implements PlayerDataService {
     }
 
     @Override
-    public void setPlayerDataRepository(PlayerDataRepository playerDataRepository) {
-
-    }
-
-    @Override
-    public PlayerDataRepository getPlayerDataRepository() {
-        return playerDataRepository;
-    }
-
-    @Override
     public void getPlayerData(UUID uuid, Consumer<PlayerData> operation) {
         PlayerData playerData = playerDataManager.getPlayerData(uuid);
         operation.accept(playerData);

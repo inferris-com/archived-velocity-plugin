@@ -27,9 +27,6 @@ import java.util.function.Consumer;
  * @see PlayerContext
  */
 public interface PlayerDataService {
-    void setPlayerDataRepository(PlayerDataRepository playerDataRepository);
-
-    PlayerDataRepository getPlayerDataRepository();
 
     PlayerData getPlayerData(UUID uuid);
 
