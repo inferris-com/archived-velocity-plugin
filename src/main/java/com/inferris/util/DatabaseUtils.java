@@ -116,7 +116,7 @@ public class DatabaseUtils {
     public static int executeUpdate(String sql, Object... parameters) throws SQLException {
         Connection connection = null;
         PreparedStatement statement = null;
-        int affectedRows = 0;
+        int affectedRows;
 
         try {
             connection = DatabasePool.getConnection();
