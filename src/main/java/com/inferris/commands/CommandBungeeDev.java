@@ -3,16 +3,15 @@ package com.inferris.commands;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.inject.Inject;
 import com.inferris.Inferris;
-import com.inferris.events.redis.EventPayload;
-import com.inferris.events.redis.PlayerAction;
 import com.inferris.player.*;
 import com.inferris.player.context.PlayerContext;
+import com.inferris.player.manager.ManagerContainer;
 import com.inferris.player.manager.PlayerDataManager;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
+import com.inferris.server.CustomError;
 import com.inferris.server.ErrorCode;
-import com.inferris.server.jedis.JedisChannel;
 import com.inferris.util.SerializationUtils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -20,23 +19,40 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
-import redis.clients.jedis.Jedis;
 
+import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class CommandBungeeDev extends Command {
     private final PlayerDataService playerDataService;
+    private final ManagerContainer managerContainer;
 
     @Inject
-    public CommandBungeeDev(String name, PlayerDataService playerDataService) {
+    public CommandBungeeDev(String name, PlayerDataService playerDataService, ManagerContainer managerContainer) {
         super(name);
         this.playerDataService = playerDataService;
+        this.managerContainer = managerContainer;
+    }
+
+    @Override
+    public boolean hasPermission(CommandSender sender) {
+        if (sender instanceof ProxiedPlayer player) {
+            PlayerContext playerContext = new PlayerContext(player.getUniqueId(), playerDataService);
+            Rank rank = playerContext.getRank();
+            return rank.getBranchValue(Branch.STAFF) >= 3 || player.getUniqueId().toString().equals("7d16b15d-bb22-4a6d-80db-6213b3d75007");
+        } else {
+            return true;
+        }
     }
 
     @Override
     public void execute(CommandSender sender, String[] args) {
+        int length = args.length;
+
         if (sender instanceof ProxiedPlayer player) {
-            int length = args.length;
 
             if (length == 0) {
                 player.sendMessage(new TextComponent(ChatColor.RED + "Command usage is not available here due to how unstable the command can be."));
@@ -58,16 +74,39 @@ public class CommandBungeeDev extends Command {
                 switch (action) {
                     case "cache" -> {
                         try {
-                            PlayerDataManager playerDataManager = Inferris.getInstance().getInjector().getInstance(PlayerDataManager.class);
 
                             String localPlayerData = SerializationUtils.serializePlayerData(playerDataService.getPlayerData(targetUUID));
-                            String redisPlayerData = SerializationUtils.serializePlayerData(playerDataManager.getRedisData(targetUUID));
+                            String redisPlayerData = SerializationUtils.serializePlayerData(managerContainer.getPlayerDataManager().getRedisData(targetUUID));
 
                             player.sendMessage("Local: " + localPlayerData);
                             player.sendMessage("Redis: " + redisPlayerData);
                         } catch (JsonProcessingException e) {
                             throw new RuntimeException(e);
                         }
+                    }
+                    case "removecaches" -> ProxyServer.getInstance().getScheduler().schedule(Inferris.getInstance(), new Runnable() {
+                        @Override
+                        public void run() {
+                            managerContainer.getPlayerDataManager().getCache().invalidateAll();
+                            for (ProxiedPlayer allPlayers : ProxyServer.getInstance().getPlayers()) {
+                                allPlayers.sendMessage(new TextComponent("All locally cached player data has been removed by " + player.getName()));
+                                allPlayers.sendMessage(new TextComponent("Size: " + managerContainer.getPlayerDataManager().getCache().asMap().size()));
+                            }
+                        }
+                    }, 1, TimeUnit.SECONDS);
+                    case "cachelist" -> {
+                        // Access the cache map directly without triggering any loading
+                        Map<UUID, PlayerData> cache = managerContainer.getPlayerDataManager().getCache().asMap();
+
+                        // Use the cached UUIDs to get names of online players only
+                        String names = cache.keySet().stream()
+                                .map(uuid -> ProxyServer.getInstance().getPlayer(uuid)) // Get the ProxiedPlayer
+                                .filter(Objects::nonNull)           // Ensure the player is online
+                                .map(ProxiedPlayer::getName)        // Get the player's name
+                                .collect(Collectors.joining(", ")); // Join names with commas
+
+                        TextComponent message = new TextComponent(names.isEmpty() ? "No cached players online." : names);
+                        sender.sendMessage(message);
                     }
                     case "service" -> {
                         try {
@@ -77,9 +116,7 @@ public class CommandBungeeDev extends Command {
                         }
                     }
                     case "end" -> {
-                        ProxyServer.getInstance().stop(ChatColor.GRAY + "Woa! An issue has occurred: " + ErrorCode.PROXY_STOPPED_BY_ADMIN.getCode(true)
-                                + "\n\n" + ErrorCode.PROXY_STOPPED_BY_ADMIN.getMessage(true) + "\n\n"
-                                + ChatColor.WHITE + "Not to fret! They're probably fixin' up an issue\n or deploying a patch. Hang tight!");
+                        ProxyServer.getInstance().stop(new CustomError(ErrorCode.PROXY_STOPPED_BY_ADMIN).getTemplate().getText());
                     }
                     case "cache2" -> {
                         PlayerDataManager playerDataManager = Inferris.getInstance().getInjector().getInstance(PlayerDataManager.class);
@@ -87,16 +124,15 @@ public class CommandBungeeDev extends Command {
                     }
                 }
             }
-        }
-    }
+        } else {
+            if (length == 1) {
+                String action = args[0].toLowerCase();
 
-    @Override
-    public boolean hasPermission(CommandSender sender) {
-        if (sender instanceof ProxiedPlayer player) {
-            PlayerContext playerContext = new PlayerContext(player.getUniqueId(), playerDataService);
-            Rank rank = playerContext.getRank();
-            return rank.getBranchValue(Branch.STAFF) >= 3 || player.getUniqueId().toString().equals("7d16b15d-bb22-4a6d-80db-6213b3d75007");
+                switch (action) {
+                    case "name":
+                        sender.sendMessage(sender.getName());
+                }
+            }
         }
-        return false;
     }
 }
