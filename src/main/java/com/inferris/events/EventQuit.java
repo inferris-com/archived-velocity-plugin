@@ -2,6 +2,7 @@ package com.inferris.events;
 
 import com.google.inject.Inject;
 import com.inferris.player.PlayerData;
+import com.inferris.player.manager.ManagerContainer;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
 import com.inferris.rank.Rank;
@@ -19,10 +20,12 @@ import net.md_5.bungee.event.EventHandler;
 public class EventQuit implements Listener {
 
     private final PlayerDataService playerDataService;
+    private final ManagerContainer managerContainer;
 
     @Inject
-    public EventQuit(PlayerDataService playerDataService){
+    public EventQuit(PlayerDataService playerDataService, ManagerContainer managerContainer){
         this.playerDataService = playerDataService;
+        this.managerContainer = managerContainer;
     }
 
     @EventHandler
@@ -45,7 +48,7 @@ public class EventQuit implements Listener {
                 }
             }
         }
-        playerDataService.invalidate(player.getUniqueId());
+        managerContainer.getPlayerDataManager().getCache().invalidate(player.getUniqueId());
         PlayerSessionManager.clearPlayerSession(player.getUniqueId());
     }
 }

@@ -39,7 +39,7 @@ public class Initializer {
         PluginManager pluginManager = Inferris.getInstance().getProxy().getPluginManager();
 
         pluginManager.registerListener(plugin, injector.getInstance(EventJoin.class));
-        pluginManager.registerListener(instance, new EventQuit(playerDataService));
+        pluginManager.registerListener(instance, new EventQuit(playerDataService, managerContainer));
         pluginManager.registerListener(instance, new EventPing());
 
         pluginManager.registerCommand(instance, new CommandBungeeTest("bungeetest", playerDataService));
