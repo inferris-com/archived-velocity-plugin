@@ -223,8 +223,7 @@ public class EventJoin implements Listener {
     }
 
     private BaseComponent getLockdownMessage() {
-        CustomError customError = new CustomError(ErrorCode.INTERNAL_LOCKDOWN);
-        BaseComponent kickComponent = customError.getErrorHeader();
+        BaseComponent kickComponent = TextComponent.fromLegacy(new CustomError(ErrorCode.INTERNAL_LOCKDOWN).getHeader());
 
         kickComponent.addExtra(ChatColor.RED + "\n\nInferris is in active development!");
         kickComponent.addExtra("\n");
