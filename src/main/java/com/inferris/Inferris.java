@@ -6,6 +6,7 @@ import com.inferris.config.ConfigType;
 import com.inferris.config.ConfigurationHandler;
 import com.inferris.database.DatabasePool;
 import com.inferris.player.PlayerData;
+import com.inferris.player.manager.ManagerContainer;
 import com.inferris.player.manager.PlayerDataManager;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.player.service.PlayerDataServiceImpl;
@@ -86,7 +87,7 @@ public class Inferris extends Plugin {
             ServerStateManager.setCurrentState(ServerState.NORMAL);
         }
 
-        Initializer initializer = new Initializer(playerDataService, this, injector);
+        Initializer initializer = new Initializer(playerDataService, injector.getInstance(ManagerContainer.class), this, injector);
         initializer.initialize();
     }
 
