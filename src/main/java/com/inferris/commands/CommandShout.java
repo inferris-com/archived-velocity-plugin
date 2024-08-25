@@ -2,10 +2,13 @@ package com.inferris.commands;
 
 import com.google.inject.Inject;
 import com.inferris.Inferris;
-import com.inferris.player.*;
+import com.inferris.events.redis.EventPayload;
+import com.inferris.events.redis.GenericAction;
 import com.inferris.player.context.PlayerContext;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
+import com.inferris.server.jedis.JedisChannel;
+import com.inferris.server.jedis.JedisHelper;
 import com.inferris.util.ChatUtil;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -33,6 +36,7 @@ public class CommandShout extends Command {
             }
 
             Inferris.getInstance().getLogger().info("Shout: " + message);
+            JedisHelper.publish(JedisChannel.GENERIC_FLEX_EVENT, new EventPayload(GenericAction.ALERT, "ENTITY_CHICKEN_EGG", Inferris.getInstanceId()));
 
             for (ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
                 player.sendMessage(ChatUtil.translateToHex(message.toString()));

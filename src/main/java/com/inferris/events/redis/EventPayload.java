@@ -25,6 +25,12 @@ public class EventPayload {
         this.senderId = senderId;
     }
 
+    public EventPayload(Enum<?> action, String data, String senderId) {
+        this.action = action;
+        this.data = data != null ? data : ""; // Ensure data is not null
+        this.senderId = senderId;
+    }
+
     public EventPayload(){}
 
     public UUID getUuid() {
