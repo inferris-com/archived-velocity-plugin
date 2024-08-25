@@ -1,5 +1,6 @@
 package com.inferris.player.service;
 
+import com.github.benmanes.caffeine.cache.Cache;
 import com.inferris.player.Profile;
 import com.inferris.player.context.PlayerContext;
 import com.inferris.player.PlayerData;
@@ -67,4 +68,5 @@ public interface PlayerDataService {
     boolean hasAccess(UUID uuid);
 
     void invalidate(UUID uuid);
+    Cache<UUID,PlayerData> caffeine(UUID uuid);
 }

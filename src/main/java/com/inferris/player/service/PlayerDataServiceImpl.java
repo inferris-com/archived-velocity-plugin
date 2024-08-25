@@ -1,5 +1,6 @@
 package com.inferris.player.service;
 
+import com.github.benmanes.caffeine.cache.Cache;
 import com.google.inject.Inject;
 import com.inferris.Inferris;
 import com.inferris.events.redis.EventPayload;
@@ -44,6 +45,11 @@ public class PlayerDataServiceImpl implements PlayerDataService {
         this.playerDataManager = playerDataManager;
         this.playerDataRepository = playerDataRepository;
         this.managerContainer = managerContainer;
+    }
+
+    @Override
+    public Cache<UUID, PlayerData> caffeine(UUID uuid) {
+        return playerDataManager.getCache();
     }
 
     @Override
@@ -129,21 +135,17 @@ public class PlayerDataServiceImpl implements PlayerDataService {
 
     @Override
     public void setVanished(UUID uuid, boolean isEnabled) {
-        Inferris.getInstance().getLogger().info("Setting vanish state for player: " + uuid + " to " + isEnabled);
-
         updatePlayerData(uuid, playerData1 -> {
             playerData1.setVanishState(isEnabled ? VanishState.ENABLED : VanishState.DISABLED);
-
-            try (Jedis jedis = Inferris.getJedisPool().getResource()) {
-                jedis.publish(JedisChannel.PLAYERDATA_VANISH.getChannelName(), new EventPayload(uuid,
-                        PlayerAction.UPDATE_PLAYER_DATA,
-                        null,
-                        Inferris.getInstanceId()).toPayloadString());
-                Inferris.getInstance().getLogger().info("Completed vanish state update for player: " + uuid);
-
-                playerDataRepository.updatePlayerDataTable(getPlayerData(uuid));
-            }
         });
+        try (Jedis jedis = Inferris.getJedisPool().getResource()) {
+            jedis.publish(JedisChannel.PLAYERDATA_VANISH.getChannelName(), new EventPayload(uuid,
+                    PlayerAction.VANISH,
+                    null,
+                    Inferris.getInstanceId()).toPayloadString());
+
+            playerDataRepository.updatePlayerDataTable(getPlayerData(uuid));
+        }
     }
 
     @Override
