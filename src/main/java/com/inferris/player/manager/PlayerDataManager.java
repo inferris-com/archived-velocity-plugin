@@ -272,7 +272,6 @@ public class PlayerDataManager {
             // Check if the player is not null and is connected
             if (player != null && player.isConnected()) {
                 updateCaffeineCache(player, playerData);
-                Inferris.getInstance().getLogger().info("Updated Caffeine cache for online player: " + player.getName());
             } else {
                 // Log detailed information if the player is null or not connected
                 if (player == null) {
