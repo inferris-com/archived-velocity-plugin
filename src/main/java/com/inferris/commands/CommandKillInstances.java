@@ -9,11 +9,15 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.inject.Inject;
 import com.inferris.Inferris;
+import com.inferris.events.redis.EventPayload;
+import com.inferris.events.redis.GenericAction;
 import com.inferris.player.context.PlayerContext;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
 import com.inferris.server.CustomError;
 import com.inferris.server.ErrorCode;
+import com.inferris.server.jedis.JedisChannel;
+import com.inferris.server.jedis.JedisHelper;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -95,7 +99,7 @@ public class CommandKillInstances extends Command {
         scheduler.schedule(Inferris.getInstance(), new Runnable() {
             @Override
             public void run() {
-                //JedisHelper.publish(JedisChannel.GENERIC_FLEX_EVENT, new EventPayload(GenericAction.SHUTDOWN, null, Inferris.getInstanceId()));
+                JedisHelper.publish(JedisChannel.GENERIC_FLEX_EVENT, new EventPayload(GenericAction.SHUTDOWN, null, Inferris.getInstanceId()));
 
                 if(hasFlag){
                     ProxyServer.getInstance().stop(new CustomError(ErrorCode.NETWORK_KILLED)
