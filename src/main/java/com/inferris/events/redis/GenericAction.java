@@ -1,5 +1,5 @@
 package com.inferris.events.redis;
 
 public enum GenericAction {
-    ALERT, UPDATE, INFORMATION
+    ALERT, UPDATE, INFORMATION, SHUTDOWN
 }

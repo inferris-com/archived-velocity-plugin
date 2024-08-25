@@ -10,6 +10,7 @@ import com.inferris.events.EventQuit;
 import com.inferris.events.redis.*;
 import com.inferris.events.redis.dispatching.EventPubSubDispatcher;
 import com.inferris.events.redis.dispatching.JedisEventDispatcher;
+import com.inferris.player.manager.ManagerContainer;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Permissions;
 import com.inferris.server.jedis.JedisChannel;
@@ -20,11 +21,13 @@ public class Initializer {
 
     private static EventPubSubDispatcher sub;
     private final PlayerDataService playerDataService;
+    private final ManagerContainer managerContainer;
     private final Plugin plugin;
     private final Injector injector;
 
-    public Initializer(PlayerDataService playerDataService, Plugin plugin, Injector injector) {
+    public Initializer(PlayerDataService playerDataService, ManagerContainer managerContainer, Plugin plugin,  Injector injector) {
         this.playerDataService = playerDataService;
+        this.managerContainer = managerContainer;
         this.plugin = plugin;
         this.injector = injector;
     }
@@ -68,10 +71,11 @@ public class Initializer {
         pluginManager.registerCommand(instance, new CommandWebsite("website"));
         pluginManager.registerCommand(plugin, injector.getInstance(CommandNuke.class));
         pluginManager.registerCommand(plugin, injector.getInstance(CommandRemoveFromRedis.class));
-        pluginManager.registerCommand(instance, new CommandBungeeDev("bungeedev", playerDataService));
+        pluginManager.registerCommand(instance, new CommandBungeeDev("bungeedev", playerDataService, managerContainer));
         pluginManager.registerCommand(instance, new CommandFlagPlayer("flagplayer", playerDataService));
         pluginManager.registerCommand(instance, new CommandConvert("convert"));
         pluginManager.registerCommand(instance, new CommandPlayerCount("playercount", playerDataService));
+        pluginManager.registerCommand(instance, new CommandKillInstances("killinstances", playerDataService));
 
 
         CommandViewlogs commandViewlogs = new CommandViewlogs("viewlogs", playerDataService);

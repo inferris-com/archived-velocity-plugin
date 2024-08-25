@@ -81,3 +81,5 @@ commands:
     description: Convert times
   playercount:
     description: Admin command
+  killinstances:
+    description: Kill all front-end server instances
