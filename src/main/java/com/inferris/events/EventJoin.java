@@ -2,6 +2,7 @@ package com.inferris.events;
 
 import com.google.inject.Inject;
 import com.inferris.Inferris;
+import com.inferris.player.PlayerData;
 import com.inferris.webhook.WebhookBuilder;
 import com.inferris.common.ColorType;
 import com.inferris.config.ConfigType;
@@ -157,13 +158,10 @@ public class EventJoin implements Listener {
                         .build();
                 webhookBuilder.sendEmbed();
 
-                ChatUtil.sendGlobalMessage(staff -> {
-                    PlayerContext playerContext = new PlayerContext(staff.getUniqueId(), playerDataService);
-                    if (staff.getUniqueId().equals(player.getUniqueId())) {
-                        return false;
-                    }
-                    return playerContext.isStaff();
-                }, textComponent);
+                PlayerContext playerContext = new PlayerContext(player.getUniqueId(), playerDataService);
+                if (playerContext.getProfile().isFlagged()) {
+                    ChatUtil.sendGlobalMessage(staff -> new PlayerContext(staff.getUniqueId(), playerDataService).isStaff(), textComponent);
+                }
             }
         }
 
@@ -175,7 +173,8 @@ public class EventJoin implements Listener {
 
             if (rank.getBranchID(Branch.STAFF) >= 1) {
                 for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                    if (playerData.getRank().getBranchID(Branch.STAFF) >= 1) {
+                    PlayerData proxiedPlayersData = playerDataService.getPlayerData(proxiedPlayers.getUniqueId());
+                    if (new PlayerContext(proxiedPlayersData.getUuid(), playerDataService).isStaff()) {
                         proxiedPlayers.sendMessage(TextComponent.fromLegacyText(Tag.STAFF.getName(true) + rankRegistry.getPrefix(true) + rankRegistry.getColor() + player.getName() + ChatColor.YELLOW + " connected"));
                     }
                 }
@@ -184,7 +183,8 @@ public class EventJoin implements Listener {
             if (!playerContext.isStaff()) {
                 if (playerData.getProfile().isFlagged()) {
                     for (ProxiedPlayer proxiedPlayers : ProxyServer.getInstance().getPlayers()) {
-                        if (playerData.getRank().getBranchID(Branch.STAFF) >= 1) {
+                        PlayerData proxiedPlayersData = playerDataService.getPlayerData(proxiedPlayers.getUniqueId());
+                        if (new PlayerContext(proxiedPlayersData.getUuid(), playerDataService).isStaff()) {
                             proxiedPlayers.sendMessage(TextComponent.fromLegacyText(Tag.STAFF.getName(true)
                                     + Tag.POI.getName(true)
                                     + rankRegistry.getPrefix(true) + rankRegistry.getColor() + player.getName() + ChatColor.YELLOW + " connected"));
@@ -231,7 +231,7 @@ public class EventJoin implements Listener {
         kickComponent.addExtra(ChatColor.translateAlternateColorCodes('&', """
                 &eWe're currently working hard to bring you an amazing experience.
                 Our Discord server will be opening soon, and it's the &oheart&f&e of our community. &d❀
-                                
+                
                 """));
         kickComponent.addExtra(TextComponent.fromLegacy(ChatColor.of(ColorType.BRAND_SECONDARY.getColor()) + "Join us on Discord to stay updated and be part of the journey!\n\n"));
         kickComponent.addExtra(ChatColor.translateAlternateColorCodes('&', """
