@@ -62,7 +62,6 @@ public class PlayerDataRepository {
 
     public CompletableFuture<Void> updatePlayerDataTableAsync(PlayerData playerData) {
         return CompletableFuture.runAsync(() -> {
-            Inferris.getInstance().getLogger().info("Starting update for player: " + playerData.getUuid());
             long startTime = System.currentTimeMillis();
 
             String[] columnNames = {"username", "coins", "channel", "vanished"};
@@ -75,18 +74,15 @@ public class PlayerDataRepository {
                 Inferris.getInstance().getLogger().warning("Failed to update player_data in the database: " + e.getMessage());
             } finally {
                 long duration = System.currentTimeMillis() - startTime;
-                Inferris.getInstance().getLogger().info("Finished update for player: " + playerData.getUuid() + " in " + duration + "ms");
             }
         }, executorService);
     }
 
     public void updatePlayerDataTable(PlayerData playerData) {
-        Inferris.getInstance().getLogger().info("Executing updatePlayerDataTable for player: " + playerData.getUuid());
         updatePlayerDataTableAsync(playerData).handle((result, ex) -> {
             if (ex != null) {
                 Inferris.getInstance().getLogger().warning("Failed to update player_data: " + ex.getMessage());
             } else {
-                Inferris.getInstance().getLogger().info("Player data updated successfully.");
             }
             return null;
         });
@@ -226,6 +222,8 @@ public class PlayerDataRepository {
 
         if (ProxyServer.getInstance().getPlayer(uuid) != null) {
             ProxiedPlayer player = ProxyServer.getInstance().getPlayer(uuid);
+
+            // Username change
             if (!username.equals(player.getName())) {
                 username = player.getName();
                 playerDataService.updateLocalPlayerData(player.getUniqueId(), pdToUpdate -> pdToUpdate.setUsername(player.getName()));
@@ -236,7 +234,7 @@ public class PlayerDataRepository {
         return new PlayerData(uuid, username, rank, profile, coins, channel, vanishState, Server.LOBBY);
     }
 
-    // Helper method to load Profile from the database
+    // Helper method to load Profile from the database. Used if they already exist, otherwise will insert.
     private Profile loadProfile(UUID uuid, Connection connection) throws SQLException {
         Profile profile = null;
         try (PreparedStatement selectProfileStatement = connection.prepareStatement("SELECT * FROM " + Table.PROFILE.getName() + " WHERE uuid = ?")) {
@@ -250,8 +248,13 @@ public class PlayerDataRepository {
                 int xenforoId = profileResultSet.getInt("xenforo_id");
                 int discordLinked = profileResultSet.getInt("discord_linked");
                 boolean isDiscordLinked = (discordLinked != 0);
-                int flaggedInt = profileResultSet.getInt("is_flagged");
-                boolean isFlagged = (flaggedInt != 0);
+                // Check if the player is flagged in the flagged_players table
+                boolean isFlagged = false;
+                try (PreparedStatement flaggedCheckStatement = connection.prepareStatement("SELECT 1 FROM " + Table.FLAGGED_PLAYERS.getName() + " WHERE uuid = ?")) {
+                    flaggedCheckStatement.setString(1, uuid.toString());
+                    ResultSet flaggedResultSet = flaggedCheckStatement.executeQuery();
+                    isFlagged = flaggedResultSet.next();
+                }
 
                 profile = new Profile(registrationDate, bio, pronouns, xenforoId, isDiscordLinked, isFlagged);
             }
