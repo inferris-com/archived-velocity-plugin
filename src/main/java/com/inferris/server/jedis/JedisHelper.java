@@ -1,6 +1,7 @@
 package com.inferris.server.jedis;
 
 import com.inferris.Inferris;
+import com.inferris.events.redis.EventPayload;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
@@ -35,6 +36,12 @@ public class JedisHelper {
         } catch (Exception e) {
             // Handle logging or specific exceptions here
             System.err.println("Error performing HSET operation: " + e.getMessage());
+        }
+    }
+
+    public static void publish(JedisChannel channel, EventPayload eventPayload) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            jedis.publish(channel.getChannelName(), eventPayload.toPayloadString());
         }
     }
 
