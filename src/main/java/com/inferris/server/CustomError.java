@@ -4,22 +4,31 @@ import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.TextComponent;
 
 public class CustomError {
-    private final ErrorCode errorCode;
+    private final String HEADER;
+    private final String DESCRIPTION;
+    private final String FOOTER;
+
     public CustomError(ErrorCode errorCode){
-        this.errorCode = errorCode;
+        this.HEADER = ChatColor.GRAY + "Woa! Something went wrong: " + errorCode.getCode(true);
+        this.DESCRIPTION = ChatColor.RED + errorCode.getMessage();
+        this.FOOTER = ChatColor.WHITE + "If this was unexpected or you need assistance, please reach out to our team, and we'll help resolve the issue!";
     }
 
-    public TextComponent getError(){
-        return new TextComponent(ChatColor.GRAY + "Woa! Something went wrong: " + errorCode.getCode(true)
-                + "\n\n" + errorCode.getMessage(true) + "\n\n"
-                + ChatColor.WHITE + "If this was unexpected or you need assistance, please reach out to our team, and we'll help resolve the issue!");
+    public TextComponent getTemplate() {
+        String template = String.format("%s%n%n%s%n%n%s", HEADER, DESCRIPTION, FOOTER);
+        return new TextComponent(template);
     }
 
-    public TextComponent getErrorHeader(){
-        return new TextComponent(ChatColor.GRAY + "Woa! Something went wrong: " + errorCode.getCode(true));
+    public TextComponent getTemplate(String customDetails){
+        String template = String.format("%s%n%n%s%n%n%s", HEADER, DESCRIPTION, ChatColor.RESET + customDetails);
+        return new TextComponent(template);
     }
 
-    public TextComponent getFooter(){
-        return new TextComponent(ChatColor.WHITE + "If this was unexpected or you need assistance, please reach out to our team, and we'll help resolve the issue!");
+    public String getHeader() {
+        return HEADER;
+    }
+
+    public String getFooter() {
+        return FOOTER;
     }
 }

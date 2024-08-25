@@ -1,11 +1,14 @@
 package com.inferris.server;
 
-import net.md_5.bungee.api.ChatColor;
-
 public enum ErrorCode {
+    COMMAND_ERROR(100, "Command error"),
+    EVENT_ERROR(101, "Event error"),
+    DATABASE_ERROR(102, "Database error"),
+    REDIS_ERROR(103, "Jedis error"),
     PROXY_STOPPED_BY_ADMIN(200, "Proxy has been stopped by an administrator."),
-    PLAYER_DATA_DELETED_BY_ADMIN(201, "Account data has been deleted by an administrator."),
-    INTERNAL_LOCKDOWN(203, "Internal lockdown");
+    NETWORK_KILLED(201, "Network has been shutdown; all instances killed. Probably applying a patch or hotfix."),
+    PLAYER_DATA_DELETED_BY_ADMIN(210, "Account data has been deleted by an administrator."),
+    INTERNAL_LOCKDOWN(211, "Internal lockdown");
 
     private final int code;
     private final String message;
@@ -27,13 +30,6 @@ public enum ErrorCode {
     }
 
     public String getMessage() {
-        return message;
-    }
-
-    public String getMessage(boolean formatted) {
-        if(formatted){
-            return ChatColor.RED + message;
-        }
         return message;
     }
 }
