@@ -11,6 +11,7 @@ import com.inferris.player.PlayerData;
 import com.inferris.player.manager.ManagerContainer;
 import com.inferris.player.service.PlayerDataService;
 import com.inferris.rank.Branch;
+import com.inferris.server.CustomError;
 import com.inferris.server.ErrorCode;
 import com.inferris.util.ChatUtil;
 import com.inferris.webhook.WebhookBuilder;
@@ -119,9 +120,8 @@ public class CommandNuke extends Command {
         ProxiedPlayer target = ProxyServer.getInstance().getPlayer(uuid);
         if (target != null) {
             if (ProxyServer.getInstance().getPlayer(uuid).isConnected()) {
-                TextComponent textComponent = new TextComponent(ChatColor.GRAY + "Woa! Something went wrong: " + ErrorCode.PLAYER_DATA_DELETED_BY_ADMIN.getCode(true)
-                        + "\n\n" + ErrorCode.PLAYER_DATA_DELETED_BY_ADMIN.getMessage(true) + "\n\n"
-                        + ChatColor.WHITE + "If this was unexpected or you need assistance, please reach out to our team, and we'll help resolve the issue!");
+                TextComponent textComponent = new TextComponent(new CustomError(ErrorCode.PLAYER_DATA_DELETED_BY_ADMIN)
+                        .getTemplate().getText());
                 target.disconnect(textComponent);
             }
         }
