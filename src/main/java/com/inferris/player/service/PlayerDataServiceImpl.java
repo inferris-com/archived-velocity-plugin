@@ -48,11 +48,6 @@ public class PlayerDataServiceImpl implements PlayerDataService {
     }
 
     @Override
-    public Cache<UUID, PlayerData> caffeine(UUID uuid) {
-        return playerDataManager.getCache();
-    }
-
-    @Override
     public void getPlayerData(UUID uuid, Consumer<PlayerData> operation) {
         PlayerData playerData = playerDataManager.getPlayerData(uuid);
         operation.accept(playerData);
@@ -66,11 +61,6 @@ public class PlayerDataServiceImpl implements PlayerDataService {
     @Override
     public CompletableFuture<PlayerData> getPlayerDataAsync(UUID uuid) {
         return playerDataManager.getPlayerDataAsync(uuid);
-    }
-
-    @Override
-    public void invalidate(UUID uuid) {
-        playerDataManager.invalidateCache(uuid);
     }
 
     @Override

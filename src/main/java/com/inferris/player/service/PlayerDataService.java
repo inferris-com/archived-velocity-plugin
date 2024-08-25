@@ -66,7 +66,4 @@ public interface PlayerDataService {
     void nukePlayerData(UUID uuid);
 
     boolean hasAccess(UUID uuid);
-
-    void invalidate(UUID uuid);
-    Cache<UUID,PlayerData> caffeine(UUID uuid);
 }
