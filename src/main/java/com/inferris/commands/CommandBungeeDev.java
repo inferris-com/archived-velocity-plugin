@@ -22,6 +22,8 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import redis.clients.jedis.Jedis;
 
+import java.util.UUID;
+
 public class CommandBungeeDev extends Command {
     private final PlayerDataService playerDataService;
 
@@ -40,25 +42,31 @@ public class CommandBungeeDev extends Command {
                 player.sendMessage(new TextComponent(ChatColor.RED + "Command usage is not available here due to how unstable the command can be."));
                 return;
             }
-            if (length == 1) {
+            if (length == 1 || length == 2) {
                 String action = args[0].toLowerCase();
+                UUID targetUUID = player.getUniqueId();
+
+                if (length == 2) {
+                    ProxiedPlayer targetPlayer = ProxyServer.getInstance().getPlayer(args[1]);
+                    if (targetPlayer == null) {
+                        player.sendMessage(new TextComponent(ChatColor.RED + "Player not found."));
+                        return;
+                    }
+                    targetUUID = targetPlayer.getUniqueId();
+                }
+
                 switch (action) {
-                    case "data" -> {
-                        PlayerData playerData = playerDataService.getPlayerData(player.getUniqueId());
+                    case "cache" -> {
+                        try {
+                            PlayerDataManager playerDataManager = Inferris.getInstance().getInjector().getInstance(PlayerDataManager.class);
 
-                        player.sendMessage(playerData.getUuid().toString());
-                        player.sendMessage(playerData.getUsername().toString());
-                        player.sendMessage(playerData.getRank().toString());
+                            String localPlayerData = SerializationUtils.serializePlayerData(playerDataService.getPlayerData(targetUUID));
+                            String redisPlayerData = SerializationUtils.serializePlayerData(playerDataManager.getRedisData(targetUUID));
 
-                        try (Jedis jedis = Inferris.getJedisPool().getResource()) {
-                            jedis.publish(JedisChannel.PLAYERDATA_VANISH.getChannelName(), new EventPayload(player.getUniqueId(),
-                                    PlayerAction.UPDATE_PLAYER_DATA,
-                                    null,
-                                    Inferris.getInstanceId()).toPayloadString());
-                            Inferris.getInstance().getLogger().info("Completed vanish state update for player: " + playerData.getUuid().toString());
-                        } catch (Exception e) {
-                            Inferris.getInstance().getLogger().warning("Failed to publish vanish state update: " + e.getMessage());
-                            // Optionally, handle the exception further if needed
+                            player.sendMessage("Local: " + localPlayerData);
+                            player.sendMessage("Redis: " + redisPlayerData);
+                        } catch (JsonProcessingException e) {
+                            throw new RuntimeException(e);
                         }
                     }
                     case "service" -> {
@@ -73,7 +81,7 @@ public class CommandBungeeDev extends Command {
                                 + "\n\n" + ErrorCode.PROXY_STOPPED_BY_ADMIN.getMessage(true) + "\n\n"
                                 + ChatColor.WHITE + "Not to fret! They're probably fixin' up an issue\n or deploying a patch. Hang tight!");
                     }
-                    case "cache" -> {
+                    case "cache2" -> {
                         PlayerDataManager playerDataManager = Inferris.getInstance().getInjector().getInstance(PlayerDataManager.class);
                         player.sendMessage(new TextComponent(String.valueOf(playerDataManager.getCache().getIfPresent(player.getUniqueId()).getProfile().toString())));
                     }
