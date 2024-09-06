@@ -1,24 +1,23 @@
-# Inferris Backend
-Inferris's backend is a core foundation of the network system. Not to be confused with the core plugin's backend - this backend module
-is responsible for powering the server's Waterfall proxy in a performant way, and caching data so other servers can transmit requests
-Inferris's backend is a core foundation of the network system. The infrastructure relies on this. This backend module
-runs on the BungeeCord gateway instance and is responsible for being the messenger for data requests and data transmissions.
-The back-end utilizes 3 data layers: MySQL, Redis, and Caffeine caches. It serializes player data and transmits it through Bungee channels
-and Jedis subs, and the front-end receives and deserializes the transmission.
+# Inferris Proxy architecture
+The frontend architecture (plugin) runs on the Velocity proxy server software, and is the initial point of interaction to the REST API microservice when the player connects and disconnects.
 
-## How it works
-Brief description on how it works:
-- When a player joins, it first checks to see if they are available in the Redis server. If they are, it caches them into a Caffeine cache.
-- If the player is not available in Redis, it checks the MySQL database for information, and then puts them into Redis and then caches the player in a Caffeine cache.
-- If not available in the database, it generates the player's data accordingly.
-- Once done, it serializes the PlayerData object, which includes ranks, a registry, profile, etc., in raw JSON form.
-- With Jedis subscriptions, it then transmits the JSON over the network. A server identification system, which involves the gateway and the Spigot server communicating to each other,
-  then identifies what Spigot server the player joins through, and transmits the data to that server accordingly.
-- The front-end then receives the request, deserializes the PlayerData, and caches it accordingly.
-- When a Spigot server needs to update the player, it does the same process vice-versa: it gives the back-end the updated cache, all while keeping Redis and caches synced.
+The plugin also boasts numerous systems and commands. It uses Redis PubSub to send updated player data to backend Paper servers to keep data in sync, and a Paper server can do the same to
+ensure this plugin stays updated.
 
+## Overview
+When a player connects to the server, the plugin interacts with the API, which queries the Redis service. If no keys are found, it defaults to retrieving data from the MySQL database. Once data is obtained from either source, the plugin generates and caches the new player data, then submits it via a POST request to the API for storage in both the database and Redis.
 
-or caching data so other servers can transmit requests
-to retrieve and deserialize that data without extra server overhead. The idea is transmitting data and listening for Inferris plugin requests
-so it can respond with the correct result, such as returning the player registry in serialized form, or sending a server-wide messages for
-the channel system.
+## Systems
+- REST API integration
+- Many staff commands, such as like:
+- - /channel
+  - /vanish
+  - /rank
+  - /account
+  - /report
+  - /viewlogs
+  - /friend
+  - /shout, /announce
+  - /nuke
+  - /killinstances
+- Friends system
