@@ -7,7 +7,7 @@ ensure this plugin stays updated.
 ## Overview
 When a player connects to the server, the plugin interacts with the RESTful API, which queries the Redis service. If no keys are found, it defaults to retrieving data from the MySQL database. Once data is obtained from either source, the plugin generates and caches the new player data, then submits it via a POST request to the API for storage in both the database and Redis.
 
-## Systems
+### Systems
 - REST API integration
 - Many staff commands, such as like:
 - - /channel
