@@ -5,7 +5,7 @@ The plugin also boasts numerous systems and commands. It uses Redis PubSub to se
 ensure this plugin stays updated.
 
 ### RESTful API
-This architecture interacts with the API frequently through GET and POST requests. Here general events that can cause a request:
+This architecture interacts with the API frequently through GET and POST requests. Here are some general events that can cause a request:
 - Player connecting via proxy OR player swapping servers
 - Player leaving proxy
 - Modifying any of your Player Data
